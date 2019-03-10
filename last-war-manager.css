@@ -30,7 +30,6 @@ html {
 body {
   background-color: rgba(0, 0, 0, 0.5);
   font-size: 14px;
-  display: none;
 }
 body > div > img:first-child {
   display: none;
@@ -39,6 +38,7 @@ div[data-role="page"] {
   min-height: unset !important;
   max-width: 1200px;
   margin: 0 auto;
+  display: none;
 }
 @media (max-width: 600px) {
   #tradeOfferDiv .offer {

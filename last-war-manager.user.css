@@ -50,6 +50,7 @@
     min-height: unset !important;
     max-width: 1200px;
     margin: 0 auto;
+    display: none;
   }
   @media (max-width: 600px) {
     #tradeOfferDiv .offer {
