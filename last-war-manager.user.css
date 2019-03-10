@@ -1,0 +1,1176 @@
+/* ==UserStyle==
+@name           Last War Manager Styling Changes
+@version        0.5.0
+@namespace      https://github.com/j-ferd01
+@author         j0shi <psycho.j0shi@gmail.com>
+@description    Styling Changes for the Last War Browsergame. Complementary to the LWM Tampermonkey Script
+@license        GPL-3.0
+@preprocessor   less
+==/UserStyle== */
+
+@-moz-document url-prefix("https://last-war.de/main.php") {
+  .leftContent,
+  .virtualHeaderBox,
+  #facebookButton,
+  .pageNameDiv,
+  .crl,
+  .cordinatenInfoMiddlePage,
+  #planetImage,
+  input.deletePlanetName,
+  #shipImage,
+  #link,
+  #lwm_link,
+  #veticalLink,
+  #DefenseGraph img,
+  .big_img,
+  #cordinates_for_tade,
+  #newTradeOfferDiv .select_box_cordinaten,
+  #allCordinaten-button > span,
+  #profileImageBox > img,
+  .resourceBox .bigPop,
+  .ui-loader {
+    display: none;
+  }
+  html {
+    overflow: auto;
+    overflow-x: hidden;
+    width: 100%;
+    height: unset;
+    background-image: url(images/main_screen/background.jpg);
+  }
+  body {
+    background-color: rgba(0, 0, 0, 0.5);
+    font-size: 14px;
+  }
+  body > div > img:first-child {
+    display: none;
+  }
+  div[data-role="page"] {
+    min-height: unset !important;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  @media (max-width: 600px) {
+    #tradeOfferDiv .offer {
+      width: 98%;
+    }
+    #galaxyViewInfoTable tr td:nth-child(2),
+    #galaxyViewInfoTable tr td:nth-child(3) {
+      word-break: break-all;
+    }
+    #tableForChangingPlanet .col-2 {
+      display: none;
+    }
+  }
+  @media (max-width: 850px) {
+    html {
+      width: 100%;
+      margin-left: 0;
+    }
+    #lwm_link,
+    #veticalLink {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin-bottom: 20px !important;
+    }
+    .fontSizeFourteenClass,
+    table {
+      font-size: 12px;
+    }
+    #Main {
+      flex-flow: column;
+    }
+    #Header,
+    #Footer,
+    #Content {
+      flex: 1 100% !important;
+    }
+    #Header {
+      display: none;
+      order: 1 !important;
+      margin: 0;
+      margin-top: 66px;
+      position: fixed;
+      z-index: 10;
+      width: 100%;
+      background-color: #173a44;
+    }
+    .headerBox {
+      background-color: #173a44;
+    }
+    #lwm_menu_toggle {
+      display: block !important;
+      position: fixed;
+    }
+    #Content {
+      order: 3 !important;
+    }
+    #Footer {
+      order: 2 !important;
+      margin-bottom: 10px;
+      margin-left: 1%;
+      margin-right: 1%;
+      margin-top: 68px;
+    }
+    #Header,
+    .headerBox,
+    .menu,
+    .first_line,
+    .secound_line {
+      height: unset !important;
+    }
+    .menu {
+      flex-direction: column;
+      border-bottom: 2px solid #5db8b6;
+      border-left: 2px solid #5db8b6;
+      border-right: 2px solid #5db8b6;
+      padding: 5px;
+      border-radius: 0px 0px 10px 10px;
+    }
+    .lwm_menu-content .select_box_cordinaten {
+      top: 0;
+      margin: 0;
+    }
+    .resourceBoxs {
+      width: 100% !important;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-content: center;
+    }
+    .resourceBox {
+      flex: 0 0 100px;
+      float: none;
+      margin-left: 2px !important;
+      margin-right: 0px !important;
+      display: flex;
+      font-size: 12px !important;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 55px !important;
+    }
+    .resourceBox img,
+    .resourceBox br {
+      display: none;
+    }
+    .resourceProgressBar {
+      width: 80px !important;
+    }
+    .resourceBox ul.loadbar {
+      margin-top: 2px;
+    }
+    .galaxyView {
+      display: none !important;
+    }
+    .resourceName,
+    .resourceAmount,
+    .resourceProgressBar {
+      position: unset;
+      top: 0;
+      left: 0;
+    }
+    .profileImage {
+      display: none !important;
+    }
+    .first_line {
+      justify-content: space-between !important;
+    }
+    .secound_line {
+      justify-content: space-between !important;
+      flex: unset !important;
+      padding-left: 0 !important;
+      margin-top: 5px !important;
+    }
+  }
+  #Main {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    align-content: flex-start;
+    flex-flow: row wrap;
+    width: 100%;
+    margin: 0;
+    height: unset;
+  }
+  #Header {
+    flex: 1 100%;
+    height: 180px;
+  }
+
+  #lwm_menu_toggle i {
+    cursor: hand;
+  }
+  #lwm_menu_toggle {
+    display: none;
+    width: 100%;
+    color: #000;
+    background-color: rgb(93, 184, 182);
+    padding: 5px 0px 5px 0px;
+    z-index: 10;
+  }
+  #lwm_menu_toggle .lwm_menu-content {
+    display: flex !important;
+    justify-content: space-between;
+    width: 98%;
+    margin: 0 auto;
+    align-items: center;
+  }
+  #lwm_menu_toggle .lwm_menu-content .lwm_menu-item {
+    height: 56px;
+  }
+  #lwm_menu_toggle .lwm_menu-content .lwm_menu-item:last-child {
+    flex: 0 0 42px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  #lwm_menu_toggle .lwm_menu-content .lwm_menu-item:nth-child(2) {
+    flex: 0 0 115px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  #lwm_menu_toggle .lwm_menu-content .lwm_menu-item:first-child {
+    flex-grow: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  #lwm_menu_toggle .lwm_menu-content .lwm_menu-item:first-child i {
+    font-size: 2em;
+    width: 35px;
+    text-align: center;
+  }
+  i.icon-galaxy {
+    width: 28px;
+    height: 28px;
+    background-size: 100% 100%;
+    background-image: url("https://svgsilh.com/png-512/1294347.png");
+  }
+  .headerBox {
+    padding-top: 0;
+    height: 180px;
+    display: flex;
+    margin: 0;
+    width: 100%;
+  }
+  .profileImage {
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    order: 1;
+    flex: 0 0 170px;
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-bottom: 2px;
+    background: none;
+    background-image: none;
+    background-color: #4290a157;
+    border-radius: 60px 60px 10px 10px;
+  }
+  .profileInfo {
+    padding: 0;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-left: 5px;
+    margin-right: 5px;
+  }
+  #profileImageBox {
+    float: none;
+    margin-right: 0px;
+    margin: 5px auto 0px;
+    width: 120px;
+    height: 120px;
+    overflow: hidden;
+    z-index: 2;
+    background-size: cover;
+    border-radius: 60px;
+  }
+  #profileImageBox > svg {
+    display: none;
+  }
+  .menu {
+    margin-left: 0;
+    width: unset;
+    text-align: unset;
+    order: 2;
+    flex: 1 0 0;
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    justify-content: space-between;
+  }
+  .first_line,
+  .secound_line {
+    margin-top: 0px;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: space-between;
+  }
+  #Footer {
+    order: 1;
+    flex: 0 0 180px;
+    height: unset;
+  }
+  .resourceBoxs {
+    margin: 0;
+    padding: 0;
+    width: 180px;
+    float: none;
+  }
+  .resourceBox {
+    width: 170px;
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-bottom: 2px;
+    font-size: 14px;
+    background: none;
+    background-image: none;
+    background-color: #4290a157;
+    border-radius: 10px;
+    height: 75px;
+  }
+  .resourceBox img {
+    opacity: 1;
+  }
+  .resourceProgressBar {
+    background-size: 100% 100%;
+    width: 140px;
+  }
+  .galaxyView {
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    width: 170px;
+    margin-right: 5px;
+    margin-left: 5px;
+    height: 100px;
+    background-color: #4290a157;
+    border-radius: 10px;
+  }
+  #Content {
+    order: 2;
+    flex-grow: 3;
+    flex-shrink: 1;
+    flex-basis: 0px;
+    height: unset;
+    margin: 0;
+    margin-bottom: 50px;
+  }
+  .middleContent {
+    background-image: none;
+    background: none;
+    width: 96%;
+    height: unset;
+    margin-left: 2%;
+    margin-right: 0;
+    margin-top: 0;
+    float: none;
+  }
+  #all {
+    width: 100%;
+    height: unset;
+    top: 0;
+    left: 0;
+    clip-path: none;
+    -webkit-clip-path: none;
+  }
+  .pageContent {
+    height: unset;
+    overflow-y: initial;
+    padding-right: 0;
+  }
+  ul.loadbarConstruction,
+  ul.loadbarResearch {
+    display: flex;
+    width: 98%;
+    margin-left: 1%;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  ul.loadbar {
+    display: flex;
+    width: 90%;
+    margin-left: 5%;
+    padding-left: 0;
+    padding-right: 0;
+    -webkit-margin-before: unset;
+    -webkit-padding-before: unset;
+    margin-top: -5px;
+  }
+  ul.loadbarConstruction li,
+  ul.loadbarResearch li,
+  ul.loadbar li {
+    flex: 1 1 1px;
+    width: unset;
+  }
+  table,
+  tr,
+  td,
+  th {
+    border: 1px solid rgba(124, 243, 241, 0.5);
+    border-collapse: collapse;
+  }
+  .resourceProgressBarPlanet {
+    width: unset;
+    background-size: 100% 100%;
+  }
+  .resourceProgressBarPlanet ul.loadbar {
+    -webkit-margin-before: 2px;
+  }
+  .planetButtonMain {
+    background-color: #4290a157;
+    font-size: 18px;
+    font-weight: bold;
+  }
+  .wordBreak {
+    word-break: normal;
+  }
+  #constructionPageDiv tr > td:first-child,
+  #schiffskomponentenDiv tr > td:first-child,
+  #productionDiv tr > td:first-child:not(.roheisenVariable),
+  #researchPageDiv tr > td:first-child:not(.roheisenVariable),
+  #verteidigungDiv tr > td:first-child:not(.roheisenVariable),
+  #handelspostenDiv tr > td:first-child:not(.roheisenVariable),
+  #recyclingDefenceDiv tr > td:first-child:not(.roheisenVariable),
+  #raumdockDiv tr > td:first-child,
+  #changeFlottenDiv tr > td:first-child {
+    word-break: break-all;
+    min-width: 50px;
+    background-color: #4290a157;
+  }
+  tr th:first-child,
+  #lwm_resourceTotal th,
+  #ShipTable > tbody > tr > td:first-child,
+  #EngineTable > tbody > tr > td:first-child,
+  #ComponentTable > tbody > tr > td:first-child,
+  #researchPageDiv > table > tbody > tr > td:first-child,
+  .hideCommponetShips td:first-child,
+  #AllItems > tbody > tr > td:first-child {
+    min-width: 50px;
+    background-color: #4290a157;
+    word-break: break-all;
+  }
+  .timeConstructionTd,
+  .timeResearchTd {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: space-evenly;
+  }
+  .defaultButton,
+  .greenButton,
+  .yellowButton,
+  .redButton {
+    margin: 0;
+  }
+  #saveLinks {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    text-align: center;
+  }
+  .formButtonSpionage,
+  .formButton,
+  .formButtonNewMessage,
+  .buttonGalaxyView,
+  .formButtonGalaxyView {
+    width: 125px !important;
+    height: 25px !important;
+    line-height: 25px !important;
+  }
+  .formButtonSpionage,
+  .formButtonNewMessage {
+    margin-top: 5px !important;
+    margin-bottom: 5px !important;
+  }
+  .buttonAccount {
+    width: 150px !important;
+    height: 25px !important;
+    line-height: 25px !important;
+    margin-top: 5px !important;
+    margin-bottom: 5px !important;
+  }
+  .menu_box,
+  .buttonAccount,
+  .navButton,
+  .navBigButton,
+  .formButtonNewMessage,
+  .formButton,
+  .formButtonSpionage,
+  .buttonGalaxyView,
+  .formButtonGalaxyView {
+    border-radius: 5px;
+    margin: 1px;
+    border: 2px groove #7cf3f1;
+    font-size: inherit;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .menu_box:hover,
+  .buttonAccount:hover,
+  .navButton:hover,
+  .navBigButton:hover,
+  .formButtonNewMessage:hover,
+  .formButton:hover,
+  .formButtonSpionage:hover,
+  .buttonGalaxyView:hover,
+  .formButtonGalaxyView:hover {
+    background-color: #cdd21c57;
+  }
+  .menu_box,
+  .buttonAccount,
+  .formButtonNewMessage,
+  .formButton,
+  .formButtonSpionage,
+  .buttonGalaxyView,
+  .formButtonGalaxyView {
+    background: none;
+    background-image: none !important;
+    background-color: #4290a157;
+  }
+  .menu_box {
+    width: 125px !important;
+    height: 22px;
+    line-height: 22px;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .navButton,
+  .bigNavButton {
+    background: none;
+    background-image: none !important;
+    background-color: #242d6f8f;
+    width: 150px !important;
+    height: 22px !important;
+    line-height: 22px !important;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+    padding-right: 5px;
+  }
+  .headerOfGalaxyViewPage .formButtonGalaxyView {
+    width: 20px !important;
+  }
+  .headerOfGalaxyViewPage .formButtonGalaxyView i {
+    line-height: 2em;
+  }
+  .menu_box i + span {
+    margin-left: 5px;
+    margin-right: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .menu_box i {
+    margin-left: 5px;
+  }
+  .navButton i,
+  .bigNavButton i {
+    margin-left: 5px;
+    margin-right: 5px;
+  }
+  .activeBox {
+    background: none;
+    background-image: none !important;
+    background-color: #cdd21c57;
+  }
+  .lightRedBackgroundGalaxyView {
+    background-color: #6b1919;
+    background: #6b1919;
+  }
+  .hisMessage {
+    background-color: #7399dc;
+  }
+  .hisMessage::before {
+    border-color: transparent #7399dc transparent transparent;
+  }
+  .buttonRow {
+    height: unset;
+  }
+  @media (max-width: 600px) {
+    .headerOfGalaxyViewPage input,
+    #inboxContent .formButton,
+    #inboxContent .formButtonNewMessage {
+      width: 80px !important;
+    }
+
+    .headerOfGalaxyViewPage .buttonGalaxyView {
+      width: 50px !important;
+    }
+  }
+  @media (max-width: 850px) {
+    .navButton,
+    .navButton.bigNavButton {
+      width: 120px !important;
+      line-height: 22px !important;
+      height: 22px !important;
+      font-size: 12px !important;
+    }
+    .buttonAccount,
+    .formButtonNewMessage,
+    .formButton,
+    .formButtonSpionage,
+    .buttonGalaxyView,
+    .formButtonGalaxyView {
+      width: 125px !important;
+      font-size: 12px !important;
+    }
+    #tradeOfferDiv .formButton {
+      width: 100px !important;
+    }
+    .menu_box {
+      width: 100px !important;
+      font-size: 12px !important;
+    }
+    td.roheisenVariable,
+    td.kristallVariable,
+    td.frubinVariable,
+    td.orizinVariable,
+    td.frurozinVariable,
+    td.goldVariable {
+      font-size: 10px;
+      word-break: break-all;
+    }
+  }
+  .raumdock-arrow-left,
+  .arrow-left,
+  .spionage-arrow-left,
+  .arrow-left-recycle {
+    border-top: 12px solid transparent;
+    border-bottom: 12px solid transparent;
+    border-right: 20px solid #7cf3fd;
+    margin-top: 0 !important;
+  }
+  .raumdock-arrow-right,
+  .arrow-right,
+  .spionage-arrow-right,
+  .arrow-right-recycle {
+    border-top: 12px solid transparent;
+    border-bottom: 12px solid transparent;
+    border-left: 20px solid #7cf3fd;
+    margin-top: 0 !important;
+  }
+  input[type="number"] {
+    text-align: center;
+    margin: 0;
+  }
+  [id*="InputNumber"],
+  .inputNumberDiv {
+    display: flex;
+    justify-content: center;
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+  #changeFlottenDiv td[id*="InputNumber"] {
+    display: table-cell;
+  }
+  .inputNumberDiv span {
+    margin-left: 2px;
+    margin-right: 2px;
+    font-size: 14px;
+  }
+  @media (max-width: 850px) {
+    #handelspostenDiv input[type="number"],
+    #verteidigungDiv input[type="number"],
+    #productionDiv input[type="number"],
+    #raumdockDiv input[type="number"] {
+      width: 30px !important;
+    }
+  }
+  #raumdockDiv .inputNumberDiv,
+  #spionageDiv .inputNumberDiv {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .inputNumberDiv .fa-check-circle {
+    color: #6ac468;
+    cursor: hand;
+    font-size: 2em;
+  }
+  .inputNumberDiv .fa-ban {
+    color: #c46868;
+    cursor: hand;
+    font-size: 2em;
+  }
+  .shipNameProduction,
+  .headerProduction {
+    font-size: inherit;
+  }
+  .shipNameProduction,
+  .headerProduction {
+    background: none;
+    background-image: none;
+    background-color: #4290a157;
+    min-width: 50px;
+  }
+  table + table {
+    margin-top: 5px;
+  }
+  th,
+  th.wordBreak {
+    word-break: break-all;
+  }
+  th.resursiUnos {
+    display: table-cell !important;
+  }
+  #ComponentTable tr:not([id]):not(:nth-child(3)) {
+    display: none !important;
+  }
+  #ComponentTable tr:not([id]):nth-child(3) td,
+  #AllItems th,
+  #headerMaintable th,
+  #EngineTable tr:nth-child(2),
+  #ShipTable tr:nth-child(2),
+  #planetTable tr:nth-child(6n-5),
+  #constructionPageDiv th,
+  td.constructionName,
+  #researchPageDiv th,
+  #tradeOfferDiv th,
+  #newTradeOfferDiv th,
+  #raumdockDiv th,
+  #changeFlottenDiv th,
+  #messagesListTableInbox > tbody > tr:first-child,
+  #folottenbewegungenPageDiv table tr:first-child,
+  #galaxyViewInfoTable th,
+  #observationenDiv th,
+  #tableForChangingPlanet tr {
+    word-break: break-all;
+    background-color: #4290a157;
+  }
+  .hideCommponetShips .bla {
+    display: flex;
+    justify-content: center;
+  }
+  .hideCommponetShips .bla input {
+    width: 25px;
+    margin: 0;
+  }
+  #planetText {
+    margin: 0;
+  }
+  #galaxyViewDiv {
+    margin-top: 5px;
+  }
+  #folottenbewegungenPageDiv
+    tr
+    > td:not(:nth-last-child(1)):not(:nth-last-child(2)):not(:first-child) {
+    display: none;
+  }
+  #planetTable > tbody > tr:nth-child(1) > td:nth-child(4),
+  #planetTable > tbody > tr:nth-child(1) > td:nth-child(5),
+  #planetTable > tbody > tr:nth-child(1) > th:nth-child(4),
+  #planetTable > tbody > tr:nth-child(1) > th:nth-child(5),
+  #planetTable > tbody > tr:nth-child(2) > td:nth-child(4),
+  #planetTable > tbody > tr:nth-child(2) > td:nth-child(5),
+  #planetTable > tbody > tr:nth-child(2) > th:nth-child(4),
+  #planetTable > tbody > tr:nth-child(2) > th:nth-child(5),
+  #planetTable > tbody > tr:nth-child(6n + 1) > td:nth-child(4),
+  #planetTable > tbody > tr:nth-child(6n + 1) > td:nth-child(5),
+  #planetTable > tbody > tr:nth-child(6n + 1) > th:nth-child(4),
+  #planetTable > tbody > tr:nth-child(6n + 1) > th:nth-child(5) {
+    display: none;
+  }
+  #t1DIV {
+    display: table-row !important;
+  }
+  /* SHIPDOCK */
+  #lwm_selectAllShips {
+    margin-left: 5px;
+  }
+  .createShipButton {
+    cursor: hand;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .createShipButton:hover {
+    background-color: #cdd21c57;
+  }
+  /* SHIPDOCK END */
+  /* INBOX */
+  .inboxPage {
+    display: flex;
+    flex-flow: column;
+  }
+  #messagesListTableInbox {
+    margin-bottom: 5px;
+  }
+  .messages {
+    width: 90%;
+    border: 1px solid #7cf3f1;
+    border-radius: 10px;
+    padding: 2%;
+    height: unset;
+    overflow-y: auto;
+  }
+  .messages a {
+    color: #32eccf;
+    font-weight: bold;
+  }
+  #veticalLink {
+    width: 100%;
+    text-align: center;
+    height: unset;
+    margin-bottom: 5px;
+  }
+  #inboxContent {
+    width: 100%;
+  }
+  .inboxDeleteMessageButtons {
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    width: 50%;
+    margin: 0;
+    float: left;
+  }
+  .inboxNextPageButtons {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    width: 50%;
+    margin: 0;
+    float: right;
+  }
+  .buttonRowInbox,
+  .buttonRowNextPageInbox {
+    height: unset;
+    width: unset;
+    float: none;
+  }
+  .newMessageInbox textarea {
+    width: 90%;
+  }
+  #inboxContent .controller {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* INBOX END */
+  /* DEFENSE */
+  #DefenseGraph {
+    background: url(https://last-war.de/images/Defense.jpg);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    height: 400px;
+  }
+  #DefenseGraph #layer1,
+  #DefenseGraph #layer2,
+  #DefenseGraph #layer3,
+  #DefenseGraph #layer4 {
+    float: none;
+    text-align: unset;
+    padding: 0;
+    margin: 0;
+    font-size: 14px;
+  }
+  #DefenseGraph #layer1 {
+    width: 80%;
+    left: 10%;
+    top: 3%;
+  }
+  #DefenseGraph #layer2 {
+    width: 80%;
+    top: 25%;
+    left: 10%;
+  }
+  #DefenseGraph #layer3 {
+    width: 100%;
+    top: 40%;
+  }
+  #DefenseGraph #layer3 #layer3_right {
+    font-size: 10px;
+    width: 45%;
+    margin-left: 5%;
+    padding: 0;
+    margin-top: 2%;
+  }
+  #DefenseGraph #layer3 #layer3_left {
+    width: 45%;
+    text-align: center;
+    margin-right: 5%;
+    height: unset;
+  }
+  #DefenseGraph #layer4 {
+    width: 100%;
+    top: 60%;
+    left: 0%;
+  }
+  #DefenseGraph #layer4 > div:first-child {
+    width: 80%;
+  }
+  #DefenseGraph #layer4 #plasma {
+    width: 40%;
+    margin: 0;
+    text-align: right;
+    margin-top: 3%;
+  }
+  #DefenseGraph #layer4 #anti {
+    width: 40%;
+    text-align: left;
+    margin-top: 3%;
+    margin-right: 0;
+  }
+  /* DEFENSE END */
+  /* TOOLTIP **/
+  .big_img_alt {
+    width: auto;
+    max-width: 500px;
+    height: auto;
+    position: absolute;
+    z-index: 1;
+    background-color: #092a3d;
+    margin-bottom: 1px;
+    font-weight: bold;
+    font-size: 12px;
+    font-style: italic;
+    border-radius: 10px;
+    text-align: justify;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  /* TOOLTIP END */
+  /* LOADER */
+  .loader {
+    border: 16px solid #7cf3f1;
+    border-top: 16px solid #1a3f4a;
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    animation: spin 2s linear infinite;
+    margin: 0 auto;
+  }
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  /* LOADER END */
+  /* TRADE */
+  #newTradeOfferDiv th input:nth-child(1) {
+    width: 25px !important;
+  }
+  #newTradeOfferDiv th input:nth-child(2) {
+    width: 30px !important;
+  }
+  #newTradeOfferDiv th input:nth-child(3) {
+    width: 25px !important;
+  }
+  #newTradeOfferDiv th:nth-child(2) {
+    white-space: nowrap;
+  }
+  #newTradeOfferDiv td {
+    text-align: center;
+    padding: 5px !important;
+  }
+  #newTradeOfferDiv td:nth-child(1),
+  #newTradeOfferDiv td:nth-child(3) {
+    word-break: break-all;
+  }
+  #newTradeOfferDiv td input {
+    width: 90%;
+    margin: 5px 5% 5px 5% !important;
+  }
+  #tradeOfferComment {
+    border: 1px solid #7cf3fd !important;
+  }
+  /* TRADE END */
+  /* FLEET START */
+  .pageContent .flottenViewDiv #firstTable {
+    width: unset !important;
+  }
+  .flottenViewDiv a:hover {
+    color: #fff;
+    background-color: #242d6f8f;
+  }
+  /* FLEET END */
+  /* SETTINGS */
+  iframe#lwmSettings {
+    left: 0px !important;
+    top: 0px !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    border: 1px solid transparent !important;
+    background: #00000080 !important;
+    background-color: #00000080 !important;
+  }
+  body#lwmSettings {
+    width: 80%;
+    margin-left: 10%;
+    height: 80%;
+    margin-top: 10%;
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+  body#lwmSettings #lwmSettings_wrapper {
+    background-color: #7cf3f1;
+    padding: 10px;
+  }
+  body#lwmSettings input,
+  body#lwmSettings button {
+    border-color: #000;
+    background-color: #4290a157;
+    color: #000;
+  }
+  body#lwmSettings .section_desc {
+    border-color: #000;
+    background-color: #4290a157;
+    color: #000;
+  }
+  /* SETTINGS END */
+  .planetGraph {
+    margin-top: 1%;
+  }
+  .planetGraph:nth-child(2n-1) {
+    margin-right: 2%;
+  }
+  @media (max-width: 700px) {
+    .planetGraph {
+      margin-top: 1%;
+      margin-right: 0;
+      width: 100%;
+    }
+  }
+  /* GALAXY */
+  .actionClass {
+    font-size: 0.75em;
+  }
+  .flottenKommandoAction,
+  .newTradeOfferAction,
+  .spionagePlanetenscannerAction,
+  .spionageObservationsAction,
+  .changePlanetAction {
+    background-image: none;
+  }
+  .headerOfGalaxyViewPage {
+    margin-bottom: 5px;
+    padding: 5px;
+    border: 1px solid rgba(124, 243, 241, 0.5);
+    border-collapse: collapse;
+  }
+  .headerOfGalaxyViewPage input {
+    width: unset;
+    float: none;
+    border-color: unset;
+    border-radius: 5px;
+    border-width: 0px;
+    margin-top: 0%;
+    height: 29px;
+    background-color: #4290a157;
+    color: #7cf3fd;
+    text-align: center;
+  }
+  .headerOfGalaxyViewPage input::-webkit-input-placeholder,
+  .headerOfGalaxyViewPage input::placeholder {
+    color: #7cf3fd80;
+  }
+  .headerOfGalaxyViewPage .col-4 {
+    text-align: right;
+  }
+  #tableForChangingPlanet #left,
+  #tableForChangingPlanet #right {
+    cursor: hand;
+  }
+  #tableForChangingPlanet .row {
+    justify-content: space-evenly;
+    align-items: center;
+  }
+  #galaxy_view_search {
+    margin-right: 2px;
+    margin-left: 2px;
+    font-size: 14px;
+  }
+  .inputSearchGalaxyValDiv {
+    display: flex;
+    justify-content: center;
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+  /* GALAXY END */
+  /* PRODUCTION */
+  #aktuelleProduktionPageDiv .fa-ban {
+    color: rgba(255, 0, 0, 0.75);
+  }
+  .shipNameProduction i {
+    color: rgba(255, 0, 0, 0.75);
+    cursor: hand;
+    float: left;
+    margin-left: 5px;
+    margin-right: 5px;
+  }
+  #productionDiv button[onclick*="delete"] {
+    border: 0 !important;
+  }
+  #productionDiv table i.fa-ban {
+    color: rgba(255, 0, 0, 0.75);
+  }
+  .tableFilters_content {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .tableFilters {
+    margin-bottom: 20px;
+    border: 1px solid #7cf3f1;
+  }
+  .tableFilters_header {
+    color: #c7fbff;
+    text-align: center;
+    background-color: #4290a157;
+    border-bottom: 1px solid #7cf3f1;
+  }
+  /* PRODUCTION END */
+  /* ROHSTOFFE START */
+  #rohstoffeDiv > .rohstoffeTableClass > tbody > tr {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    height: unset !important;
+  }
+  #rohstoffeDiv > .rohstoffeTableClass > tbody > tr > td {
+    width: unset !important;
+    flex: 0 0 300px;
+    height: 250px;
+  }
+  #lwm_resourceTotal {
+    margin-bottom: 20px;
+  }
+  /* ROHSTOFFE END */
+  /* ACCOUNT */
+  #AccountInfo {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+  }
+  #AccountInfo > div {
+    margin: 0;
+    width: unset;
+    height: unset;
+    float: none;
+  }
+  .friendsLis {
+    flex: 0 0 100%;
+  }
+  /* ACCOUNT END */
+  /* BANK */
+  #bankDiv > div {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+  /* BANK END */
+}
