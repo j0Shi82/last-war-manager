@@ -6,8 +6,8 @@
 // @downloadURL   https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/last-war-manager.user.js
 // @supportURL    https://github.com/j0Shi82/last-war-manager/issues
 // @match         https://last-war.de/main.php*
-// @require       https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/vendor.js
-// @resource      css https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/last-war-manager.user.css
+// @require       https://raw.githubusercontent.com/j0Shi82/last-war-manager/9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/vendor.js
+// @resource      css https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo.png
 // @grant         GM.getValue
 // @grant         GM.setValue
