@@ -6,15 +6,20 @@
 // @downloadURL   https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/last-war-manager.user.js
 // @supportURL    https://github.com/j0Shi82/last-war-manager/issues
 // @match         https://last-war.de/main.php*
-// @require       https://raw.githubusercontent.com/j0Shi82/last-war-manager/9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/vendor.js
+// @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e07de5c0a13d416fda88134f999baccfee6f7059/assets/jquery.min.js
+// @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
 // @resource      css https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo.png
 // @grant         GM.getValue
 // @grant         GM.setValue
 // @grant         GM_getResourceText
 // @grant         GM_addStyle
+// @run-at        document-start
 // @version       0.5
 // ==/UserScript==
+
+var firstLoad = true;
+var lwm_jQuery = window.jQuery;
 
 // add style
 (function() {
@@ -41,8 +46,7 @@
 
 
 function siteManager() {
-    var lwm_jQuery = unsafeWindow.jQuery;
-    lwm_jQuery.getScript('//code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js');
+    var site_jQuery = null;
 
     var driveManager = (function() {
         var gapi = null;
@@ -320,12 +324,12 @@ function siteManager() {
             type: null
         },
         gameData: {
-            playerID: unsafeWindow.my_id,
+            playerID: null,
             planetCoords: {
-                string: unsafeWindow.my_galaxy + 'x' + unsafeWindow.my_system + 'x' + unsafeWindow.my_planet,
-                galaxy: unsafeWindow.my_galaxy,
-                system: unsafeWindow.my_system,
-                planet: unsafeWindow.my_planet
+                string: null,
+                galaxy: null,
+                system: null,
+                planet: null
             },
             planets: [],
             planetInformation: [],
@@ -434,6 +438,14 @@ function siteManager() {
         },
         getGameData: {
             all: function () {
+                config.gameData.planetCoords = {
+                    string: unsafeWindow.my_galaxy + 'x' + unsafeWindow.my_system + 'x' + unsafeWindow.my_planet,
+                    galaxy: unsafeWindow.my_galaxy,
+                    system: unsafeWindow.my_system,
+                    planet: unsafeWindow.my_planet
+                };
+                config.gameData.playerID = unsafeWindow.my_id;
+
                 // returns a promise because other stuff has to wait for the data
                 return lwm_jQuery.when(
                     config.getGameData.spionageInfos(),
@@ -443,11 +455,11 @@ function siteManager() {
             },
             spionageInfos: function () {
                 var uriData = 'galaxy_check='+config.gameData.planetCoords.galaxy+'&system_check='+config.gameData.planetCoords.system+'&planet_check='+config.gameData.planetCoords.planet;
-                return lwm_jQuery.getJSON('https://last-war.de/ajax_request/get_spionage_info.php?'+uriData, function( data ) { config.gameData.spionageInfos = data; });
+                return site_jQuery.getJSON('https://last-war.de/ajax_request/get_spionage_info.php?'+uriData, function( data ) { config.gameData.spionageInfos = data; });
             },
             productionInfos: function () {
                 var uriData = 'galaxy_check='+config.gameData.planetCoords.galaxy+'&system_check='+config.gameData.planetCoords.system+'&planet_check='+config.gameData.planetCoords.planet;
-                return lwm_jQuery.getJSON("https://last-war.de/ajax_request/get_production_info.php?"+uriData, function( data ) {
+                return site_jQuery.getJSON("https://last-war.de/ajax_request/get_production_info.php?"+uriData, function( data ) {
                     lwm_jQuery.each(data, function (i, cat) {
                         if (!lwm_jQuery.isArray(cat)) return true;
                         lwm_jQuery.each(cat, function (j, ship) {
@@ -462,7 +474,7 @@ function siteManager() {
                 if (GM_config.get('confirm_drive_sync')) driveManager.save();
             },
             planetInformation: function(data) {
-                return lwm_jQuery.getJSON('https://last-war.de/ajax_request/get_all_planets_information.php', function (data) {
+                return site_jQuery.getJSON('https://last-war.de/ajax_request/get_all_planets_information.php', function (data) {
                     config.gameData.planetInformation = data;
                     config.gameData.planets = [];
                     lwm_jQuery.each(data, function (i, d) {
@@ -476,45 +488,55 @@ function siteManager() {
     };
 
     var install = function() {
-        config.getGameData.all().then(function () {
-            // wait for game date because some stuff depends on it
-            global.uiChanges();
-            global.hotkeySetup();
-            // load settings from google or browser
+        // load site jQuery as well, need this to make API calls
+        lwm_jQuery(document).ready(function () {
+            site_jQuery = unsafeWindow.jQuery;
+            site_jQuery.ajaxSetup({ cache: true });
 
-            lwm_jQuery.getScript('//apis.google.com/js/api.js').then(function () {
-                if (!GM_config.get('confirm_drive_sync')) config.setGMValues();
-                driveManager.init(unsafeWindow.gapi);
+            //attach loader for first page load
+            site_jQuery('body').append('<div class="loader"></div>');
+
+            var loadVendor = site_jQuery.getScript('https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js');
+            site_jQuery.when(config.getGameData.all(),loadVendor).then(function () {
+                // wait for game date because some stuff depends on it
+                global.uiChanges();
+                global.hotkeySetup();
+                // load settings from google or browser
+
+                site_jQuery.getScript('//apis.google.com/js/api.js').then(function () {
+                    if (!GM_config.get('confirm_drive_sync')) config.setGMValues();
+                    driveManager.init(unsafeWindow.gapi);
                 });
-        });
+            });
 
-        //we're hooking into ajax requests to figure out on which page we are and fire our own stuff
-        lwm_jQuery(document).ajaxSend(function( event, xhr, settings ) {
-            console.log(event.data,settings.data);
-            console.log(settings.url.match(/\/(\w*).php(\?.*)?$/)[1]);
+            //we're hooking into ajax requests to figure out on which page we are and fire our own stuff
+            site_jQuery(document).ajaxSend(function( event, xhr, settings ) {
+                console.log(event.data,settings.data);
+                console.log(settings.url.match(/\/(\w*).php(\?.*)?$/)[1]);
 
-            var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
+                var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
-            var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
-                                'get_info_for_flotten_pages'];
-            var ignorePages =  ['galaxy_view','change_flotten','flottenbasen_all','fremde_flottenbasen','flottenbasen_planet'];
+                var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
+                                    'get_info_for_flotten_pages'];
+                var ignorePages =  ['galaxy_view','change_flotten','flottenbasen_all','fremde_flottenbasen','flottenbasen_planet'];
 
-            if ((settings.url.match(/content/) || processPages.indexOf(page) !== -1) && ignorePages.indexOf(page) === -1) process(page, xhr);
+                if ((settings.url.match(/content/) || processPages.indexOf(page) !== -1) && ignorePages.indexOf(page) === -1) process(page, xhr);
 
-            if (page === 'get_ubersicht_info') console.log(config);
-        });
+                if (page === 'get_ubersicht_info') console.log(config);
+            });
 
-        lwm_jQuery(window).focus(function () { addOns.load(); });
-        lwm_jQuery(window).blur(function () { addOns.blur(); });
+            site_jQuery(window).focus(function () { addOns.load(); });
+            site_jQuery(window).blur(function () { addOns.blur(); });
 
-        lwm_jQuery(document).ajaxComplete(function( event, xhr, settings ) {
-            var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
-            var listenPages = ['put_building'];
+            site_jQuery(document).ajaxComplete(function( event, xhr, settings ) {
+                var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
+                var listenPages = ['put_building'];
 
-            if (listenPages.indexOf(page) !== -1) {
-                console.log(event, xhr, settings);
-                console.log('ajaxComplete',page, xhr.responseJSON);
-            }
+                if (listenPages.indexOf(page) !== -1) {
+                    console.log(event, xhr, settings);
+                    console.log('ajaxComplete',page, xhr.responseJSON);
+                }
+            });
         });
     }
 
@@ -541,6 +563,10 @@ function siteManager() {
         getPageLoadPromise().then(function () {
             lwm_jQuery('.loader').hide();
             lwm_jQuery('#all').show();
+            if (firstLoad) {
+                lwm_jQuery('[data-role="page"]').show();
+                firstLoad = false;
+            }
             lwm_jQuery(unsafeWindow).focus();
 
             if (page === 'get_galaxy_view_info') {
@@ -550,6 +576,10 @@ function siteManager() {
             console.log(e);
             lwm_jQuery('.loader').hide();
             lwm_jQuery('#all').show();
+            if (firstLoad) {
+                lwm_jQuery('[data-role="page"]').show();
+                firstLoad = false;
+            }
             lwm_jQuery(unsafeWindow).focus();
         });
 
@@ -692,7 +722,7 @@ function siteManager() {
 
                 //missing building names and progress bars fix
                 var uriData = 'galaxy_check='+config.gameData.planetCoords.galaxy+'&system_check='+config.gameData.planetCoords.system+'&planet_check='+config.gameData.planetCoords.planet;
-                lwm_jQuery.ajax({
+                site_jQuery.ajax({
                     url: 'https://last-war.de/ajax_request/get_ubersicht_info.php?'+uriData,
                     success: function(data) {
                         lwm_jQuery('.Posle:eq(0) #BuildingName').html(data.all_planets_for_use[0].BuildingName);
@@ -1580,7 +1610,7 @@ function siteManager() {
         refreshTrades: function() {
             var requestTrades = function() {
                 var uriData = 'galaxy_check='+config.gameData.planetCoords.galaxy+'&system_check='+config.gameData.planetCoords.system+'&planet_check='+config.gameData.planetCoords.planet;
-                lwm_jQuery.ajax({
+                site_jQuery.ajax({
                     url: 'https://last-war.de/ajax_request/get_trade_offers.php?'+uriData,
                     success: function(data) {
                         unsafeWindow.Roheisen = parseInt(data.resource['Roheisen']);
@@ -1660,7 +1690,7 @@ function siteManager() {
 
 
             if (!addOns.config.fleetCompleteHandlerAdded) {
-                lwm_jQuery(document).ajaxComplete(function( event, xhr, settings ) {
+                site_jQuery(document).ajaxComplete(function( event, xhr, settings ) {
                     var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
                     if (page === 'get_flottenbewegungen_info') {
@@ -1717,7 +1747,7 @@ function siteManager() {
             };
 
             //we're using a simplified version of sendSpionageAction in spionage.js
-            lwm_jQuery.ajax({
+            site_jQuery.ajax({
                 type: "POST",
                 dataType: "json",
                 url: "https://last-war.de/ajax_request/send_spionage_action.php",
@@ -1942,7 +1972,6 @@ function siteManager() {
     }
 
     install();
-    process('ubersicht');
 };
 
 (function() {
