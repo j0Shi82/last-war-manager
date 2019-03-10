@@ -38,7 +38,6 @@ div[data-role="page"] {
   min-height: unset !important;
   max-width: 1200px;
   margin: 0 auto;
-  display: none;
 }
 @media (max-width: 600px) {
   #tradeOfferDiv .offer {
@@ -175,7 +174,7 @@ div[data-role="page"] {
   }
 }
 #Main {
-  display: flex;
+  display: none;
   justify-content: center;
   align-items: stretch;
   align-content: flex-start;
