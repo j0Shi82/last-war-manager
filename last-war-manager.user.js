@@ -8,7 +8,7 @@
 // @match         https://last-war.de/main.php*
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e07de5c0a13d416fda88134f999baccfee6f7059/assets/jquery.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
-// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@74754997e7c68b953b1710b76422592dddcfe2a3/last-war-manager.css
+// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@37e8a1dfdcb142617ea24209228fbaab7f6ad14f/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo.png
 // @grant         GM.getValue
 // @grant         GM.setValue
@@ -494,7 +494,7 @@ function siteManager() {
             site_jQuery.ajaxSetup({ cache: true });
 
             //attach loader for first page load
-            site_jQuery('body').append('<div class="loader"></div>');
+            site_jQuery('body').append('<div class="loader lwm-firstload"></div>');
 
             var loadVendor = site_jQuery.getScript('https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js');
             site_jQuery.when(config.getGameData.all(),loadVendor).then(function () {
@@ -565,6 +565,7 @@ function siteManager() {
             lwm_jQuery('#all').show();
             if (firstLoad) {
                 lwm_jQuery('#Main').css('display','flex');
+                lwm_jQuery('.loader.lwm-firstload').remove();
                 firstLoad = false;
             }
             lwm_jQuery(unsafeWindow).focus();
@@ -578,6 +579,7 @@ function siteManager() {
             lwm_jQuery('#all').show();
             if (firstLoad) {
                 lwm_jQuery('#Main').css('display','flex');
+                lwm_jQuery('.loader.lwm-firstload').remove();
                 firstLoad = false;
             }
             lwm_jQuery(unsafeWindow).focus();
