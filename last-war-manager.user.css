@@ -41,7 +41,6 @@
   body {
     background-color: rgba(0, 0, 0, 0.5);
     font-size: 14px;
-    display: none;
   }
   body > div > img:first-child {
     display: none;
@@ -780,7 +779,9 @@
   #planetTable > tbody > tr:nth-child(6n + 1) > th:nth-child(5) {
     display: none;
   }
-  #t1DIV {
+  #t1DIV,
+  #t2DIV,
+  #t3DIV {
     display: table-row !important;
   }
   /* SHIPDOCK */

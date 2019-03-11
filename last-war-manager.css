@@ -768,7 +768,9 @@ td.constructionName,
 #planetTable > tbody > tr:nth-child(6n + 1) > th:nth-child(5) {
   display: none;
 }
-#t1DIV {
+#t1DIV,
+#t2DIV,
+#t3DIV {
   display: table-row !important;
 }
 /* SHIPDOCK */

@@ -335,6 +335,7 @@ function siteManager() {
             planetInformation: [],
             spionageInfos: [],
             productionInfos: [],
+            overviewInfo: {},
 
             checkDataReloads: function () {
                 lwm_jQuery.each(config.gameData.reloads, function (type, state) {
@@ -528,6 +529,13 @@ function siteManager() {
 
             site_jQuery(document).ajaxComplete(function( event, xhr, settings ) {
                 var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
+
+                // save specific responses for later use
+                var saveRequest = ['get_ubersicht_info'];
+                if (saveRequest.indexOf(page) !== -1) {
+                    if (page === 'get_ubersicht_info') config.gameData.overviewInfo = xhr.responseJSON;
+                }
+
                 var listenPages = ['put_building'];
 
                 if (listenPages.indexOf(page) !== -1) {
@@ -721,24 +729,17 @@ function siteManager() {
                 });
 
                 //missing building names and progress bars fix
-                var uriData = 'galaxy_check='+config.gameData.planetCoords.galaxy+'&system_check='+config.gameData.planetCoords.system+'&planet_check='+config.gameData.planetCoords.planet;
-                site_jQuery.ajax({
-                    url: 'https://last-war.de/ajax_request/get_ubersicht_info.php?'+uriData,
-                    success: function(data) {
-                        lwm_jQuery('.Posle:eq(0) #BuildingName').html(data.all_planets_for_use[0].BuildingName);
-                        lwm_jQuery('.Posle:eq(0) #BuildingName2').html(data.all_planets_for_use[0].BuildingName2);
+                lwm_jQuery('.Posle:eq(0) #BuildingName').html(config.gameData.overviewInfo.all_planets_for_use[0].BuildingName);
+                lwm_jQuery('.Posle:eq(0) #BuildingName2').html(config.gameData.overviewInfo.all_planets_for_use[0].BuildingName2);
 
-                        $.each(data.arrayForInitClock, function (i, clockData) {
-                            var $progressBarDiv = $('.uberProgressbar').eq(i);
-                            $progressBarDiv.attr('id', 'lwm_uberProgressBar'+i);
-                            var $timeDiv = $('td[id*=\'Clock\']').eq(i);
-                            $timeDiv.data('clock_seconds', clockData.secounds);
-                            var percentageComplete = Math.round((100 - Math.round((clockData.secounds * 100) / clockData.total_secounds)) / 2);
-                            $progressBarDiv.html(unsafeWindow.createUberProgressBar(percentageComplete, 'lwm_uberProgressBar'+i));
-                            helper.setDataForClocks();
-                        });
-                    },
-                    dataType: 'json'
+                $.each(config.gameData.overviewInfo.arrayForInitClock, function (i, clockData) {
+                    var $progressBarDiv = $('.uberProgressbar').eq(i);
+                    $progressBarDiv.attr('id', 'lwm_uberProgressBar'+i);
+                    var $timeDiv = $('td[id*=\'Clock\']').eq(i);
+                    $timeDiv.data('clock_seconds', clockData.secounds);
+                    var percentageComplete = Math.round((100 - Math.round((clockData.secounds * 100) / clockData.total_secounds)) / 2);
+                    $progressBarDiv.html(unsafeWindow.createUberProgressBar(percentageComplete, 'lwm_uberProgressBar'+i));
+                    helper.setDataForClocks();
                 });
 
                 if (GM_config.get('addon_clock')) {
@@ -1367,16 +1368,16 @@ function siteManager() {
     var global = {
         uiChanges: function () {
                 /* delete propassssss*/
-                $('#propassssss').remove();
+                lwm_jQuery('#propassssss').remove();
 
                 //add mobile support
                 lwm_jQuery('head').append('<meta name="viewport" content="width=device-width, initial-scale=1">');
 
                 //attach loader for first page load
-                site_jQuery('body').append('<div class="loader lwm-firstload"></div>');
+                lwm_jQuery('body').append('<div class="loader lwm-firstload"></div>');
 
                 //add mobile header collapse menu
-                var $menuToggle = $('<div id=\'lwm_menu_toggle\'>'+
+                var $menuToggle = lwm_jQuery('<div id=\'lwm_menu_toggle\'>'+
                                         '<div class=\'lwm_menu-content\'>'+
                                         '<div class=\'lwm_menu-item\'>'+
                                             '<i class="fas fa-home"></i><i class="fas fa-warehouse"></i><i class="fas fa-database"></i><i class="fas fa-shield-alt"></i><i class="fas fa-fighter-jet"></i>'+
@@ -1401,32 +1402,32 @@ function siteManager() {
                 $menuToggle.find('.icon-galaxy').click(function () { unsafeWindow.changeContent('galaxy_view', 'first', 'Galaxieansicht'); });
                 $menuToggle.find('.fa-sign-out-alt').click(function () { unsafeWindow.logoutRequest(); });
                 $menuToggle.find('.toggle').click(function () {
-                    $('#Header').toggle();
-                    $(this).toggleClass('fa-plus-circle fa-minus-circle');
+                    lwm_jQuery('#Header').toggle();
+                    lwm_jQuery(this).toggleClass('fa-plus-circle fa-minus-circle');
                 });
                 $menuToggle.prependTo($('#Main'));
-                $('.select_box_cordinaten').clone().appendTo($menuToggle.find('.planet-changer'));
+                lwm_jQuery('.select_box_cordinaten').clone().appendTo($menuToggle.find('.planet-changer'));
                 $menuToggle.find('.planet-changer').click(function (e) { e.stopPropagation(); } );
                 $menuToggle.find('.planet-changer').change(function (e) {
-                    $('.profileInfo #allCordinaten').val($(this).find('select').val());
-                    $('.profileInfo #allCordinaten').change();
+                    site_jQuery('.profileInfo #allCordinaten').val($(this).find('select').val());
+                    site_jQuery('.profileInfo #allCordinaten').change();
                 });
 
                 // make sure header is always visible on desktop
                 // https://codepen.io/ravenous/pen/BgGKA
                 function watchMenuOnWindowResize() {
                     if (window.matchMedia('(max-width: 850px)').matches) {
-                        $('#Header').hide();
+                        lwm_jQuery('#Header').hide();
                         $menuToggle.find('i.toggle').addClass('fa-plus-circle').removeClass('fa-minus-circle');
 
-                        $('.secound_line .navButton').appendTo('#lwm_link, #veticalLink');
-                        $('.secound_line').toggle($('.secound_line .navButton').length > 0);
+                        lwm_jQuery('.secound_line .navButton').appendTo('#lwm_link, #veticalLink');
+                        lwm_jQuery('.secound_line').toggle($('.secound_line .navButton').length > 0);
                     } else {
-                        $('#Header').show();
+                        lwm_jQuery('#Header').show();
                         $menuToggle.find('i.toggle').addClass('fa-minus-circle').removeClass('fa-plus-circle');
 
-                        $('#lwm_link .navButton, #veticalLink .navButton').appendTo('.secound_line');
-                        $('.secound_line').toggle($('.secound_line .navButton').length > 0);
+                        lwm_jQuery('#lwm_link .navButton, #veticalLink .navButton').appendTo('.secound_line');
+                        lwm_jQuery('.secound_line').toggle($('.secound_line .navButton').length > 0);
                     }
                 };
                 window.addEventListener('resize', watchMenuOnWindowResize, false);
@@ -1481,7 +1482,7 @@ function siteManager() {
                 });
 
                 //replace the profile image box
-                $('#profileImageBox').css('background-image', 'url(https://last-war.de/'+$('#imageAvatarPattern').attr('xlink:href')+')');
+                lwm_jQuery('#profileImageBox').css('background-image', 'url(https://last-war.de/'+$('#imageAvatarPattern').attr('xlink:href')+')');
 
                 //add menu icons
                 lwm_jQuery('#ubersicht').prepend('<i class="fas fa-home"></i>');
