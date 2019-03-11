@@ -190,7 +190,6 @@ function siteManager() {
                 if (response.status === 200) {
                     console.log(response);
                     config.lwm.set(response.result);
-                    saveConfig();
                 } else {
                     console.error('files.create: ' + response);
                     config.setGMValues();
@@ -377,6 +376,15 @@ function siteManager() {
                     GM_config.set('coords_fleets', data.menu.coords_fleets);
                     GM_config.set('coords_trades', data.menu.coords_trades);
                 }
+
+                //set and get to sync
+                GM.setValue('lwm_lastTradeCoords', JSON.stringify(config.lwm.lastTradeCoords));
+                GM.setValue('lwm_lastFleetCoords', JSON.stringify(config.lwm.lastFleetCoords));
+                GM.setValue('lwm_productionFilters', JSON.stringify(config.lwm.productionFilters));
+                GM.setValue('lwm_hiddenShips', JSON.stringify(config.lwm.hiddenShips));
+                GM.setValue('lwm_resProd', JSON.stringify(config.lwm.resProd));
+
+                config.setGMValues();
             }
         },
         promises: {
@@ -403,14 +411,14 @@ function siteManager() {
             }
 
             GM.getValue('lwm_lastTradeCoords', '{}').then(function (data) {
-                try { config.lwm.lastTradeCoords = JSON.parse(data); } catch (e) { config.lwm.lastTradeCoords = {}; }
+                try { config.lwm.lastTradeCoords = JSON.parse(lastTradeCoordsData); } catch (e) { config.lwm.lastTradeCoords = {}; }
                 checkConfigPerCoordsSetup('lastTradeCoords');
                 if (config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string].length > GM_config.get('coords_trades')) {
                     config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string].length = GM_config.get('coords_trades');
                 }
                 GM.setValue('lwm_lastTradeCoords', JSON.stringify(config.lwm.lastTradeCoords));
-                if (GM_config.get('confirm_drive_sync')) driveManager.save();
             });
+
             GM.getValue('lwm_lastFleetCoords', '{}').then(function (data) {
                 try { config.lwm.lastFleetCoords = JSON.parse(data); } catch (e) { config.lwm.lastFleetCoords = {}; }
                 checkConfigPerCoordsSetup('lastFleetCoords');
@@ -418,25 +426,29 @@ function siteManager() {
                     config.lwm.lastFleetCoords[config.gameData.playerID][config.gameData.planetCoords.string].length = GM_config.get('coords_fleets');
                 }
                 GM.setValue('lwm_lastFleetCoords', JSON.stringify(config.lwm.lastFleetCoords));
-                if (GM_config.get('confirm_drive_sync')) driveManager.save();
             });
+
             GM.getValue('lwm_resProd', '{}').then(function (data) {
-                try { config.lwm.resProd = JSON.parse(data); } catch (e) { config.lwm.lastFleetCoords = {}; }
+                try { config.lwm.resProd = JSON.parse(data); } catch (e) { config.lwm.resProd = {}; }
                 checkConfigPerCoordsSetup('resProd');
                 config.getGameData.resProd(); //get res here so config is loaded before fetching current values
                 GM.setValue('lwm_resProd', JSON.stringify(config.lwm.resProd));
-                if (GM_config.get('confirm_drive_sync')) driveManager.save();
             });
+
             GM.getValue('lwm_hiddenShips', '{}').then(function (data) {
                 try { config.lwm.hiddenShips = JSON.parse(data); } catch (e) { config.lwm.hiddenShips = {}; }
                 checkConfigPerCoordsSetup('hiddenShips');
                 GM.setValue('lwm_hiddenShips', JSON.stringify(config.lwm.hiddenShips));
-                if (GM_config.get('confirm_drive_sync')) driveManager.save();
             });
+
             GM.getValue('lwm_productionFilters', '{}').then(function (data) {
                 try { config.lwm.productionFilters = JSON.parse(data); } catch (e) { config.lwm.productionFilters = {}; }
                 checkConfigPerCoordsSetup('productionFilters');
                 GM.setValue('lwm_productionFilters', JSON.stringify(config.lwm.productionFilters));
+            });
+
+            //need another promise here to make sure save fires after settings were loaded
+            GM.getValue('lwm_productionFilters', '{}').then(function () {
                 if (GM_config.get('confirm_drive_sync')) driveManager.save();
             });
         },
@@ -475,7 +487,6 @@ function siteManager() {
             resProd: function () {
                 config.lwm.resProd[config.gameData.playerID][config.gameData.planetCoords.string] = unsafeWindow.getResourcePerHour()[0];
                 GM.setValue('lwm_resProd', JSON.stringify(config.lwm.resProd));
-                if (GM_config.get('confirm_drive_sync')) driveManager.save();
             },
             planetInformation: function(data) {
                 return site_jQuery.getJSON('https://last-war.de/ajax_request/get_all_planets_information.php', function (data) {
