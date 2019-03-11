@@ -4,7 +4,7 @@
 // @namespace     https://github.com/j0Shi82/
 // @homepageURL   https://github.com/j0Shi82/last-war-manager
 // @description   Some tweaking to the Last War UI and environment
-// @license       GPL-3.0
+// @license       GPL-3.0-or-later; http://www.gnu.org/licenses/gpl-3.0.txt
 // @updateURL     https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/last-war-manager.user.js
 // @downloadURL   https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/last-war-manager.user.js
 // @supportURL    https://github.com/j0Shi82/last-war-manager/issues
