@@ -510,7 +510,7 @@ function siteManager() {
 
             global.uiChanges();
 
-            var loadVendor = site_jQuery.getScript('https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@ce539bfe1104e60cf86c1b73ecca4b5d9f4d9f69/assets/vendor.js');
+            var loadVendor = site_jQuery.getScript('https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js');
             site_jQuery.when(config.getGameData.all(),loadVendor).then(function () {
                 // wait for game date because some stuff depends on it
                 global.hotkeySetup();
@@ -1530,16 +1530,13 @@ function siteManager() {
             tweak: function() {
                 /* tooltip manipulation */
                 /* need to work with timeouts here to make sure events fire after original ones */
-                var buildingIds = ["hauptquartierTd", "bauzentraleTd", "forschungszentraleTd", "spionagestationTd", "roheisenmineTd", "kristallTd", "frubinTd", "orizinTd", "frurozinTd", "roheisenLagerTd", "kristallLagerTd", "frubinLagerTd", "orizinLagerTd", "frurozinLagerTd", "goldLagerTd", "kernkraftwerkTd", "verteidigungsstationTd", "spionageabwehrTd", "fruhwarnanlageTd", "handelspostenTd", "bankTd"];
-                var buildingIdsSel = '#'+buildingIds.join(',#');
-
-                lwm_jQuery(document).on("mouseenter", ".popover,"+buildingIdsSel , function(e) {
+                lwm_jQuery(document).on("mouseenter", ".popover,.constructionName" , function(e) {
                     setTimeout(function () {
                         lwm_jQuery('.big_img').appendTo('body').attr('class', 'big_img_alt');
                     }, 50);
                 });
 
-                lwm_jQuery(document).on("mousemove", ".popover,"+buildingIdsSel , function(e) {
+                lwm_jQuery(document).on("mousemove", ".popover,.constructionName" , function(e) {
                     setTimeout(function () {
                         lwm_jQuery('.big_img_alt').css({
                             top: e.pageY - 50,
@@ -1548,7 +1545,7 @@ function siteManager() {
                     }, 50);
                 });
 
-                lwm_jQuery(document).on("mouseleave", ".popover,"+buildingIdsSel , function(e) {
+                lwm_jQuery(document).on("mouseleave", ".popover,.constructionName" , function(e) {
                     lwm_jQuery('.big_img_alt').remove();
                 });
                 /* tooltip manipulation end */
