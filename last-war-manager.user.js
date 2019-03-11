@@ -493,13 +493,11 @@ function siteManager() {
             site_jQuery = unsafeWindow.jQuery;
             site_jQuery.ajaxSetup({ cache: true });
 
-            //attach loader for first page load
-            site_jQuery('body').append('<div class="loader lwm-firstload"></div>');
+            global.uiChanges();
 
             var loadVendor = site_jQuery.getScript('https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js');
             site_jQuery.when(config.getGameData.all(),loadVendor).then(function () {
                 // wait for game date because some stuff depends on it
-                global.uiChanges();
                 global.hotkeySetup();
                 // load settings from google or browser
 
@@ -1370,14 +1368,12 @@ function siteManager() {
         uiChanges: function () {
                 /* delete propassssss*/
                 $('#propassssss').remove();
-                $('html, body').focus();
-
-                /* font awesome */
-                lwm_jQuery('head').append('<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">');
-                lwm_jQuery('head').append('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome-animation/0.2.1/font-awesome-animation.min.css">');
 
                 //add mobile support
                 lwm_jQuery('head').append('<meta name="viewport" content="width=device-width, initial-scale=1">');
+
+                //attach loader for first page load
+                site_jQuery('body').append('<div class="loader lwm-firstload"></div>');
 
                 //add mobile header collapse menu
                 var $menuToggle = $('<div id=\'lwm_menu_toggle\'>'+
@@ -1467,7 +1463,7 @@ function siteManager() {
                     if ( event.which == 37 && isMessage)  lwm_jQuery('.controller a:contains(\'<<\')').click();
                     if ( event.which == 39 && isMessage)  lwm_jQuery('.controller a:contains(\'>>\')').click();
                 });
-                lwm_jQuery(document).on('swiperight', function (e) {
+                site_jQuery(document).on('swiperight', function (e) {
                     var isGalaxy = lwm_jQuery('#galaxyViewDiv').length > 0;
                     var isInbox  = lwm_jQuery('#messagesListTableInbox').length > 0;
                     var isMessage= lwm_jQuery('.messages').length > 0;
@@ -1475,7 +1471,7 @@ function siteManager() {
                     if (isInbox)   unsafeWindow.previousPage();
                     if (isMessage) lwm_jQuery('.controller a:contains(\'<<\')').click();
                 });
-                lwm_jQuery(document).on('swipeleft', function (e) {
+                site_jQuery(document).on('swipeleft', function (e) {
                     var isGalaxy = lwm_jQuery('#galaxyViewDiv').length > 0;
                     var isInbox  = lwm_jQuery('#messagesListTableInbox').length > 0;
                     var isMessage= lwm_jQuery('.messages').length > 0;
@@ -1522,6 +1518,12 @@ function siteManager() {
 
                 //tooltips
                 global.tooltips.tweak();
+
+                /* font awesome */
+                lwm_jQuery('head').append('<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">');
+                lwm_jQuery('head').append('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome-animation/0.2.1/font-awesome-animation.min.css">');
+
+                $('html, body').focus();
         },
         hotkeySetup: function () {
             hotkeys('ctrl+shift+c,ctrl+shift+r,ctrl+shift+f,ctrl+shift+p,ctrl+shift+o', function(event,handler) {
