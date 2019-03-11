@@ -12,7 +12,7 @@
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e07de5c0a13d416fda88134f999baccfee6f7059/assets/jquery.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
 // @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@37e8a1dfdcb142617ea24209228fbaab7f6ad14f/last-war-manager.css
-// @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo.png
+// @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
 // @grant         GM.setValue
 // @grant         GM_getResourceText
