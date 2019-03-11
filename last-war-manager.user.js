@@ -728,20 +728,6 @@ function siteManager() {
                     $Posle.find('tbody').append($tr);
                 });
 
-                //missing building names and progress bars fix
-                lwm_jQuery('.Posle:eq(0) #BuildingName').html(config.gameData.overviewInfo.all_planets_for_use[0].BuildingName);
-                lwm_jQuery('.Posle:eq(0) #BuildingName2').html(config.gameData.overviewInfo.all_planets_for_use[0].BuildingName2);
-
-                $.each(config.gameData.overviewInfo.arrayForInitClock, function (i, clockData) {
-                    var $progressBarDiv = $('.uberProgressbar').eq(i);
-                    $progressBarDiv.attr('id', 'lwm_uberProgressBar'+i);
-                    var $timeDiv = $('td[id*=\'Clock\']').eq(i);
-                    $timeDiv.data('clock_seconds', clockData.secounds);
-                    var percentageComplete = Math.round((100 - Math.round((clockData.secounds * 100) / clockData.total_secounds)) / 2);
-                    $progressBarDiv.html(unsafeWindow.createUberProgressBar(percentageComplete, 'lwm_uberProgressBar'+i));
-                    helper.setDataForClocks();
-                });
-
                 if (GM_config.get('addon_clock')) {
                     clearInterval(unsafeWindow.timeinterval_uber);
                 }
@@ -1769,7 +1755,7 @@ function siteManager() {
                     }
                     else if(!data)
                     {
-                        logoutRequest();
+                        unsafeWindow.logoutRequest();
                     }
                     else{
                         if(data.error)
