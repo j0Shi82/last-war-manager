@@ -64,7 +64,6 @@ function siteManager() {
              */
         var handleClientLoad = function(g) {
             gapi = g;
-            console.log('gapi.load');
             gapi.load('client:auth2', initClient);
         }
 
@@ -73,14 +72,12 @@ function siteManager() {
              *  listeners.
              */
         var initClient = function() {
-            console.log('gapi.init');
             gapi.client.init({
                 apiKey: API_KEY,
                 clientId: CLIENT_ID,
                 discoveryDocs: DISCOVERY_DOCS,
                 scope: SCOPES
             }).then(function () {
-                console.log('gapi.init.done');
                 gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
                 updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
             }, function (error) {
@@ -91,13 +88,11 @@ function siteManager() {
 
         var updateSigninStatus = function(isSignedIn) {
             if (isSignedIn) {
-                console.log('gapi.list');
                 gapi.client.drive.files.list({
                     q: 'name="lwm_config.json"',
                     spaces: 'appDataFolder',
                     fields: 'files(id)'
                 }).then(function(response) {
-                    console.log(response);
                     if (response.status === 200) {
                         if (response.result.files.length === 0) {
                             createConfig();
@@ -130,12 +125,10 @@ function siteManager() {
                 mimeType: 'application/json',
                 uploadType: 'multipart'
             };
-            console.log('gapi.create');
             gapi.client.drive.files.create({
                 resource: fileMetadata,
                 fields: 'id,name'
             }).then(function(response) {
-                console.log(response);
                 if (response.status === 200) {
                     configFileID = response.result.id;
                     saveConfig();
@@ -162,7 +155,6 @@ function siteManager() {
                 coords_trades: GM_config.get('coords_trades')
             };
 
-            console.log('gapi.save');
             gapi.client.request({
                 path: '/upload/drive/v3/files/' + configFileID,
                 method: 'PATCH',
@@ -172,7 +164,6 @@ function siteManager() {
                 },
                 body: JSON.stringify(saveObj)
             }).then(function (response) {
-                console.log(response);
                 if (response.status !== 200) {
                     console.error('files.create: ' + response);
                 }
@@ -182,13 +173,11 @@ function siteManager() {
         }
 
         var getConfig = function () {
-            console.log('gapi.get');
             gapi.client.drive.files.get({
                 fileId: configFileID,
                 alt: 'media'
             }).then(function (response) {
                 if (response.status === 200) {
-                    console.log(response);
                     config.lwm.set(response.result);
                 } else {
                     console.error('files.create: ' + response);
@@ -524,9 +513,6 @@ function siteManager() {
 
             //we're hooking into ajax requests to figure out on which page we are and fire our own stuff
             site_jQuery(document).ajaxSend(function( event, xhr, settings ) {
-                console.log(event.data,settings.data);
-                console.log(settings.url.match(/\/(\w*).php(\?.*)?$/)[1]);
-
                 var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
                 var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
@@ -534,8 +520,6 @@ function siteManager() {
                 var ignorePages =  ['galaxy_view','change_flotten','flottenbasen_all','fremde_flottenbasen','flottenbasen_planet'];
 
                 if ((settings.url.match(/content/) || processPages.indexOf(page) !== -1) && ignorePages.indexOf(page) === -1) process(page, xhr);
-
-                if (page === 'get_ubersicht_info') console.log(config);
             });
 
             site_jQuery(window).focus(function () { addOns.load(); });
@@ -553,8 +537,8 @@ function siteManager() {
                 var listenPages = ['put_building'];
 
                 if (listenPages.indexOf(page) !== -1) {
-                    console.log(event, xhr, settings);
-                    console.log('ajaxComplete',page, xhr.responseJSON);
+                    //console.log(event, xhr, settings);
+                    //console.log('ajaxComplete',page, xhr.responseJSON);
                 }
             });
         });
@@ -1113,7 +1097,6 @@ function siteManager() {
                 $allShips.clone().appendTo(lwm_jQuery('#changeFlottenDiv > table th:eq(8)'));
 
                 $('#changeFlottenDiv .lwm_selectAll').click(function () {
-                    console.log('huhu');
                     var index = $(this).parent().index('#changeFlottenDiv > table th');
                     lwm_jQuery('#changeFlottenDiv > table tr').find('td:eq('+(index)+') .arrow-right').each(function () {
                         var curCount = 0;
