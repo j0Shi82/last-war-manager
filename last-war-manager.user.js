@@ -510,7 +510,7 @@ function siteManager() {
 
             global.uiChanges();
 
-            var loadVendor = site_jQuery.getScript('https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js');
+            var loadVendor = site_jQuery.getScript('https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@ce539bfe1104e60cf86c1b73ecca4b5d9f4d9f69/assets/vendor.js');
             site_jQuery.when(config.getGameData.all(),loadVendor).then(function () {
                 // wait for game date because some stuff depends on it
                 global.hotkeySetup();
@@ -1464,22 +1464,6 @@ function siteManager() {
                     if ( event.which == 37 && isMessage)  lwm_jQuery('.controller a:contains(\'<<\')').click();
                     if ( event.which == 39 && isMessage)  lwm_jQuery('.controller a:contains(\'>>\')').click();
                 });
-                site_jQuery(document).on('swiperight', function (e) {
-                    var isGalaxy = lwm_jQuery('#galaxyViewDiv').length > 0;
-                    var isInbox  = lwm_jQuery('#messagesListTableInbox').length > 0;
-                    var isMessage= lwm_jQuery('.messages').length > 0;
-                    if (isGalaxy)  unsafeWindow.goToPrevSystem();
-                    if (isInbox)   unsafeWindow.previousPage();
-                    if (isMessage) lwm_jQuery('.controller a:contains(\'<<\')').click();
-                });
-                site_jQuery(document).on('swipeleft', function (e) {
-                    var isGalaxy = lwm_jQuery('#galaxyViewDiv').length > 0;
-                    var isInbox  = lwm_jQuery('#messagesListTableInbox').length > 0;
-                    var isMessage= lwm_jQuery('.messages').length > 0;
-                    if (isGalaxy)  unsafeWindow.goToNextSystem();
-                    if (isInbox)   unsafeWindow.nextPage();
-                    if (isMessage) lwm_jQuery('.controller a:contains(\'>>\')').click();
-                });
 
                 //replace the profile image box
                 lwm_jQuery('#profileImageBox').css('background-image', 'url(https://last-war.de/'+$('#imageAvatarPattern').attr('xlink:href')+')');
@@ -1523,8 +1507,6 @@ function siteManager() {
                 /* font awesome */
                 lwm_jQuery('head').append('<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">');
                 lwm_jQuery('head').append('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome-animation/0.2.1/font-awesome-animation.min.css">');
-
-                $('html, body').focus();
         },
         hotkeySetup: function () {
             hotkeys('ctrl+shift+c,ctrl+shift+r,ctrl+shift+f,ctrl+shift+p,ctrl+shift+o', function(event,handler) {
