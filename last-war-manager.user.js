@@ -338,6 +338,7 @@ function siteManager() {
             spionageInfos: [],
             productionInfos: [],
             overviewInfo: {},
+            messageData: {},
 
             checkDataReloads: function () {
                 lwm_jQuery.each(config.gameData.reloads, function (type, state) {
@@ -545,9 +546,10 @@ function siteManager() {
                 var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
                 // save specific responses for later use
-                var saveRequest = ['get_ubersicht_info'];
+                var saveRequest = ['get_ubersicht_info','get_inbox_message'];
                 if (saveRequest.indexOf(page) !== -1) {
                     if (page === 'get_ubersicht_info') config.gameData.overviewInfo = xhr.responseJSON;
+                    if (page === 'get_inbox_message')  config.gameData.messageData  = xhr.responseJSON;
                 }
 
                 var listenPages = ['put_building'];
@@ -1016,11 +1018,23 @@ function siteManager() {
             });
         },
         inbox: function() {
-            //lwm_jQuery('#inboxContent').html('');
-            config.promises.content = getPromise('.inboxDeleteMessageButtons,#messagesListTableInbox,#veticalLink');
+            //clear content so loadStates doesn't fire too early
+            lwm_jQuery('#inboxContent').html('');
+            config.promises.content = getPromise('.inboxDeleteMessageButtons,#messagesListTableInbox');
             config.promises.content.then(function () {
-                current_view_type = -1;
                 config.loadStates.content = false;
+
+                // go through messages and add direct link to fight and spy reports
+                // we do this after updating loadstate to not slow down page load
+                console.log('messageData', config.gameData.messageData);
+                lwm_jQuery.each(config.gameData.messageData[1], function (i, m) {
+                    if (m.subject.search(/Kampfbericht|Spionagebericht/) !== -1 && m.user_nickname === 'Systemnachricht') {
+                        site_jQuery.getJSON('https://last-war.de/ajax_request/get_message_info.php?id_conversation='+m.id, function (data) {
+                            console.log(data[0][0].text.match(/id=(\d*)/));
+                        });
+                    }
+                    return false;
+                });
             }).catch(function (e) {
                 console.log(e);
                 config.loadStates.content = false;
