@@ -388,6 +388,11 @@ function siteManager() {
                 config.setGMValues();
             }
         },
+        pages: {
+            inbox: {
+                reportHandler: false
+            }
+        },
         promises: {
             interval: {
                 ms: 500,
@@ -530,6 +535,11 @@ function siteManager() {
 
                 var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
+                if (settings.url.search(/lwm_ignoreProcess/) !== -1) {
+                    console.log('lwm_ignoreProcess... skipping');
+                    return;
+                }
+
                 var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
                                     'get_info_for_flotten_pages'];
                 var ignorePages =  ['galaxy_view','change_flotten','flottenbasen_all','fremde_flottenbasen','flottenbasen_planet'];
@@ -651,7 +661,7 @@ function siteManager() {
             config.loadStates.submenu = true;
             config.promises.submenu = getLoadStatePromise('content');
             config.promises.submenu.then(function () {
-                lwm_jQuery('.navButton').each(function () {
+                lwm_jQuery.each(lwm_jQuery('.navButton'), function () {
                     lwm_jQuery(this).attr('data-page', lwm_jQuery(this).attr('onclick').match(/\'([a-z0-9A-Z_]*)\'/)[1]);
                     switch (lwm_jQuery(this).attr('data-page')) {
                         case 'trade_offer': lwm_jQuery(this).prepend('<i class="fas fa-handshake"></i>'); break;
@@ -1026,15 +1036,38 @@ function siteManager() {
 
                 // go through messages and add direct link to fight and spy reports
                 // we do this after updating loadstate to not slow down page load
-                console.log('messageData', config.gameData.messageData);
-                lwm_jQuery.each(config.gameData.messageData[1], function (i, m) {
-                    if (m.subject.search(/Kampfbericht|Spionagebericht/) !== -1 && m.user_nickname === 'Systemnachricht') {
-                        site_jQuery.getJSON('https://last-war.de/ajax_request/get_message_info.php?id_conversation='+m.id, function (data) {
-                            console.log(data[0][0].text.match(/id=(\d*)/));
+                var addReportLink = function(message) {
+                    var type = message.subject.search(/Kampfbericht/) !== -1 ? 'view_report_attack' : 'planetenscanner_view';
+                    var $link = lwm_jQuery('<a target=\'_blank\' href=\'https://last-war.de/'+type+'.php?id='+message.reportID+'&user='+config.gameData.playerID+'\'><i style=\'margin-left: 5px;\' class=\'fas fa-external-link-alt\'></i></a>');
+                    lwm_jQuery('[onclick*=\''+message.id+'\']').after($link);
+                };
+
+                //install handler to attach report links on browsing message pages
+                if (!config.pages.inbox.reportHandler) {
+                    lwm_jQuery(document).on('click', function (e) {
+                        var check = lwm_jQuery(e.target).is('.formButton[onclick*=\'nextPage\']') || lwm_jQuery(e.target).is('.formButton[onclick*=\'previousPage\']');
+                        if (!check) return;
+                        if (![2,4].includes(unsafeWindow.window.current_view_type)) return;
+                        lwm_jQuery.each(config.gameData.messageData[1], function (i, m) {
+                            addReportLink(m);
                         });
-                    }
-                    return false;
-                });
+                    });
+                    config.pages.inbox.reportHandler = true;
+                }
+
+                if ([2,4].includes(unsafeWindow.window.current_view_type)) {
+                    console.log('messageData', config.gameData.messageData);
+                    lwm_jQuery.each(config.gameData.messageData[1], function (i, m) {
+                        if (m.subject.search(/Kampfbericht|Spionagebericht/) !== -1 && m.user_nickname === 'Systemnachricht') {
+                            site_jQuery.getJSON('https://last-war.de/ajax_request/get_message_info.php?id_conversation='+m.id, { lwm_ignoreProcess: 1 }, function (data) {
+                                //add reportID to data for future use
+                                config.gameData.messageData[1][i].reportID = data[0][0].text.match(/id=(\d*)/)[1];
+
+                                addReportLink(config.gameData.messageData[1][i]);
+                            });
+                        }
+                    });
+                }
             }).catch(function (e) {
                 console.log(e);
                 config.loadStates.content = false;
