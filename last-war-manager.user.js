@@ -662,8 +662,7 @@ function siteManager() {
             config.promises.submenu = getLoadStatePromise('content');
             config.promises.submenu.then(function () {
                 lwm_jQuery.each(lwm_jQuery('.navButton'), function () {
-                    lwm_jQuery(this).attr('data-page', lwm_jQuery(this).attr('onclick').match(/\'([a-z0-9A-Z_]*)\'/)[1]);
-                    switch (lwm_jQuery(this).attr('data-page')) {
+                    switch (lwm_jQuery(this).attr('onclick').match(/\'([a-z0-9A-Z_]*)\'/)[1]) {
                         case 'trade_offer': lwm_jQuery(this).prepend('<i class="fas fa-handshake"></i>'); break;
                         case 'handelsposten': lwm_jQuery(this).prepend('<i class="fas fa-dollar-sign"></i>'); break;
                         case 'building_tree': lwm_jQuery(this).prepend('<i class="fas fa-warehouse"></i>'); break;
@@ -768,7 +767,6 @@ function siteManager() {
             config.promises.content = getPromise('#divTabele1,#divTabele2,#link');
             config.promises.content.then(function () {
                 lwm_jQuery('#aktuelleProduktionPageDiv td[onclick]').each(function () {
-                    lwm_jQuery(this).attr('data-page', 'aktuelle_produktion');
                     lwm_jQuery(this).css('cursor', 'hand');
                     if (GM_config.get('confirm_production')) helper.addConfirm(lwm_jQuery(this));
                     if (GM_config.get('addon_clock')) {
@@ -787,9 +785,7 @@ function siteManager() {
         defense: function() {
             config.promises.content = getPromise('#DefenseGraph');
             config.promises.content.then(function () {
-                //add data-page and confirm to build buttons
                 lwm_jQuery('button[onclick*=\'makeDefence\']').each(function () {
-                    lwm_jQuery(this).attr('data-page', 'aktuelle_produktion');
                     if (GM_config.get('confirm_production')) helper.addConfirm(lwm_jQuery(this));
                 });
 
@@ -806,9 +802,7 @@ function siteManager() {
                 //remove margin from arrows
                 $('.arrow-left,.arrow-right').css('margin-top',0);
 
-                //add data-page and confirm to build buttons
                 lwm_jQuery('button[onclick*=\'buyHandeslpostenShips\']').each(function () {
-                    lwm_jQuery(this).attr('data-page', 'flottenbewegungen');
                     if (GM_config.get('confirm_production')) helper.addConfirm(lwm_jQuery(this));
                 });
 
@@ -837,17 +831,13 @@ function siteManager() {
         produktion: function() {
             config.promises.content = getPromise('#productionDiv');
             config.promises.content.then(function () {
-                //add confirmation dialog before deletion and add data-page
                 lwm_jQuery('button[onclick*=\'delete\']').each(function () {
-                    lwm_jQuery(this).attr('data-page', 'produktion');
                     if (GM_config.get('confirm_production')) helper.addConfirm(lwm_jQuery(this));
                 });
 
                 helper.replaceElementsHtmlWithIcon(lwm_jQuery('button[onclick*=\'delete\']'), 'fas fa-ban');
 
-                //add data-page to build buttons
                 lwm_jQuery('button[onclick*=\'makeShip\']').each(function () {
-                    lwm_jQuery(this).attr('data-page', 'aktuelle_produktion');
                     if (GM_config.get('confirm_production')) helper.addConfirm(lwm_jQuery(this));
                 });
 
@@ -970,12 +960,10 @@ function siteManager() {
         construction: function() {
             config.promises.content = getPromise('.hauptgebaude');
             config.promises.content.then(function () {
-                //add confirmation dialog before deletion and add data-page
                 helper.addResMemory(lwm_jQuery('.greenButton'), 'building');
                 lwm_jQuery('.greenButton,.yellowButton,.redButton').each(function () {
                     var $td = lwm_jQuery(this).parent();
                     $td.css('cursor', 'hand');
-                    $td.attr('data-page', 'construction');
                     $td.attr('onclick', lwm_jQuery(this).attr('onclick'));
                     lwm_jQuery(this).attr('onclick', '');
                     if (GM_config.get('confirm_const')) helper.addConfirm($td);
@@ -993,11 +981,9 @@ function siteManager() {
         research: function() {
             config.promises.content = getPromise('.basisForschungen,#researchPage');
             config.promises.content.then(function () {
-                //add confirmation dialog before deletion and add data-page
                 lwm_jQuery('.greenButton,.yellowButton,.redButton').each(function () {
                     var $td = lwm_jQuery(this).parent();
                     $td.css('cursor', 'hand');
-                    $td.attr('data-page', 'research');
                     $td.attr('onclick', lwm_jQuery(this).attr('onclick'));
                     lwm_jQuery(this).attr('onclick', '')
                     if (GM_config.get('confirm_research')) helper.addConfirm($td);
