@@ -515,6 +515,9 @@ function siteManager() {
             site_jQuery(document).ajaxSend(function( event, xhr, settings ) {
                 var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
+                // first ubersicht load is usually not caught by our wrapper. But in case it is, return because we invoke this manually
+                if (firstLoad && page === 'ubersicht') return;
+
                 var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
                                     'get_info_for_flotten_pages'];
                 var ignorePages =  ['galaxy_view','change_flotten','flottenbasen_all','fremde_flottenbasen','flottenbasen_planet'];
@@ -1939,6 +1942,8 @@ function siteManager() {
     }
 
     install();
+    // the first ubersicht load is sometimes not caught by our ajax wrapper, so do manually
+    process('ubersicht');
 };
 
 (function() {
