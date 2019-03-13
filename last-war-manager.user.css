@@ -19,7 +19,6 @@
   input.deletePlanetName,
   #shipImage,
   #link,
-  #lwm_link,
   #veticalLink,
   #DefenseGraph img,
   .big_img,
@@ -68,7 +67,7 @@
       width: 100%;
       margin-left: 0;
     }
-    #lwm_link,
+    #link,
     #veticalLink {
       display: flex;
       justify-content: space-between;
