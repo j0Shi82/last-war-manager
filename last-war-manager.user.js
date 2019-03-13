@@ -11,7 +11,7 @@
 // @match         https://last-war.de/main.php*
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e07de5c0a13d416fda88134f999baccfee6f7059/assets/jquery.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
-// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@37e8a1dfdcb142617ea24209228fbaab7f6ad14f/last-war-manager.css
+// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@b5c68029febb99bdea7f6bdc92d14afb72d14e31/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
 // @grant         GM.setValue
@@ -523,7 +523,7 @@ function siteManager() {
 
                 var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
                                     'get_info_for_flotten_pages'];
-                var ignorePages =  ['galaxy_view','change_flotten','flottenbasen_all','fremde_flottenbasen','flottenbasen_planet'];
+                var ignorePages =  ['galaxy_view','change_flotten','flottenkommando','flottenbasen_all','fremde_flottenbasen','flottenbasen_planet'];
 
                 if ((settings.url.match(/content/) || processPages.indexOf(page) !== -1) && ignorePages.indexOf(page) === -1) process(page, xhr);
             });
@@ -683,9 +683,6 @@ function siteManager() {
                     lwm_jQuery('.navButton').appendTo('.secound_line');
                 }
                 $('.secound_line').toggle($('.secound_line .navButton').length > 0);
-
-                //rename link container, this is needed so that fleet function doesn't override the submenu
-                $('#link').attr('id', 'lwm_link');
 
                 config.loadStates.submenu = false;
             }).catch(function (e) {
@@ -1007,10 +1004,9 @@ function siteManager() {
             });
         },
         inbox: function() {
-            //lwm_jQuery('#inboxContent').html('');
-            config.promises.content = getPromise('.inboxDeleteMessageButtons,#messagesListTableInbox,#veticalLink');
+            lwm_jQuery('#inboxContent').html('');
+            config.promises.content = getPromise('.inboxDeleteMessageButtons,#messagesListTableInbox');
             config.promises.content.then(function () {
-                current_view_type = -1;
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
@@ -1122,7 +1118,7 @@ function siteManager() {
             });
         },
         allFleets: function (xhr) {
-            config.promises.content = getPromise('#flottenBasenPlanetDiv,#fremdeFlottenBasenDiv,#flottenBasenAllDiv');
+            config.promises.content = getPromise('#flottenBasenPlanetDiv,#fremdeFlottenBasenDiv,#flottenBasenAllDiv,#flottenKommandoDiv,#link');
             config.promises.content.then(function () {
                 //add recall button if applicable
                 var fleets = $.grep(xhr.responseJSON, function (fleet, i) { return fleet.status_king === "1"; });
@@ -1410,13 +1406,13 @@ function siteManager() {
                         lwm_jQuery('#Header').hide();
                         $menuToggle.find('i.toggle').addClass('fa-plus-circle').removeClass('fa-minus-circle');
 
-                        lwm_jQuery('.secound_line .navButton').appendTo('#lwm_link, #veticalLink');
+                        lwm_jQuery('.secound_line .navButton').appendTo('#link, #veticalLink');
                         lwm_jQuery('.secound_line').toggle($('.secound_line .navButton').length > 0);
                     } else {
                         lwm_jQuery('#Header').show();
                         $menuToggle.find('i.toggle').addClass('fa-minus-circle').removeClass('fa-plus-circle');
 
-                        lwm_jQuery('#lwm_link .navButton, #veticalLink .navButton').appendTo('.secound_line');
+                        lwm_jQuery('#link .navButton, #veticalLink .navButton').appendTo('.secound_line');
                         lwm_jQuery('.secound_line').toggle($('.secound_line .navButton').length > 0);
                     }
                 };
@@ -1645,7 +1641,7 @@ function siteManager() {
                     $div.show();
                 }
 
-                lwm_jQuery('#folottenbewegungenPageDiv table tr:gt(1)').remove();
+                lwm_jQuery('#folottenbewegungenPageDiv table tr:gt(0)').remove();
 
                 var clocks = [];
                 lwm_jQuery.each(config.gameData.fleetInfo.send_infos, function(i, fleetData) {
@@ -1694,7 +1690,7 @@ function siteManager() {
                             fleetClock =      fleetData.clock_id;
                             break;
                     }
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append('<tr style='+trStyle+'><td>'+fleetInfoString+'</td><td>'+fleetTimeString+'</td><td>'+fleetClock+'</td></tr>');
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append('<tr style='+trStyle+'><td>'+fleetInfoString+'</td><td>'+fleetTimeString+'</td><td id=\''+fleetClock+'\'>'+fleetClock+'</td></tr>');
                 });
 
                 lwm_jQuery.each(config.gameData.fleetInfo.all_informations, function(i, fleetData) {
@@ -1782,7 +1778,7 @@ function siteManager() {
                             fleetClock =      fleetData.clock_id;
                             break;
                     }
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append('<tr><td>'+fleetInfoString+'</td><td>'+fleetTimeString+'</td><td>'+fleetClock+'</td></tr>');
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append('<tr><td>'+fleetInfoString+'</td><td>'+fleetTimeString+'</td><td id=\''+fleetClock+'\'></td></tr>');
                 });
 
                 unsafeWindow.initializeFlottenbewegungenClock(clocks);
