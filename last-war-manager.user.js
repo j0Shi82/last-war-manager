@@ -72,6 +72,7 @@ function siteManager() {
              *  listeners.
              */
         var initClient = function() {
+            //console.log('gapi.client.init');
             gapi.client.init({
                 apiKey: API_KEY,
                 clientId: CLIENT_ID,
@@ -88,11 +89,13 @@ function siteManager() {
 
         var updateSigninStatus = function(isSignedIn) {
             if (isSignedIn) {
+                //console.log('gapi.client.drive.files.list');
                 gapi.client.drive.files.list({
                     q: 'name="lwm_config.json"',
                     spaces: 'appDataFolder',
                     fields: 'files(id)'
                 }).then(function(response) {
+                    //console.log(response);
                     if (response.status === 200) {
                         if (response.result.files.length === 0) {
                             createConfig();
@@ -125,10 +128,12 @@ function siteManager() {
                 mimeType: 'application/json',
                 uploadType: 'multipart'
             };
+            //console.log('gapi.client.drive.files.create');
             gapi.client.drive.files.create({
                 resource: fileMetadata,
                 fields: 'id,name'
             }).then(function(response) {
+                //console.log(response);
                 if (response.status === 200) {
                     configFileID = response.result.id;
                     saveConfig();
@@ -155,6 +160,7 @@ function siteManager() {
                 coords_trades: GM_config.get('coords_trades')
             };
 
+            //console.log('gapi.client.request',saveObj);
             gapi.client.request({
                 path: '/upload/drive/v3/files/' + configFileID,
                 method: 'PATCH',
@@ -164,6 +170,7 @@ function siteManager() {
                 },
                 body: JSON.stringify(saveObj)
             }).then(function (response) {
+                //console.log(response);
                 if (response.status !== 200) {
                     console.error('files.create: ' + response);
                 }
@@ -173,10 +180,12 @@ function siteManager() {
         }
 
         var getConfig = function () {
+            //console.log('gapi.client.drive.files.get');
             gapi.client.drive.files.get({
                 fileId: configFileID,
                 alt: 'media'
             }).then(function (response) {
+                //console.log(response);
                 if (response.status === 200) {
                     config.lwm.set(response.result);
                 } else {
@@ -379,8 +388,8 @@ function siteManager() {
         },
         promises: {
             interval: {
-                ms: 500,
-                count: 20
+                ms: 200,
+                count: 50
             },
             submenu: null,
             content: null,
@@ -392,7 +401,7 @@ function siteManager() {
                 if (typeof config.lwm[settingName][config.gameData.playerID] === "undefined") config.lwm[settingName][config.gameData.playerID] = {};
 
                 //check for coords that don't exist
-                $.each(config.lwm[settingName][config.gameData.playerID], function (j, planet) {
+                $.each(config.lwm[settingName][config.gameData.playerID], function (planet, planetData) {
                     var planets = $.map(config.gameData.planets, function (d, i) { return d.string; });
                     if (lwm_jQuery.inArray(planet, planets) === -1) delete config.lwm[settingName][config.gameData.playerID][planet];
                 });
@@ -401,7 +410,7 @@ function siteManager() {
             }
 
             GM.getValue('lwm_lastTradeCoords', '{}').then(function (data) {
-                try { config.lwm.lastTradeCoords = JSON.parse(lastTradeCoordsData); } catch (e) { config.lwm.lastTradeCoords = {}; }
+                try { config.lwm.lastTradeCoords = JSON.parse(data); } catch (e) { config.lwm.lastTradeCoords = {}; }
                 checkConfigPerCoordsSetup('lastTradeCoords');
                 if (config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string].length > GM_config.get('coords_trades')) {
                     config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string].length = GM_config.get('coords_trades');
@@ -519,7 +528,7 @@ function siteManager() {
                 // first ubersicht load is usually not caught by our wrapper. But in case it is, return because we invoke this manually
                 if (firstLoad && page === 'ubersicht') return;
 
-                console.log(page);
+                //console.log(page);
 
                 var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
                                     'get_info_for_flotten_pages'];
@@ -544,8 +553,8 @@ function siteManager() {
                 var listenPages = ['put_building'];
 
                 if (listenPages.indexOf(page) !== -1) {
-                    console.log(event, xhr, settings);
-                    console.log('ajaxComplete',page, xhr.responseJSON);
+                    //console.log(event, xhr, settings);
+                    //console.log('ajaxComplete',page, xhr.responseJSON);
                 }
             });
         });
@@ -640,8 +649,8 @@ function siteManager() {
             config.loadStates.submenu = true;
             config.promises.submenu = getLoadStatePromise('content');
             config.promises.submenu.then(function () {
-                lwm_jQuery('.navButton').each(function () {
-                    lwm_jQuery(this).attr('data-page', lwm_jQuery(this).attr('onclick').match(/\'([a-z0-9A-Z_]*)\'/)[1]);
+                lwm_jQuery('#link .navButton, #veticalLink .navButton').each(function () {
+                    lwm_jQuery(this).attr('data-page', lwm_jQuery(this).attr('onclick').match(/(\'|\")([a-z0-9A-Z_]*)(\'|\")/)[2]);
                     switch (lwm_jQuery(this).attr('data-page')) {
                         case 'trade_offer': lwm_jQuery(this).prepend('<i class="fas fa-handshake"></i>'); break;
                         case 'handelsposten': lwm_jQuery(this).prepend('<i class="fas fa-dollar-sign"></i>'); break;
@@ -680,7 +689,7 @@ function siteManager() {
                     }
                 });
                 if (window.matchMedia("(min-width: 849px)").matches) {
-                    lwm_jQuery('.navButton').appendTo('.secound_line');
+                    lwm_jQuery('#link .navButton, #veticalLink .navButton').appendTo('.secound_line');
                 }
                 $('.secound_line').toggle($('.secound_line .navButton').length > 0);
 
@@ -761,7 +770,7 @@ function siteManager() {
             });
         },
         defense: function() {
-            config.promises.content = getPromise('#DefenseGraph');
+            config.promises.content = getPromise('#verteidigungDiv');
             config.promises.content.then(function () {
                 //add data-page and confirm to build buttons
                 lwm_jQuery('button[onclick*=\'makeDefence\']').each(function () {
@@ -967,7 +976,7 @@ function siteManager() {
             });
         },
         research: function() {
-            config.promises.content = getPromise('.basisForschungen,#researchPage');
+            config.promises.content = getPromise('.basisForschungen,#researchPage:contains(\'Forschungszentrale benötigt.\')');
             config.promises.content.then(function () {
                 //add confirmation dialog before deletion and add data-page
                 lwm_jQuery('.greenButton,.yellowButton,.redButton').each(function () {
@@ -1441,7 +1450,7 @@ function siteManager() {
                 lwm_jQuery(document).keyup(function (e) {
                     var isGalaxy = lwm_jQuery('#galaxyViewDiv').length > 0;
                     var isInbox  = lwm_jQuery('#messagesListTableInbox').length > 0;
-                    var isMessage= lwm_jQuery('.messages').length > 0;
+                    var isMessage= lwm_jQuery('.messages').length > 0 && lwm_jQuery('#newMessageInsert').length === 0;
                     if (!isGalaxy && !isInbox && !isMessage) return;
                     if ( event.which == 37 && isGalaxy)   unsafeWindow.goToPrevSystem();
                     if ( event.which == 39 && isGalaxy)   unsafeWindow.goToNextSystem();
@@ -1467,6 +1476,7 @@ function siteManager() {
                 lwm_jQuery('#building_tree').prepend('<i class="fas fa-th-list"></i>');
                 lwm_jQuery('#highscore_player').prepend('<i class="fas fa-trophy"></i>');
                 lwm_jQuery('#create_new_allianze').prepend('<i class="fas fa-users"></i>');
+                lwm_jQuery('#alliance').prepend('<i class="fas fa-users"></i>');
                 lwm_jQuery('#inbox').prepend('<i class="fas fa-envelope"></i>');
                 lwm_jQuery('#account').prepend('<i class="fas fa-user-circle"></i>');
                 lwm_jQuery('#forum').prepend('<i class="fab fa-wpforms"></i>');
@@ -1727,7 +1737,7 @@ function siteManager() {
                             fleetInfoString = lkomLink+'Eigene Flotte vom Planet '+ ownCoords;
                             if (fleetData.Status == 1) fleetInfoString += " greift Planet ";
                             else                       fleetInfoString += " kehrt von ";
-                            fleetInfoString += oppCoords + '( '+oppNick+' )';
+                            fleetInfoString += oppCoords + ' ('+oppNick+')';
                             if (fleetData.Status == 1) fleetInfoString += " an.";
                             else                       fleetInfoString += " zurück.";
                             fleetTimeString = fleetData.ComeTime;
@@ -1738,9 +1748,7 @@ function siteManager() {
                             fleetInfoString = lkomLink+'Eigene Flotte vom Planet '+ ownCoords;
                             if (fleetData.Status == 1) fleetInfoString += " transportiert Rohstoffe nach ";
                             else                       fleetInfoString += " kehrt zurück von ";
-                            fleetInfoString += oppCoords + '( '+oppNick+' )';
-                            if (fleetData.Status == 1) fleetInfoString += " an.";
-                            else                       fleetInfoString += " zurück.";
+                            fleetInfoString += oppCoords + ' ('+oppNick+').';
                             fleetTimeString = fleetData.ComeTime;
                             fleetClock =      fleetData.clock_id;
                             break;
@@ -1788,25 +1796,6 @@ function siteManager() {
                 }
 
                 config.loadStates.fleetaddon = false;
-
-                /*
-                getPromise('#ALLFL').then(function () {
-                    lwm_jQuery('#folottenbewegungenPageDiv tr').each(function () {
-                        var $tr = lwm_jQuery(this);
-
-                        if ($tr.data('processed')) return true;
-                        $tr.data('processed', true);
-
-                        var content = lwm_jQuery.makeArray(
-                            $tr.find('td').not(':nth-last-child(1)').not(':nth-last-child(2)').map(function () { return lwm_jQuery(this).text(); })
-                        ).join(" ");
-                        $tr.find('td').first().html(content);
-                        var lkomLink = $tr.find('a[onclick*=\'changeContent\']').attr('onclick');
-                        if (typeof lkomLink !== "undefined") {
-                            $tr.find('td').first().prepend('<i class="fas fa-wifi faa-flash animated" onclick="'+lkomLink+'" style="cursor:hand;margin-right:5px;color:#66f398"></i>')
-                        }
-                    });
-                    */
             }
 
 
