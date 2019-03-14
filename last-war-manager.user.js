@@ -72,7 +72,7 @@ function siteManager() {
              *  listeners.
              */
         var initClient = function() {
-            //console.log('gapi.client.init');
+            console.log('gapi.client.init');
             gapi.client.init({
                 apiKey: API_KEY,
                 clientId: CLIENT_ID,
@@ -89,13 +89,13 @@ function siteManager() {
 
         var updateSigninStatus = function(isSignedIn) {
             if (isSignedIn) {
-                //console.log('gapi.client.drive.files.list');
+                console.log('gapi.client.drive.files.list');
                 gapi.client.drive.files.list({
                     q: 'name="lwm_config.json"',
                     spaces: 'appDataFolder',
                     fields: 'files(id)'
                 }).then(function(response) {
-                    //console.log(response);
+                    console.log(response);
                     if (response.status === 200) {
                         if (response.result.files.length === 0) {
                             createConfig();
@@ -128,12 +128,12 @@ function siteManager() {
                 mimeType: 'application/json',
                 uploadType: 'multipart'
             };
-            //console.log('gapi.client.drive.files.create');
+            console.log('gapi.client.drive.files.create');
             gapi.client.drive.files.create({
                 resource: fileMetadata,
                 fields: 'id,name'
             }).then(function(response) {
-                //console.log(response);
+                console.log(response);
                 if (response.status === 200) {
                     configFileID = response.result.id;
                     saveConfig();
@@ -160,7 +160,7 @@ function siteManager() {
                 coords_trades: GM_config.get('coords_trades')
             };
 
-            //console.log('gapi.client.request',saveObj);
+            console.log('gapi.client.request',saveObj);
             gapi.client.request({
                 path: '/upload/drive/v3/files/' + configFileID,
                 method: 'PATCH',
@@ -170,7 +170,7 @@ function siteManager() {
                 },
                 body: JSON.stringify(saveObj)
             }).then(function (response) {
-                //console.log(response);
+                console.log(response);
                 if (response.status !== 200) {
                     console.error('files.create: ' + response);
                 }
@@ -180,12 +180,12 @@ function siteManager() {
         }
 
         var getConfig = function () {
-            //console.log('gapi.client.drive.files.get');
+            console.log('gapi.client.drive.files.get');
             gapi.client.drive.files.get({
                 fileId: configFileID,
                 alt: 'media'
             }).then(function (response) {
-                //console.log(response);
+                console.log(response);
                 if (response.status === 200) {
                     config.lwm.set(response.result);
                 } else {
@@ -338,6 +338,7 @@ function siteManager() {
             overviewInfo: {},
             messageData: {},
             fleetInfo: {},
+            observationInfo: {},
 
             checkDataReloads: function () {
                 lwm_jQuery.each(config.gameData.reloads, function (type, state) {
@@ -538,7 +539,7 @@ function siteManager() {
                 // first ubersicht load is usually not caught by our wrapper. But in case it is, return because we invoke this manually
                 if (firstLoad && page === 'ubersicht') return;
 
-                //console.log(page);
+                console.log(page);
 
                 var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
                                     'get_info_for_flotten_pages'];
@@ -554,18 +555,19 @@ function siteManager() {
                 var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
                 // save specific responses for later use
-                var saveRequest = ['get_ubersicht_info','get_flottenbewegungen_info','get_inbox_message'];
+                var saveRequest = ['get_ubersicht_info','get_flottenbewegungen_info','get_inbox_message','get_info_for_observationen_page'];
                 if (saveRequest.indexOf(page) !== -1) {
-                    if (page === 'get_ubersicht_info')         config.gameData.overviewInfo = xhr.responseJSON;
-                    if (page === 'get_flottenbewegungen_info') config.gameData.fleetInfo    = xhr.responseJSON;
-                    if (page === 'get_inbox_message')          config.gameData.messageData  = xhr.responseJSON;
+                    if (page === 'get_ubersicht_info')              config.gameData.overviewInfo = xhr.responseJSON;
+                    if (page === 'get_flottenbewegungen_info')      config.gameData.fleetInfo    = xhr.responseJSON;
+                    if (page === 'get_inbox_message')               config.gameData.messageData  = xhr.responseJSON;
+                    if (page === 'get_info_for_observationen_page') config.gameData.obsvervationInfo  = xhr.responseJSON;
                 }
 
                 var listenPages = ['put_building'];
 
                 if (listenPages.indexOf(page) !== -1) {
-                    //console.log(event, xhr, settings);
-                    //console.log('ajaxComplete',page, xhr.responseJSON);
+                    console.log(event, xhr, settings);
+                    console.log('ajaxComplete',page, xhr.responseJSON);
                 }
             });
         });
@@ -636,6 +638,7 @@ function siteManager() {
             case "new_trade_offer":          pageTweaks.newTrade(); break;
             case "raumdock":                 pageTweaks.shipdock(); break;
             case "get_galaxy_view_info":     pageTweaks.galaxyView(); break;
+            case "observationen":            pageTweaks.obs(); break;
             case "schiffskomponenten":       pageTweaks.designShips(); break;
             case "get_make_command_info":    pageTweaks.fleetCommand(); break;
             case "get_change_flotten_info":  pageTweaks.changeFleet(); break;
@@ -1292,6 +1295,44 @@ function siteManager() {
                 //add search icons
                 helper.replaceElementsHtmlWithIcon(lwm_jQuery('.formButtonGalaxyView'), 'fas fa-search');
 
+                config.loadStates.content = false;
+            }).catch(function (e) {
+                console.log(e);
+                config.loadStates.content = false;
+            });
+        },
+        obs: function () {
+            config.promises.content = getPromise('#observationenDiv');
+            config.promises.content.then(function () {
+                // add sort options buttons to obs table
+                var $table = lwm_jQuery('#observationenDiv table').eq(0);
+                // add initial order to be able to restore it
+                $table.find('tr').each(function (i, tr) { lwm_jQuery(tr).data('order', i); });
+                // sort by coords
+                var $thCoord = $table.find('th').eq(1);
+                var $thExpire = $table.find('th').eq(3);
+                $thCoord.append('<i class="fas fa-sort" style="float:right;"></i>').css('cursor', 'hand');
+                $thExpire.append('<i class="fas fa-sort" style="float:right;"></i>').css('cursor', 'hand');
+                $thCoord.click(function () {
+                    $table.find('tr:gt(0)').sort(function (a, b) {
+                        var coordsA = lwm_jQuery(a).find('td:eq(1)').text().split('x');
+                        var coordsAValue = parseInt(coordsA[0])*10000 + parseInt(coordsA[1]) * 100 + parseInt(coordsA[2]);
+                        var coordsB = lwm_jQuery(b).find('td:eq(1)').text().split('x');
+                        var coordsBValue = parseInt(coordsB[0])*10000 + parseInt(coordsB[1]) * 100 + parseInt(coordsB[2]);
+                        return coordsAValue - coordsBValue;
+                    }).each(function() {
+                        var $elem = lwm_jQuery(this).detach();
+                        lwm_jQuery($elem).appendTo($table);
+                    });
+                });
+                $thExpire.click(function () {
+                    $table.find('tr:gt(0)').sort(function (a, b) {
+                        return lwm_jQuery(a).data('order') - lwm_jQuery(b).data('order');
+                    }).each(function() {
+                        var $elem = lwm_jQuery(this).detach();
+                        lwm_jQuery($elem).appendTo($table);
+                    });
+                });
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
