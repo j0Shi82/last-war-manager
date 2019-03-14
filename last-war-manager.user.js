@@ -72,7 +72,7 @@ function siteManager() {
              *  listeners.
              */
         var initClient = function() {
-            console.log('gapi.client.init');
+            //console.log('gapi.client.init');
             gapi.client.init({
                 apiKey: API_KEY,
                 clientId: CLIENT_ID,
@@ -89,13 +89,13 @@ function siteManager() {
 
         var updateSigninStatus = function(isSignedIn) {
             if (isSignedIn) {
-                console.log('gapi.client.drive.files.list');
+                //console.log('gapi.client.drive.files.list');
                 gapi.client.drive.files.list({
                     q: 'name="lwm_config.json"',
                     spaces: 'appDataFolder',
                     fields: 'files(id)'
                 }).then(function(response) {
-                    console.log(response);
+                    //console.log(response);
                     if (response.status === 200) {
                         if (response.result.files.length === 0) {
                             createConfig();
@@ -128,12 +128,12 @@ function siteManager() {
                 mimeType: 'application/json',
                 uploadType: 'multipart'
             };
-            console.log('gapi.client.drive.files.create');
+            //console.log('gapi.client.drive.files.create');
             gapi.client.drive.files.create({
                 resource: fileMetadata,
                 fields: 'id,name'
             }).then(function(response) {
-                console.log(response);
+                //console.log(response);
                 if (response.status === 200) {
                     configFileID = response.result.id;
                     saveConfig();
@@ -160,7 +160,7 @@ function siteManager() {
                 coords_trades: GM_config.get('coords_trades')
             };
 
-            console.log('gapi.client.request',saveObj);
+            //console.log('gapi.client.request',saveObj);
             gapi.client.request({
                 path: '/upload/drive/v3/files/' + configFileID,
                 method: 'PATCH',
@@ -170,7 +170,7 @@ function siteManager() {
                 },
                 body: JSON.stringify(saveObj)
             }).then(function (response) {
-                console.log(response);
+                //console.log(response);
                 if (response.status !== 200) {
                     console.error('files.create: ' + response);
                 }
@@ -180,12 +180,12 @@ function siteManager() {
         }
 
         var getConfig = function () {
-            console.log('gapi.client.drive.files.get');
+            //console.log('gapi.client.drive.files.get');
             gapi.client.drive.files.get({
                 fileId: configFileID,
                 alt: 'media'
             }).then(function (response) {
-                console.log(response);
+                //console.log(response);
                 if (response.status === 200) {
                     config.lwm.set(response.result);
                 } else {
@@ -528,7 +528,7 @@ function siteManager() {
                 // first ubersicht load is usually not caught by our wrapper. But in case it is, return because we invoke this manually
                 if (firstLoad && page === 'ubersicht') return;
 
-                console.log(page);
+                //console.log(page);
 
                 var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
                                     'get_info_for_flotten_pages'];
