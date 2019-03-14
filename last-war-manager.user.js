@@ -8,7 +8,7 @@
 // @updateURL     https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/last-war-manager.user.js
 // @downloadURL   https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/last-war-manager.user.js
 // @supportURL    https://github.com/j0Shi82/last-war-manager/issues
-// @match         https://last-war.de/main.php*
+// @match         https://*.last-war.de/main.php*
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e07de5c0a13d416fda88134f999baccfee6f7059/assets/jquery.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
 // @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@b5c68029febb99bdea7f6bdc92d14afb72d14e31/last-war-manager.css
@@ -470,11 +470,11 @@ function siteManager() {
             },
             spionageInfos: function () {
                 var uriData = 'galaxy_check='+config.gameData.planetCoords.galaxy+'&system_check='+config.gameData.planetCoords.system+'&planet_check='+config.gameData.planetCoords.planet;
-                return site_jQuery.getJSON('https://last-war.de/ajax_request/get_spionage_info.php?'+uriData, function( data ) { config.gameData.spionageInfos = data; });
+                return site_jQuery.getJSON('/ajax_request/get_spionage_info.php?'+uriData, function( data ) { config.gameData.spionageInfos = data; });
             },
             productionInfos: function () {
                 var uriData = 'galaxy_check='+config.gameData.planetCoords.galaxy+'&system_check='+config.gameData.planetCoords.system+'&planet_check='+config.gameData.planetCoords.planet;
-                return site_jQuery.getJSON("https://last-war.de/ajax_request/get_production_info.php?"+uriData, function( data ) {
+                return site_jQuery.getJSON("/ajax_request/get_production_info.php?"+uriData, function( data ) {
                     lwm_jQuery.each(data, function (i, cat) {
                         if (!lwm_jQuery.isArray(cat)) return true;
                         lwm_jQuery.each(cat, function (j, ship) {
@@ -488,7 +488,7 @@ function siteManager() {
                 GM.setValue('lwm_resProd', JSON.stringify(config.lwm.resProd));
             },
             planetInformation: function(data) {
-                return site_jQuery.getJSON('https://last-war.de/ajax_request/get_all_planets_information.php', function (data) {
+                return site_jQuery.getJSON('/ajax_request/get_all_planets_information.php', function (data) {
                     config.gameData.planetInformation = data;
                     config.gameData.planets = [];
                     lwm_jQuery.each(data, function (i, d) {
@@ -1591,7 +1591,7 @@ function siteManager() {
             var requestTrades = function() {
                 var uriData = 'galaxy_check='+config.gameData.planetCoords.galaxy+'&system_check='+config.gameData.planetCoords.system+'&planet_check='+config.gameData.planetCoords.planet;
                 site_jQuery.ajax({
-                    url: 'https://last-war.de/ajax_request/get_trade_offers.php?'+uriData,
+                    url: '/ajax_request/get_trade_offers.php?'+uriData,
                     success: function(data) {
                         unsafeWindow.Roheisen = parseInt(data.resource['Roheisen']);
                         unsafeWindow.Kristall = parseInt(data.resource['Kristall']);
@@ -1806,7 +1806,7 @@ function siteManager() {
 
     var requests = {
         get_flottenbewegungen_info: function () {
-            return site_jQuery.getJSON('https://last-war.de/ajax_request/get_flottenbewegungen_info.php?galaxy='+config.gameData.planetCoords.galaxy+'&system='+config.gameData.planetCoords.system+'&planet='+config.gameData.planetCoords.planet);
+            return site_jQuery.getJSON('/ajax_request/get_flottenbewegungen_info.php?galaxy='+config.gameData.planetCoords.galaxy+'&system='+config.gameData.planetCoords.system+'&planet='+config.gameData.planetCoords.planet);
         }
     };
 
@@ -1838,7 +1838,7 @@ function siteManager() {
             site_jQuery.ajax({
                 type: "POST",
                 dataType: "json",
-                url: "https://last-war.de/ajax_request/send_spionage_action.php",
+                url: "/ajax_request/send_spionage_action.php",
                 data: obj,
                 error: function(jqXHR, textStatus, errorThrown) {
                     alert(textStatus + ": " + errorThrown);
@@ -1874,7 +1874,7 @@ function siteManager() {
                                 var r = confirm(message);
                                 if (r == true)
                                 {
-                                    lwm_jQuery.post('https://last-war.de/ajax_request/put_planetenscanner_drons.php', {
+                                    lwm_jQuery.post('/ajax_request/put_planetenscanner_drons.php', {
                                         Units: data.Units,
                                         EngineType_Drone: data.EngineType_Drone,
                                         Speed_Drone: data.Speed_Drone,
