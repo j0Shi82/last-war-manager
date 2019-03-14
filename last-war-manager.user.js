@@ -401,8 +401,8 @@ function siteManager() {
                 if (typeof config.lwm[settingName][config.gameData.playerID] === "undefined") config.lwm[settingName][config.gameData.playerID] = {};
 
                 //check for coords that don't exist
-                $.each(config.lwm[settingName][config.gameData.playerID], function (planet, planetData) {
-                    var planets = $.map(config.gameData.planets, function (d, i) { return d.string; });
+                lwm_jQuery.each(config.lwm[settingName][config.gameData.playerID], function (planet, planetData) {
+                    var planets = lwm_jQuery.map(config.gameData.planets, function (d, i) { return d.string; });
                     if (lwm_jQuery.inArray(planet, planets) === -1) delete config.lwm[settingName][config.gameData.playerID][planet];
                 });
 
@@ -691,7 +691,7 @@ function siteManager() {
                 if (window.matchMedia("(min-width: 849px)").matches) {
                     lwm_jQuery('#link .navButton, #veticalLink .navButton').appendTo('.secound_line');
                 }
-                $('.secound_line').toggle($('.secound_line .navButton').length > 0);
+                lwm_jQuery('.secound_line').toggle(lwm_jQuery('.secound_line .navButton').length > 0);
 
                 config.loadStates.submenu = false;
             }).catch(function (e) {
@@ -789,7 +789,7 @@ function siteManager() {
             config.promises.content = getPromise('#handelspostenDiv');
             config.promises.content.then(function () {
                 //remove margin from arrows
-                $('.arrow-left,.arrow-right').css('margin-top',0);
+                lwm_jQuery('.arrow-left,.arrow-right').css('margin-top',0);
 
                 //add data-page and confirm to build buttons
                 lwm_jQuery('button[onclick*=\'buyHandeslpostenShips\']').each(function () {
@@ -1000,7 +1000,7 @@ function siteManager() {
         planeten: function() {
             config.promises.content = getPromise('#planetTable');
             config.promises.content.then(function () {
-                $('tr').find('.planetButtonTd:gt(0)').remove();
+                lwm_jQuery('tr').find('.planetButtonTd:gt(0)').remove();
                 lwm_jQuery('#planetTable tbody tr:nth-child(5n-3) td:first-child').each(function () {
                     var coords = lwm_jQuery(this).html().match(/\d+x\d+x\d+/)[0].split('x');
                     var button = '<input class="planetButton planetButtonMain" type="button" value="'+lwm_jQuery(this).html()+'" onclick="changeCords('+coords[0]+', '+coords[1]+', '+coords[2]+');">';
@@ -1108,8 +1108,8 @@ function siteManager() {
                 $allShips.appendTo(lwm_jQuery('#changeFlottenDiv > table th:eq(7)'));
                 $allShips.clone().appendTo(lwm_jQuery('#changeFlottenDiv > table th:eq(8)'));
 
-                $('#changeFlottenDiv .lwm_selectAll').click(function () {
-                    var index = $(this).parent().index('#changeFlottenDiv > table th');
+                lwm_jQuery('#changeFlottenDiv .lwm_selectAll').click(function () {
+                    var index = lwm_jQuery(this).parent().index('#changeFlottenDiv > table th');
                     lwm_jQuery('#changeFlottenDiv > table tr').find('td:eq('+(index)+') .arrow-right').each(function () {
                         var curCount = 0;
                         do {
@@ -1130,9 +1130,9 @@ function siteManager() {
             config.promises.content = getPromise('#flottenBasenPlanetDiv,#fremdeFlottenBasenDiv,#flottenBasenAllDiv,#flottenKommandoDiv,#link');
             config.promises.content.then(function () {
                 //add recall button if applicable
-                var fleets = $.grep(xhr.responseJSON, function (fleet, i) { return fleet.status_king === "1"; });
-                $.each(fleets, function (i, fleet) {
-                    var $form = $('td:contains(\''+fleet.id_fleets+'\')').parents('table').find('form');
+                var fleets = lwm_jQuery.grep(xhr.responseJSON, function (fleet, i) { return fleet.status_king === "1"; });
+                lwm_jQuery.each(fleets, function (i, fleet) {
+                    var $form = lwm_jQuery('td:contains(\''+fleet.id_fleets+'\')').parents('table').find('form');
                     $form.append('<a id="recallFleets" class="formButtonSpionage" href="#" onclick="changeContent(\'flotten_view\', \'third\', \'Flotten-Kommando\', \''+fleet.id_fleets+'\');"><i class="fas fa-wifi faa-flash animated"></i>L-Kom</a>');
                 });
 
@@ -1253,7 +1253,7 @@ function siteManager() {
                 });
 
                 //move observation and search div
-                $('.headerOfGalaxyViewPage').insertBefore($('#tableForChangingPlanet'));
+                lwm_jQuery('.headerOfGalaxyViewPage').insertBefore(lwm_jQuery('#tableForChangingPlanet'));
 
                 //add search icons
                 helper.replaceElementsHtmlWithIcon(lwm_jQuery('.formButtonGalaxyView'), 'fas fa-search');
@@ -1310,15 +1310,15 @@ function siteManager() {
                     //add resources analysis
 
                     var resTotals = {
-                        fe: $.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.roheisen; }).reduce(function (total, num) { return total + num; }),
-                        kris: $.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.kristall; }).reduce(function (total, num) { return total + num; }),
-                        frub: $.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.frubin; }).reduce(function (total, num) { return total + num; }),
-                        ori: $.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.orizin; }).reduce(function (total, num) { return total + num; }),
-                        fruro: $.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.frurozin; }).reduce(function (total, num) { return total + num; }),
-                        gold: $.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.gold; }).reduce(function (total, num) { return total + num; })
+                        fe: lwm_jQuery.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.roheisen; }).reduce(function (total, num) { return total + num; }),
+                        kris: lwm_jQuery.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.kristall; }).reduce(function (total, num) { return total + num; }),
+                        frub: lwm_jQuery.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.frubin; }).reduce(function (total, num) { return total + num; }),
+                        ori: lwm_jQuery.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.orizin; }).reduce(function (total, num) { return total + num; }),
+                        fruro: lwm_jQuery.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.frurozin; }).reduce(function (total, num) { return total + num; }),
+                        gold: lwm_jQuery.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.gold; }).reduce(function (total, num) { return total + num; })
                     };
 
-                    var $table = $('<table id="lwm_resourceTotal"><tbody>'+
+                    var $table = lwm_jQuery('<table id="lwm_resourceTotal"><tbody>'+
                         '<tr><th colspan="7">Total Production For All Planets</th></tr>'+
                         '<tr>'+
                         '<th class="sameWith"></td>'+
@@ -1400,11 +1400,11 @@ function siteManager() {
                     lwm_jQuery('#Header').toggle();
                     lwm_jQuery(this).toggleClass('fa-plus-circle fa-minus-circle');
                 });
-                $menuToggle.prependTo($('#Main'));
+                $menuToggle.prependTo(lwm_jQuery('#Main'));
                 lwm_jQuery('.select_box_cordinaten').clone().appendTo($menuToggle.find('.planet-changer'));
                 $menuToggle.find('.planet-changer').click(function (e) { e.stopPropagation(); } );
                 $menuToggle.find('.planet-changer').change(function (e) {
-                    site_jQuery('.profileInfo #allCordinaten').val($(this).find('select').val());
+                    site_jQuery('.profileInfo #allCordinaten').val(lwm_jQuery(this).find('select').val());
                     site_jQuery('.profileInfo #allCordinaten').change();
                 });
 
@@ -1416,13 +1416,13 @@ function siteManager() {
                         $menuToggle.find('i.toggle').addClass('fa-plus-circle').removeClass('fa-minus-circle');
 
                         lwm_jQuery('.secound_line .navButton').appendTo('#link, #veticalLink');
-                        lwm_jQuery('.secound_line').toggle($('.secound_line .navButton').length > 0);
+                        lwm_jQuery('.secound_line').toggle(lwm_jQuery('.secound_line .navButton').length > 0);
                     } else {
                         lwm_jQuery('#Header').show();
                         $menuToggle.find('i.toggle').addClass('fa-minus-circle').removeClass('fa-plus-circle');
 
                         lwm_jQuery('#link .navButton, #veticalLink .navButton').appendTo('.secound_line');
-                        lwm_jQuery('.secound_line').toggle($('.secound_line .navButton').length > 0);
+                        lwm_jQuery('.secound_line').toggle(lwm_jQuery('.secound_line .navButton').length > 0);
                     }
                 };
                 window.addEventListener('resize', watchMenuOnWindowResize, false);
@@ -1461,7 +1461,7 @@ function siteManager() {
                 });
 
                 //replace the profile image box
-                lwm_jQuery('#profileImageBox').css('background-image', 'url(https://last-war.de/'+$('#imageAvatarPattern').attr('xlink:href')+')');
+                lwm_jQuery('#profileImageBox').css('background-image', 'url(https://last-war.de/'+lwm_jQuery('#imageAvatarPattern').attr('xlink:href')+')');
 
                 //add menu icons
                 lwm_jQuery('#ubersicht').prepend('<i class="fas fa-home"></i>');
@@ -1923,15 +1923,15 @@ function siteManager() {
         },
         addResMemory: function ($list, type) {
             lwm_jQuery.each($list, function (i, el) {
-                $(el).click(function () {
-                    config.currentSavedProject.fe = numeral($(this).parents('tr').find('.roheisenVariable').text().replace(/\D/, '')).value();
-                    config.currentSavedProject.kris = numeral($(this).parents('tr').find('.kristallVariable').text().replace(/\D/, '')).value();
-                    config.currentSavedProject.frub = numeral($(this).parents('tr').find('.frubinVariable').text().replace(/\D/, '')).value();
-                    config.currentSavedProject.ori = numeral($(this).parents('tr').find('.orizinVariable').text().replace(/\D/, '')).value();
-                    config.currentSavedProject.fruro = numeral($(this).parents('tr').find('.frurozinVariable').text().replace(/\D/, '')).value();
-                    config.currentSavedProject.gold = numeral($(this).parents('tr').find('.goldVariable').text().replace(/\D/, '')).value();
+                lwm_jQuery(el).click(function () {
+                    config.currentSavedProject.fe = numeral(lwm_jQuery(this).parents('tr').find('.roheisenVariable').text().replace(/\D/, '')).value();
+                    config.currentSavedProject.kris = numeral(lwm_jQuery(this).parents('tr').find('.kristallVariable').text().replace(/\D/, '')).value();
+                    config.currentSavedProject.frub = numeral(lwm_jQuery(this).parents('tr').find('.frubinVariable').text().replace(/\D/, '')).value();
+                    config.currentSavedProject.ori = numeral(lwm_jQuery(this).parents('tr').find('.orizinVariable').text().replace(/\D/, '')).value();
+                    config.currentSavedProject.fruro = numeral(lwm_jQuery(this).parents('tr').find('.frurozinVariable').text().replace(/\D/, '')).value();
+                    config.currentSavedProject.gold = numeral(lwm_jQuery(this).parents('tr').find('.goldVariable').text().replace(/\D/, '')).value();
                     config.currentSavedProject.ts = moment().unix();
-                    config.currentSavedProject.name = $(this).parents('tr').find('.constructionName').text();
+                    config.currentSavedProject.name = lwm_jQuery(this).parents('tr').find('.constructionName').text();
                     config.currentSavedProject.type = type;
                 });
             });
