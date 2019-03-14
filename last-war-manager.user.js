@@ -11,7 +11,7 @@
 // @match         https://last-war.de/main.php*
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e07de5c0a13d416fda88134f999baccfee6f7059/assets/jquery.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
-// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@37e8a1dfdcb142617ea24209228fbaab7f6ad14f/last-war-manager.css
+// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@b5c68029febb99bdea7f6bdc92d14afb72d14e31/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
 // @grant         GM.setValue
@@ -64,7 +64,6 @@ function siteManager() {
              */
         var handleClientLoad = function(g) {
             gapi = g;
-            console.log('gapi.load');
             gapi.load('client:auth2', initClient);
         }
 
@@ -73,14 +72,13 @@ function siteManager() {
              *  listeners.
              */
         var initClient = function() {
-            console.log('gapi.init');
+            //console.log('gapi.client.init');
             gapi.client.init({
                 apiKey: API_KEY,
                 clientId: CLIENT_ID,
                 discoveryDocs: DISCOVERY_DOCS,
                 scope: SCOPES
             }).then(function () {
-                console.log('gapi.init.done');
                 gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
                 updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
             }, function (error) {
@@ -91,13 +89,13 @@ function siteManager() {
 
         var updateSigninStatus = function(isSignedIn) {
             if (isSignedIn) {
-                console.log('gapi.list');
+                //console.log('gapi.client.drive.files.list');
                 gapi.client.drive.files.list({
                     q: 'name="lwm_config.json"',
                     spaces: 'appDataFolder',
                     fields: 'files(id)'
                 }).then(function(response) {
-                    console.log(response);
+                    //console.log(response);
                     if (response.status === 200) {
                         if (response.result.files.length === 0) {
                             createConfig();
@@ -130,12 +128,12 @@ function siteManager() {
                 mimeType: 'application/json',
                 uploadType: 'multipart'
             };
-            console.log('gapi.create');
+            //console.log('gapi.client.drive.files.create');
             gapi.client.drive.files.create({
                 resource: fileMetadata,
                 fields: 'id,name'
             }).then(function(response) {
-                console.log(response);
+                //console.log(response);
                 if (response.status === 200) {
                     configFileID = response.result.id;
                     saveConfig();
@@ -162,7 +160,7 @@ function siteManager() {
                 coords_trades: GM_config.get('coords_trades')
             };
 
-            console.log('gapi.save');
+            //console.log('gapi.client.request',saveObj);
             gapi.client.request({
                 path: '/upload/drive/v3/files/' + configFileID,
                 method: 'PATCH',
@@ -172,7 +170,7 @@ function siteManager() {
                 },
                 body: JSON.stringify(saveObj)
             }).then(function (response) {
-                console.log(response);
+                //console.log(response);
                 if (response.status !== 200) {
                     console.error('files.create: ' + response);
                 }
@@ -182,13 +180,13 @@ function siteManager() {
         }
 
         var getConfig = function () {
-            console.log('gapi.get');
+            //console.log('gapi.client.drive.files.get');
             gapi.client.drive.files.get({
                 fileId: configFileID,
                 alt: 'media'
             }).then(function (response) {
+                //console.log(response);
                 if (response.status === 200) {
-                    console.log(response);
                     config.lwm.set(response.result);
                 } else {
                     console.error('files.create: ' + response);
@@ -339,6 +337,7 @@ function siteManager() {
             productionInfos: [],
             overviewInfo: {},
             messageData: {},
+            fleetInfo: {},
 
             checkDataReloads: function () {
                 lwm_jQuery.each(config.gameData.reloads, function (type, state) {
@@ -395,8 +394,8 @@ function siteManager() {
         },
         promises: {
             interval: {
-                ms: 500,
-                count: 20
+                ms: 200,
+                count: 50
             },
             submenu: null,
             content: null,
@@ -408,8 +407,8 @@ function siteManager() {
                 if (typeof config.lwm[settingName][config.gameData.playerID] === "undefined") config.lwm[settingName][config.gameData.playerID] = {};
 
                 //check for coords that don't exist
-                $.each(config.lwm[settingName][config.gameData.playerID], function (j, planet) {
-                    var planets = $.map(config.gameData.planets, function (d, i) { return d.string; });
+                lwm_jQuery.each(config.lwm[settingName][config.gameData.playerID], function (planet, planetData) {
+                    var planets = lwm_jQuery.map(config.gameData.planets, function (d, i) { return d.string; });
                     if (lwm_jQuery.inArray(planet, planets) === -1) delete config.lwm[settingName][config.gameData.playerID][planet];
                 });
 
@@ -417,7 +416,7 @@ function siteManager() {
             }
 
             GM.getValue('lwm_lastTradeCoords', '{}').then(function (data) {
-                try { config.lwm.lastTradeCoords = JSON.parse(lastTradeCoordsData); } catch (e) { config.lwm.lastTradeCoords = {}; }
+                try { config.lwm.lastTradeCoords = JSON.parse(data); } catch (e) { config.lwm.lastTradeCoords = {}; }
                 checkConfigPerCoordsSetup('lastTradeCoords');
                 if (config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string].length > GM_config.get('coords_trades')) {
                     config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string].length = GM_config.get('coords_trades');
@@ -530,23 +529,22 @@ function siteManager() {
 
             //we're hooking into ajax requests to figure out on which page we are and fire our own stuff
             site_jQuery(document).ajaxSend(function( event, xhr, settings ) {
-                console.log(event.data,settings.data);
-                console.log(settings.url.match(/\/(\w*).php(\?.*)?$/)[1]);
-
                 var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
                 if (settings.url.search(/lwm_ignoreProcess/) !== -1) {
                     console.log('lwm_ignoreProcess... skipping');
                     return;
                 }
+                // first ubersicht load is usually not caught by our wrapper. But in case it is, return because we invoke this manually
+                if (firstLoad && page === 'ubersicht') return;
+
+                //console.log(page);
 
                 var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
                                     'get_info_for_flotten_pages'];
-                var ignorePages =  ['galaxy_view','change_flotten','flottenbasen_all','fremde_flottenbasen','flottenbasen_planet'];
+                var ignorePages =  ['make_command','galaxy_view','change_flotten','flottenkommando','flottenbasen_all','fremde_flottenbasen','flottenbasen_planet'];
 
                 if ((settings.url.match(/content/) || processPages.indexOf(page) !== -1) && ignorePages.indexOf(page) === -1) process(page, xhr);
-
-                if (page === 'get_ubersicht_info') console.log(config);
             });
 
             site_jQuery(window).focus(function () { addOns.load(); });
@@ -556,17 +554,18 @@ function siteManager() {
                 var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
                 // save specific responses for later use
-                var saveRequest = ['get_ubersicht_info','get_inbox_message'];
+                var saveRequest = ['get_ubersicht_info','get_flottenbewegungen_info','get_inbox_message'];
                 if (saveRequest.indexOf(page) !== -1) {
-                    if (page === 'get_ubersicht_info') config.gameData.overviewInfo = xhr.responseJSON;
-                    if (page === 'get_inbox_message')  config.gameData.messageData  = xhr.responseJSON;
+                    if (page === 'get_ubersicht_info')         config.gameData.overviewInfo = xhr.responseJSON;
+                    if (page === 'get_flottenbewegungen_info') config.gameData.fleetInfo    = xhr.responseJSON;
+                    if (page === 'get_inbox_message')          config.gameData.messageData  = xhr.responseJSON;
                 }
 
                 var listenPages = ['put_building'];
 
                 if (listenPages.indexOf(page) !== -1) {
-                    console.log(event, xhr, settings);
-                    console.log('ajaxComplete',page, xhr.responseJSON);
+                    //console.log(event, xhr, settings);
+                    //console.log('ajaxComplete',page, xhr.responseJSON);
                 }
             });
         });
@@ -661,8 +660,9 @@ function siteManager() {
             config.loadStates.submenu = true;
             config.promises.submenu = getLoadStatePromise('content');
             config.promises.submenu.then(function () {
-                lwm_jQuery.each(lwm_jQuery('.navButton'), function () {
-                    switch (lwm_jQuery(this).attr('onclick').match(/\'([a-z0-9A-Z_]*)\'/)[1]) {
+                lwm_jQuery('#link .navButton, #veticalLink .navButton').each(function () {
+                    lwm_jQuery(this).attr('data-page', lwm_jQuery(this).attr('onclick').match(/(\'|\")([a-z0-9A-Z_]*)(\'|\")/)[2]);
+                    switch (lwm_jQuery(this).attr('data-page')) {
                         case 'trade_offer': lwm_jQuery(this).prepend('<i class="fas fa-handshake"></i>'); break;
                         case 'handelsposten': lwm_jQuery(this).prepend('<i class="fas fa-dollar-sign"></i>'); break;
                         case 'building_tree': lwm_jQuery(this).prepend('<i class="fas fa-warehouse"></i>'); break;
@@ -700,12 +700,9 @@ function siteManager() {
                     }
                 });
                 if (window.matchMedia("(min-width: 849px)").matches) {
-                    lwm_jQuery('.navButton').appendTo('.secound_line');
+                    lwm_jQuery('#link .navButton, #veticalLink .navButton').appendTo('.secound_line');
                 }
-                $('.secound_line').toggle($('.secound_line .navButton').length > 0);
-
-                //rename link container, this is needed so that fleet function doesn't override the submenu
-                $('#link').attr('id', 'lwm_link');
+                lwm_jQuery('.secound_line').toggle(lwm_jQuery('.secound_line .navButton').length > 0);
 
                 config.loadStates.submenu = false;
             }).catch(function (e) {
@@ -748,7 +745,7 @@ function siteManager() {
                     var $table = lwm_jQuery('<table></table>'); $td.append($table);
                     var $tbody = lwm_jQuery('<tbody></tbody>'); $table.append($tbody);
                     var $tr1 = lwm_jQuery('<tr><td class="sameWith roheisenVariable">Roheisen</td><td class="sameWith kristallVariable">Kristall</td><td class="sameWith frubinVariable">Frubin</td><td class="sameWith orizinVariable">Orizin</td><td class="sameWith frurozinVariable">Frurozin</td><td class="sameWith goldVariable">Gold</td></tr>');
-                    var $tr2 = lwm_jQuery('<tr><td class="roheisenVariable">'+Math.round(d.Planet_Roheisen)+'</td><td class="kristallVariable">'+Math.round(d.Planet_Kristall)+'</td><td class="frubinVariable">'+Math.round(d.Planet_Frubin)+'</td><td class="orizinVariable">'+Math.round(d.Planet_Orizin)+'</td><td class="frurozinVariable">'+Math.round(d.Planet_Frurozin)+'</td><td class="goldVariable">'+Math.round(d.Planet_Gold)+'</td></tr>');
+                    var $tr2 = lwm_jQuery('<tr><td class="roheisenVariable">'+site_jQuery.number(Math.round(d.Planet_Roheisen), 0, ',', '.' )+'</td><td class="kristallVariable">'+site_jQuery.number(Math.round(d.Planet_Kristall), 0, ',', '.' )+'</td><td class="frubinVariable">'+site_jQuery.number(Math.round(d.Planet_Frubin), 0, ',', '.' )+'</td><td class="orizinVariable">'+site_jQuery.number(Math.round(d.Planet_Orizin), 0, ',', '.' )+'</td><td class="frurozinVariable">'+site_jQuery.number(Math.round(d.Planet_Frurozin), 0, ',', '.' )+'</td><td class="goldVariable">'+site_jQuery.number(Math.round(d.Planet_Gold), 0, ',', '.' )+'</td></tr>');
                     $tbody.append($tr1).append($tr2);
                     $Posle.find('tbody').append($tr);
                 });
@@ -783,7 +780,7 @@ function siteManager() {
             });
         },
         defense: function() {
-            config.promises.content = getPromise('#DefenseGraph');
+            config.promises.content = getPromise('#verteidigungDiv');
             config.promises.content.then(function () {
                 lwm_jQuery('button[onclick*=\'makeDefence\']').each(function () {
                     if (GM_config.get('confirm_production')) helper.addConfirm(lwm_jQuery(this));
@@ -800,7 +797,7 @@ function siteManager() {
             config.promises.content = getPromise('#handelspostenDiv');
             config.promises.content.then(function () {
                 //remove margin from arrows
-                $('.arrow-left,.arrow-right').css('margin-top',0);
+                lwm_jQuery('.arrow-left,.arrow-right').css('margin-top',0);
 
                 lwm_jQuery('button[onclick*=\'buyHandeslpostenShips\']').each(function () {
                     if (GM_config.get('confirm_production')) helper.addConfirm(lwm_jQuery(this));
@@ -979,7 +976,7 @@ function siteManager() {
             });
         },
         research: function() {
-            config.promises.content = getPromise('.basisForschungen,#researchPage');
+            config.promises.content = getPromise('.basisForschungen,#researchPage:contains(\'Forschungszentrale benötigt.\')');
             config.promises.content.then(function () {
                 lwm_jQuery('.greenButton,.yellowButton,.redButton').each(function () {
                     var $td = lwm_jQuery(this).parent();
@@ -1001,7 +998,7 @@ function siteManager() {
         planeten: function() {
             config.promises.content = getPromise('#planetTable');
             config.promises.content.then(function () {
-                $('tr').find('.planetButtonTd:gt(0)').remove();
+                lwm_jQuery('tr').find('.planetButtonTd:gt(0)').remove();
                 lwm_jQuery('#planetTable tbody tr:nth-child(5n-3) td:first-child').each(function () {
                     var coords = lwm_jQuery(this).html().match(/\d+x\d+x\d+/)[0].split('x');
                     var button = '<input class="planetButton planetButtonMain" type="button" value="'+lwm_jQuery(this).html()+'" onclick="changeCords('+coords[0]+', '+coords[1]+', '+coords[2]+');">';
@@ -1145,9 +1142,8 @@ function siteManager() {
                 $allShips.appendTo(lwm_jQuery('#changeFlottenDiv > table th:eq(7)'));
                 $allShips.clone().appendTo(lwm_jQuery('#changeFlottenDiv > table th:eq(8)'));
 
-                $('#changeFlottenDiv .lwm_selectAll').click(function () {
-                    console.log('huhu');
-                    var index = $(this).parent().index('#changeFlottenDiv > table th');
+                lwm_jQuery('#changeFlottenDiv .lwm_selectAll').click(function () {
+                    var index = lwm_jQuery(this).parent().index('#changeFlottenDiv > table th');
                     lwm_jQuery('#changeFlottenDiv > table tr').find('td:eq('+(index)+') .arrow-right').each(function () {
                         var curCount = 0;
                         do {
@@ -1165,12 +1161,12 @@ function siteManager() {
             });
         },
         allFleets: function (xhr) {
-            config.promises.content = getPromise('#flottenBasenPlanetDiv,#fremdeFlottenBasenDiv,#flottenBasenAllDiv');
+            config.promises.content = getPromise('#flottenBasenPlanetDiv,#fremdeFlottenBasenDiv,#flottenBasenAllDiv,#flottenKommandoDiv,#link');
             config.promises.content.then(function () {
                 //add recall button if applicable
-                var fleets = $.grep(xhr.responseJSON, function (fleet, i) { return fleet.status_king === "1"; });
-                $.each(fleets, function (i, fleet) {
-                    var $form = $('td:contains(\''+fleet.id_fleets+'\')').parents('table').find('form');
+                var fleets = lwm_jQuery.grep(xhr.responseJSON, function (fleet, i) { return fleet.status_king === "1"; });
+                lwm_jQuery.each(fleets, function (i, fleet) {
+                    var $form = lwm_jQuery('td:contains(\''+fleet.id_fleets+'\')').parents('table').find('form');
                     $form.append('<a id="recallFleets" class="formButtonSpionage" href="#" onclick="changeContent(\'flotten_view\', \'third\', \'Flotten-Kommando\', \''+fleet.id_fleets+'\');"><i class="fas fa-wifi faa-flash animated"></i>L-Kom</a>');
                 });
 
@@ -1291,7 +1287,7 @@ function siteManager() {
                 });
 
                 //move observation and search div
-                $('.headerOfGalaxyViewPage').insertBefore($('#tableForChangingPlanet'));
+                lwm_jQuery('.headerOfGalaxyViewPage').insertBefore(lwm_jQuery('#tableForChangingPlanet'));
 
                 //add search icons
                 helper.replaceElementsHtmlWithIcon(lwm_jQuery('.formButtonGalaxyView'), 'fas fa-search');
@@ -1348,15 +1344,15 @@ function siteManager() {
                     //add resources analysis
 
                     var resTotals = {
-                        fe: $.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.roheisen; }).reduce(function (total, num) { return total + num; }),
-                        kris: $.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.kristall; }).reduce(function (total, num) { return total + num; }),
-                        frub: $.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.frubin; }).reduce(function (total, num) { return total + num; }),
-                        ori: $.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.orizin; }).reduce(function (total, num) { return total + num; }),
-                        fruro: $.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.frurozin; }).reduce(function (total, num) { return total + num; }),
-                        gold: $.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.gold; }).reduce(function (total, num) { return total + num; })
+                        fe: lwm_jQuery.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.roheisen; }).reduce(function (total, num) { return total + num; }),
+                        kris: lwm_jQuery.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.kristall; }).reduce(function (total, num) { return total + num; }),
+                        frub: lwm_jQuery.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.frubin; }).reduce(function (total, num) { return total + num; }),
+                        ori: lwm_jQuery.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.orizin; }).reduce(function (total, num) { return total + num; }),
+                        fruro: lwm_jQuery.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.frurozin; }).reduce(function (total, num) { return total + num; }),
+                        gold: lwm_jQuery.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.gold; }).reduce(function (total, num) { return total + num; })
                     };
 
-                    var $table = $('<table id="lwm_resourceTotal"><tbody>'+
+                    var $table = lwm_jQuery('<table id="lwm_resourceTotal"><tbody>'+
                         '<tr><th colspan="7">Total Production For All Planets</th></tr>'+
                         '<tr>'+
                         '<th class="sameWith"></td>'+
@@ -1369,21 +1365,21 @@ function siteManager() {
                         '</tr>'+
                         '<tr>'+
                         '<td class="">per hour</td>'+
-                        '<td class="roheisenVariable">'+numeral(resTotals.fe).format('0,0')+'</td>'+
-                        '<td class="kristallVariable">'+numeral(resTotals.kris).format('0,0')+'</td>'+
-                        '<td class="frubinVariable">'+numeral(resTotals.frub).format('0,0')+'</td>'+
-                        '<td class="orizinVariable">'+numeral(resTotals.ori).format('0,0')+'</td>'+
-                        '<td class="frurozinVariable">'+numeral(resTotals.fruro).format('0,0')+'</td>'+
-                        '<td class="goldVariable">'+numeral(resTotals.gold).format('0,0')+'</td>'+
+                        '<td class="roheisenVariable">'+site_jQuery.number(resTotals.fe, 0, ',', '.' )+'</td>'+
+                        '<td class="kristallVariable">'+site_jQuery.number(resTotals.kris, 0, ',', '.' )+'</td>'+
+                        '<td class="frubinVariable">'+site_jQuery.number(resTotals.frub, 0, ',', '.' )+'</td>'+
+                        '<td class="orizinVariable">'+site_jQuery.number(resTotals.ori, 0, ',', '.' )+'</td>'+
+                        '<td class="frurozinVariable">'+site_jQuery.number(resTotals.fruro, 0, ',', '.' )+'</td>'+
+                        '<td class="goldVariable">'+site_jQuery.number(resTotals.gold, 0, ',', '.' )+'</td>'+
                         '</tr>'+
                         '<tr>'+
                         '<td class="">per day</td>'+
-                        '<td class="roheisenVariable">'+numeral(resTotals.fe*24).format('0,0')+'</td>'+
-                        '<td class="kristallVariable">'+numeral(resTotals.kris*24).format('0,0')+'</td>'+
-                        '<td class="frubinVariable">'+numeral(resTotals.frub*24).format('0,0')+'</td>'+
-                        '<td class="orizinVariable">'+numeral(resTotals.ori*24).format('0,0')+'</td>'+
-                        '<td class="frurozinVariable">'+numeral(resTotals.fruro*24).format('0,0')+'</td>'+
-                        '<td class="goldVariable">'+numeral(resTotals.gold*24).format('0,0')+'</td>'+
+                        '<td class="roheisenVariable">'+site_jQuery.number(resTotals.fe*24, 0, ',', '.' )+'</td>'+
+                        '<td class="kristallVariable">'+site_jQuery.number(resTotals.kris*24, 0, ',', '.' )+'</td>'+
+                        '<td class="frubinVariable">'+site_jQuery.number(resTotals.frub*24, 0, ',', '.' )+'</td>'+
+                        '<td class="orizinVariable">'+site_jQuery.number(resTotals.ori*24, 0, ',', '.' )+'</td>'+
+                        '<td class="frurozinVariable">'+site_jQuery.number(resTotals.fruro*24, 0, ',', '.' )+'</td>'+
+                        '<td class="goldVariable">'+site_jQuery.number(resTotals.gold*24, 0, ',', '.' )+'</td>'+
                         '</tr>'+
                         '</tbody></table>');
 
@@ -1438,11 +1434,11 @@ function siteManager() {
                     lwm_jQuery('#Header').toggle();
                     lwm_jQuery(this).toggleClass('fa-plus-circle fa-minus-circle');
                 });
-                $menuToggle.prependTo($('#Main'));
+                $menuToggle.prependTo(lwm_jQuery('#Main'));
                 lwm_jQuery('.select_box_cordinaten').clone().appendTo($menuToggle.find('.planet-changer'));
                 $menuToggle.find('.planet-changer').click(function (e) { e.stopPropagation(); } );
                 $menuToggle.find('.planet-changer').change(function (e) {
-                    site_jQuery('.profileInfo #allCordinaten').val($(this).find('select').val());
+                    site_jQuery('.profileInfo #allCordinaten').val(lwm_jQuery(this).find('select').val());
                     site_jQuery('.profileInfo #allCordinaten').change();
                 });
 
@@ -1453,14 +1449,14 @@ function siteManager() {
                         lwm_jQuery('#Header').hide();
                         $menuToggle.find('i.toggle').addClass('fa-plus-circle').removeClass('fa-minus-circle');
 
-                        lwm_jQuery('.secound_line .navButton').appendTo('#lwm_link, #veticalLink');
-                        lwm_jQuery('.secound_line').toggle($('.secound_line .navButton').length > 0);
+                        lwm_jQuery('.secound_line .navButton').appendTo('#link, #veticalLink');
+                        lwm_jQuery('.secound_line').toggle(lwm_jQuery('.secound_line .navButton').length > 0);
                     } else {
                         lwm_jQuery('#Header').show();
                         $menuToggle.find('i.toggle').addClass('fa-minus-circle').removeClass('fa-plus-circle');
 
-                        lwm_jQuery('#lwm_link .navButton, #veticalLink .navButton').appendTo('.secound_line');
-                        lwm_jQuery('.secound_line').toggle($('.secound_line .navButton').length > 0);
+                        lwm_jQuery('#link .navButton, #veticalLink .navButton').appendTo('.secound_line');
+                        lwm_jQuery('.secound_line').toggle(lwm_jQuery('.secound_line .navButton').length > 0);
                     }
                 };
                 window.addEventListener('resize', watchMenuOnWindowResize, false);
@@ -1488,7 +1484,7 @@ function siteManager() {
                 lwm_jQuery(document).keyup(function (e) {
                     var isGalaxy = lwm_jQuery('#galaxyViewDiv').length > 0;
                     var isInbox  = lwm_jQuery('#messagesListTableInbox').length > 0;
-                    var isMessage= lwm_jQuery('.messages').length > 0;
+                    var isMessage= lwm_jQuery('.messages').length > 0 && lwm_jQuery('#newMessageInsert').length === 0;
                     if (!isGalaxy && !isInbox && !isMessage) return;
                     if ( event.which == 37 && isGalaxy)   unsafeWindow.goToPrevSystem();
                     if ( event.which == 39 && isGalaxy)   unsafeWindow.goToNextSystem();
@@ -1499,7 +1495,7 @@ function siteManager() {
                 });
 
                 //replace the profile image box
-                lwm_jQuery('#profileImageBox').css('background-image', 'url(https://last-war.de/'+$('#imageAvatarPattern').attr('xlink:href')+')');
+                lwm_jQuery('#profileImageBox').css('background-image', 'url(https://last-war.de/'+lwm_jQuery('#imageAvatarPattern').attr('xlink:href')+')');
 
                 //add menu icons
                 lwm_jQuery('#ubersicht').prepend('<i class="fas fa-home"></i>');
@@ -1514,6 +1510,7 @@ function siteManager() {
                 lwm_jQuery('#building_tree').prepend('<i class="fas fa-th-list"></i>');
                 lwm_jQuery('#highscore_player').prepend('<i class="fas fa-trophy"></i>');
                 lwm_jQuery('#create_new_allianze').prepend('<i class="fas fa-users"></i>');
+                lwm_jQuery('#alliance').prepend('<i class="fas fa-users"></i>');
                 lwm_jQuery('#inbox').prepend('<i class="fas fa-envelope"></i>');
                 lwm_jQuery('#account').prepend('<i class="fas fa-user-circle"></i>');
                 lwm_jQuery('#forum').prepend('<i class="fab fa-wpforms"></i>');
@@ -1553,7 +1550,7 @@ function siteManager() {
             });
 
             // add hotkeys for planets
-            $.each(config.gameData.planets, function (i, coords) {
+            lwm_jQuery.each(config.gameData.planets, function (i, coords) {
                 hotkeys('ctrl+shift+'+(i+1), function(event,handler) {
                     unsafeWindow.changeCords(coords.galaxy, coords.system, coords.planet);
                 });
@@ -1616,11 +1613,11 @@ function siteManager() {
             });
         },
         blur: function () {
-            if (addOns.config.fleetRefreshInterval !== null) { clearInterval(addOns.config.fleetRefreshInterval); addOns.config.fleetRefreshInterval = null; }
-            if (addOns.config.tradeRefreshInterval !== null) { clearInterval(addOns.config.tradeRefreshInterval); addOns.config.tradeRefreshInterval = null; }
+            if (GM_config.get('addon_fleet')) requests.get_flottenbewegungen_info();
         },
         unload: function () {
-            addOns.blur();
+            if (addOns.config.fleetRefreshInterval !== null) { clearInterval(addOns.config.fleetRefreshInterval); addOns.config.fleetRefreshInterval = null; }
+            if (addOns.config.tradeRefreshInterval !== null) { clearInterval(addOns.config.tradeRefreshInterval); addOns.config.tradeRefreshInterval = null; }
             if (addOns.config.clockInterval !== null) { clearInterval(addOns.config.clockInterval); addOns.config.clockInterval = null; }
         },
         //refresh trades every minute to make it unnecessary to visit the trade page for trade to go through
@@ -1641,7 +1638,8 @@ function siteManager() {
                 });
             }
 
-            requestTrades();
+            // always refresh trades once after login or planet change
+            if (firstLoad) requestTrades();
 
             //refresh interval
             if (addOns.config.tradeRefreshInterval !== null) return; //allready installed
@@ -1679,30 +1677,141 @@ function siteManager() {
                 return;
             }
 
-            var adjustFleetDiv = function () {
-                getPromise('#ALLFL').then(function () {
-                    /* tweak the table and move the fleet strings into one cell */
-                    lwm_jQuery('#folottenbewegungenPageDiv tr').each(function () {
-                        var $tr = lwm_jQuery(this);
+            var addFleetDiv = function () {
+                if (lwm_jQuery('#folottenbewegungenPageDiv').length === 0) {
+                    var $div = lwm_jQuery('<div class="pageContent" style="margin-bottom:20px;"><div id="folottenbewegungenPageDiv"><table><tbody><tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>Ankunft</td><td>Restflugzeit</td></tr></tbody></table></div></div>');
+                    $div.hide();
+                    $div.prependTo('#all');
+                    $div.show();
+                }
 
-                        if ($tr.data('processed')) return true;
-                        $tr.data('processed', true);
+                lwm_jQuery('#folottenbewegungenPageDiv table tr:gt(0)').remove();
 
-                        var content = lwm_jQuery.makeArray(
-                            $tr.find('td').not(':nth-last-child(1)').not(':nth-last-child(2)').map(function () { return lwm_jQuery(this).text(); })
-                        ).join(" ");
-                        $tr.find('td').first().html(content);
-                        var lkomLink = $tr.find('a[onclick*=\'changeContent\']').attr('onclick');
-                        if (typeof lkomLink !== "undefined") {
-                            $tr.find('td').first().prepend('<i class="fas fa-wifi faa-flash animated" onclick="'+lkomLink+'" style="cursor:hand;margin-right:5px;color:#66f398"></i>')
-                        }
-                    });
-
-                    config.loadStates.fleetaddon = false;
-                }).catch(function (e) {
-                    console.log(e);
-                    config.loadStates.fleetaddon = false;
+                lwm_jQuery.each(config.gameData.fleetInfo.send_infos, function(i, fleetData) {
+                    var trStyle         = '';
+                    var fleetInfoString = '';
+                    var fleetTimeString = '';
+                    var fleetClock      = '';
+                    var oppCoords       = fleetData.Galaxy + "x" + fleetData.System + "x" + fleetData.Planet;
+                    var oppNick         = fleetData.Nickname_send
+                    var ownCoords       = fleetData.Galaxy_send + "x" + fleetData.System_send + "x" + fleetData.Planet_send;
+                    switch (parseInt(fleetData.Type)) {
+                        case 1:
+                            trStyle = 'background-color:red;';
+                            fleetInfoString = "Eine Flotte vom Planet "+ oppCoords +" greift deinen Planeten " + ownCoords + " an.";
+                            fleetTimeString = fleetData.ComeTime;
+                            fleetClock =      'clock_' + fleetData.clock_id;
+                            break;
+                        case 2:
+                            fleetInfoString = "Fremde Flotte vom "+ oppCoords +" ("+oppNick+") transportiert Rohstoffe nach "+ ownCoords +".";
+                            fleetTimeString = fleetData.ComeTime;
+                            fleetClock =      'clock_' + fleetData.clock_id;
+                            break;
+                        case 3:
+                            if(fleetData.Status == 1) {
+                                fleetInfoString = "Eine Flotte vom Planet "+ oppCoords +" verteidigt deinen Planeten "+ ownCoords +".";
+                                fleetTimeString = fleetData.ComeTime;
+                                fleetClock =      'clock_' + fleetData.clock_id;
+                            } else if(fleetData.Status == 3) {
+                                fleetInfoString = "Eine Flotte von Planet "+ oppCoords +" verteidigt deinen Planeten "+ ownCoords +".";
+                                fleetTimeString = fleetData.DefendingTime;
+                                if(send_info.DefendingTime == null) fleetClock = "unbefristet";
+                                else
+                                {
+                                    fleetClock = 'clock_' + fleetData.clock_id;
+                                }
+                            }
+                            break;
+                        case 5:
+                            fleetInfoString = "Fremde Flotte von "+ oppCoords +" wird überstellt nach "+ ownCoords +".";
+                            fleetTimeString = fleetData.ComeTime;
+                            fleetClock =      'clock_' + fleetData.clock_id;
+                            break;
+                    }
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append('<tr style='+trStyle+'><td>'+fleetInfoString+'</td><td>'+fleetTimeString+'</td><td id=\''+fleetClock+'\'>'+moment.duration(fleetData.secounds, 'seconds').format("hh:mm:ss", { trim: false, forceLength: true })+'</td></tr>');
                 });
+
+                lwm_jQuery.each(config.gameData.fleetInfo.all_informations, function(i, fleetData) {
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + onfig.gameData.planetCoords.system + "x" + onfig.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + " )</td><td>" + fleetData.time + "</td><td id='" + fleetData.clock_id + "'>"+moment.duration(fleetData.secounds, 'seconds').format("hh:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
+                });
+
+                lwm_jQuery.each(config.gameData.fleetInfo.dron_observationens, function(i, fleetData) {
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.system + " )</td><td>" + fleetData.time + "</td><td id='" + fleetData.clock_id + "'>"+moment.duration(fleetData.secounds, 'seconds').format("hh:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
+                });
+
+                lwm_jQuery.each(config.gameData.fleetInfo.dron_planetenscanners, function(i, fleetData) {
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.system + " )</td><td>" + fleetData.time + "</td><td id='" + fleetData.clock_id + "'>"+moment.duration(fleetData.secounds, 'seconds').format("hh:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
+                });
+
+                lwm_jQuery.each(config.gameData.fleetInfo.buy_ships_array, function(i, fleetData) {
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Flotte vom Handelsposten wird überstellt nach " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + ".</td><td>" + fleetData.time + "</td><td id='" + fleetData.clock_id + "'>"+moment.duration(fleetData.secounds, 'seconds').format("hh:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
+                });
+
+                lwm_jQuery.each(config.gameData.fleetInfo.fleet_informations, function(i, fleetData) {
+                    var fleetInfoString = '';
+                    var fleetTimeString = '';
+                    var fleetClock      = '';
+                    var oppCoords       = fleetData.Galaxy_send + "x" + fleetData.System_send + "x" + fleetData.Planet_send;
+                    var oppNick         = fleetData.Nickname_send
+                    var ownCoords       = config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet;
+                    var lkomLink        = '<i class="fas fa-wifi faa-flash animated" onclick="changeContent(\'flotten_view\', \'third\', \'Flotten-Kommando\', \'' + fleetData.id + '\')" style="cursor:hand;margin-right:5px;color:#66f398"></i>';
+                    switch (fleetData.Type) {
+                        case '1':
+                            fleetInfoString = lkomLink+'Eigene Flotte vom Planet '+ ownCoords;
+                            if (fleetData.Status == 1) fleetInfoString += " greift Planet ";
+                            else                       fleetInfoString += " kehrt von ";
+                            fleetInfoString += oppCoords + ' ('+oppNick+')';
+                            if (fleetData.Status == 1) fleetInfoString += " an.";
+                            else                       fleetInfoString += " zurück.";
+                            fleetTimeString = fleetData.ComeTime;
+                            fleetClock =      'clock_' + fleetData.clock_id;
+                            break;
+                        case '2':
+                            fleetInfoString = lkomLink+'Eigene Flotte vom Planet '+ ownCoords;
+                            if (fleetData.Status == 1) fleetInfoString += " transportiert Rohstoffe nach ";
+                            else                       fleetInfoString += " kehrt zurück von ";
+                            fleetInfoString += oppCoords + ' ('+oppNick+').';
+                            fleetTimeString = fleetData.ComeTime;
+                            fleetClock =      'clock_' + fleetData.clock_id;
+                            break;
+                        case '3':
+                            fleetInfoString = lkomLink+'Eigene Flotte vom Planet '+ ownCoords;
+                            if (fleetData.Status == 1)     fleetInfoString += " verteidigt Planet ";
+                            else if(fleetData.Status == 2) fleetInfoString += " kehrt zurück vom ";
+                            else if(fleetData.Status == 3) fleetInfoString += " verteidigt den Planeten ";
+                            fleetInfoString += oppCoords + '( '+oppNick+' )';
+                            if(fleetData.Status != 3) {
+                                fleetTimeString = fleetData.ComeTime;
+                                fleetClock =      'clock_' + fleetData.clock_id;
+                            } else {
+                                fleetTimeString = fleetData.DefendingTime;
+                                if(fleetData.DefendingTime == null) fleetClock = 'unbefristet';
+                                else
+                                {
+                                    fleetClock = 'clock_' + fleetData.clock_id;
+                                }
+                            }
+                            break;
+                        case '4':
+                            fleetInfoString = lkomLink+'Eigene Flotte von Planet '+ ownCoords +' kolonisiert Planeten '+ oppCoords +'.';
+                            fleetTimeString = fleetData.ComeTime;
+                            fleetClock =      'clock_' + fleetData.clock_id;
+                            break;
+                        case '5':
+                            fleetInfoString = lkomLink+'Eigene Flotte von Planet '+ ownCoords +' wird überstellt nach '+ oppCoords +' ( '+oppNick+' ).';
+                            fleetTimeString = fleetData.ComeTime;
+                            fleetClock =      'clock_' + fleetData.clock_id;
+                            break;
+                    }
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append('<tr><td>'+fleetInfoString+'</td><td>'+fleetTimeString+'</td><td id=\''+fleetClock+'\'>'+moment.duration(fleetData.secounds, 'seconds').format("hh:mm:ss", { trim: false, forceLength: true })+'</td></tr>');
+                });
+
+                if (GM_config.get('addon_clock')) {
+                    clearInterval(unsafeWindow.timeinterval_flottenbewegungen);
+                    helper.setDataForClocks();
+                }
+
+                config.loadStates.fleetaddon = false;
             }
 
 
@@ -1711,33 +1820,29 @@ function siteManager() {
                     var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
                     if (page === 'get_flottenbewegungen_info') {
-                        adjustFleetDiv();
-                        if (GM_config.get('addon_clock')) {
-                            clearInterval(unsafeWindow.timeinterval_flottenbewegungen);
-                            helper.setDataForClocks();
-                        }
+                        addFleetDiv();
                     }
                 });
                 addOns.config.fleetCompleteHandlerAdded = true;
             }
-
             //add fleets to page
-            if (lwm_jQuery('#folottenbewegungenPageDiv').length === 0) {
-                var $div = lwm_jQuery('<div class="pageContent" style="margin-bottom:20px;"><div id=\'folottenbewegungenPageDiv\'></div></div>');
-                $div.hide();
-                $div.prependTo('#all');
-                $div.show();
-            }
-            unsafeWindow.ajaxFlottenbewegungenRequest();
+            if (firstLoad) requests.get_flottenbewegungen_info();
+            else           addFleetDiv();
 
             //add refresh interval
             if (addOns.config.fleetRefreshInterval !== null) return;
             addOns.config.fleetRefreshInterval = setInterval(function() {
                 config.loadStates.fleetaddon = true;
-                unsafeWindow.ajaxFlottenbewegungenRequest();
+                requests.get_flottenbewegungen_info();
             }, 30000);
         }
     }
+
+    var requests = {
+        get_flottenbewegungen_info: function () {
+            return site_jQuery.getJSON('https://last-war.de/ajax_request/get_flottenbewegungen_info.php?galaxy='+config.gameData.planetCoords.galaxy+'&system='+config.gameData.planetCoords.system+'&planet='+config.gameData.planetCoords.planet);
+        }
+    };
 
     var operations = {
         performSpionage: function (coords) {
@@ -1852,15 +1957,15 @@ function siteManager() {
         },
         addResMemory: function ($list, type) {
             lwm_jQuery.each($list, function (i, el) {
-                $(el).click(function () {
-                    config.currentSavedProject.fe = numeral($(this).parents('tr').find('.roheisenVariable').text().replace('.', '')).value();
-                    config.currentSavedProject.kris = numeral($(this).parents('tr').find('.kristallVariable').text().replace('.', '')).value();
-                    config.currentSavedProject.frub = numeral($(this).parents('tr').find('.frubinVariable').text().replace('.', '')).value();
-                    config.currentSavedProject.ori = numeral($(this).parents('tr').find('.orizinVariable').text().replace('.', '')).value();
-                    config.currentSavedProject.fruro = numeral($(this).parents('tr').find('.frurozinVariable').text().replace('.', '')).value();
-                    config.currentSavedProject.gold = numeral($(this).parents('tr').find('.goldVariable').text().replace('.', '')).value();
+                lwm_jQuery(el).click(function () {
+                    config.currentSavedProject.fe = numeral(lwm_jQuery(this).parents('tr').find('.roheisenVariable').text().replace(/\D/, '')).value();
+                    config.currentSavedProject.kris = numeral(lwm_jQuery(this).parents('tr').find('.kristallVariable').text().replace(/\D/, '')).value();
+                    config.currentSavedProject.frub = numeral(lwm_jQuery(this).parents('tr').find('.frubinVariable').text().replace(/\D/, '')).value();
+                    config.currentSavedProject.ori = numeral(lwm_jQuery(this).parents('tr').find('.orizinVariable').text().replace(/\D/, '')).value();
+                    config.currentSavedProject.fruro = numeral(lwm_jQuery(this).parents('tr').find('.frurozinVariable').text().replace(/\D/, '')).value();
+                    config.currentSavedProject.gold = numeral(lwm_jQuery(this).parents('tr').find('.goldVariable').text().replace(/\D/, '')).value();
                     config.currentSavedProject.ts = moment().unix();
-                    config.currentSavedProject.name = $(this).parents('tr').find('.constructionName').text();
+                    config.currentSavedProject.name = lwm_jQuery(this).parents('tr').find('.constructionName').text();
                     config.currentSavedProject.type = type;
                 });
             });
@@ -1989,6 +2094,8 @@ function siteManager() {
     }
 
     install();
+    // the first ubersicht load is sometimes not caught by our ajax wrapper, so do manually
+    process('ubersicht');
 };
 
 (function() {

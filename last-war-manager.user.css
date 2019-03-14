@@ -19,7 +19,6 @@
   input.deletePlanetName,
   #shipImage,
   #link,
-  #lwm_link,
   #veticalLink,
   #DefenseGraph img,
   .big_img,
@@ -37,6 +36,7 @@
     width: 100%;
     height: unset;
     background-image: url(images/main_screen/background.jpg);
+    background-size: 100% 100%;
   }
   body {
     background-color: rgba(0, 0, 0, 0.5);
@@ -67,7 +67,7 @@
       width: 100%;
       margin-left: 0;
     }
-    #lwm_link,
+    #link,
     #veticalLink {
       display: flex;
       justify-content: space-between;
