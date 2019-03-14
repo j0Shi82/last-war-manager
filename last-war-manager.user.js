@@ -510,7 +510,7 @@ function siteManager() {
 
     var install = function() {
         // load site jQuery as well, need this to make API calls
-        lwm_jQuery(document).ready(function () {
+        lwm_jQuery(window).load(function () {
             site_jQuery = unsafeWindow.jQuery;
             site_jQuery.ajaxSetup({ cache: true });
 
