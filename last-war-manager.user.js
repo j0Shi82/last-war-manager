@@ -631,6 +631,7 @@ function siteManager() {
             case "research":                 pageTweaks.research(); break;
             case "aktuelle_produktion":      pageTweaks.prodQueue(); break;
             case "handelsposten":            pageTweaks.shipPost(); break;
+            case "upgrade_defence":          pageTweaks.upgradeDef(); break;
             case "recycling_defence":        pageTweaks.recycleDef(); break;
             case "planeten":                 pageTweaks.planeten(); break;
             case "get_inbox_load_info":      pageTweaks.inbox(); break;
@@ -649,7 +650,6 @@ function siteManager() {
             case "verteidigung_tree":        pageTweaks.buildingTree(); break;
             case "rohstoffe":                pageTweaks.resources(); break;
             default:                         pageTweaks.default(); break;
-                //upgrade_defence upgradeDefenceDiv
         }
 
         /* addons */
@@ -822,6 +822,49 @@ function siteManager() {
                 });
 
                 helper.replaceElementsHtmlWithIcon(lwm_jQuery('button[onclick*=\'recycleDefence\']'), 'fas fa-2x fa-plus-circle');
+                config.loadStates.content = false;
+            }).catch(function (e) {
+                console.log(e);
+                config.loadStates.content = false;
+            });
+        },
+        upgradeDef: function() {
+            config.promises.content = getPromise('#upgradeDefenceDiv');
+            config.promises.content.then(function () {
+                //add confirm to recycle buttons
+                lwm_jQuery('button[onclick*=\'upgradeDefenceFunction\']').each(function () {
+                    if (GM_config.get('confirm_production')) helper.addConfirm(lwm_jQuery(this));
+                });
+
+                helper.addIconToHtmlElements(lwm_jQuery('button[onclick*=\'upgradeDefenceFunction\']'), 'fas fa-2x fa-arrow-alt-circle-up');
+
+                //correct arrow margins
+                lwm_jQuery('.arrow-left-recycle,.arrow-right-recycle').css('margin-top', '0');
+
+                //buttons to add or remove all of specific ship
+                lwm_jQuery('.arrow-right-recycle').each(function () {
+                    lwm_jQuery(this).after('<i class="fas fa-check-circle"></i>');
+                });
+                lwm_jQuery('.arrow-left-recycle').each(function () {
+                    lwm_jQuery(this).before('<i class="fas fa-ban"></i>');
+                });
+                lwm_jQuery('.fa-check-circle').click(function () {
+                    var curCount = 0;
+                    do {
+                        curCount = parseInt(lwm_jQuery(this).parent().text() || lwm_jQuery(this).parent().find('input').val());
+                        if (isNaN(curCount)) break;
+                        lwm_jQuery(this).parent().find('.arrow-right-recycle').click();
+
+                    } while (parseInt(lwm_jQuery(this).parent().text() || lwm_jQuery(this).parent().find('input').val()) !== curCount)
+                });
+                lwm_jQuery('.fa-ban').click(function () {
+                    var curCount = 0;
+                    do {
+                        curCount = parseInt(lwm_jQuery(this).parent().text()  || lwm_jQuery(this).parent().find('input').val());
+                        lwm_jQuery(this).parent().find('.arrow-left-recycle').click();
+
+                    } while (curCount > 0)
+                });
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
@@ -2027,9 +2070,20 @@ function siteManager() {
             if (typeof classList === "undefined") return false;
             return classList.split(' ')[0];
         },
-        replaceElementsHtmlWithIcon: function($list, iconClass) {
+        replaceElementsHtmlWithIcon: function($list, iconClass, amount) {
+            var amount = parseInt(amount) || 1;
             lwm_jQuery.each($list, function (i, el) {
-                lwm_jQuery(el).html('<i class="'+iconClass+'"></i>');
+                var html = '';
+                for (var j = 0; j < amount; j++) html += '<i class="'+iconClass+'"></i>';
+                lwm_jQuery(el).html(html);
+            });
+        },
+        addIconToHtmlElements: function($list, iconClass, amount) {
+            var amount = parseInt(amount) || 1;
+            lwm_jQuery.each($list, function (i, el) {
+                var html = '';
+                for (var j = 0; j < amount; j++) html += '<i class="'+iconClass+'"></i>';
+                lwm_jQuery(el).html(html+'&nbsp;'+lwm_jQuery(el).html());
             });
         },
         checkCoords: function (coords) {
