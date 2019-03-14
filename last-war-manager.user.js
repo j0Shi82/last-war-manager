@@ -72,7 +72,7 @@ function siteManager() {
              *  listeners.
              */
         var initClient = function() {
-            //console.log('gapi.client.init');
+            console.log('gapi.client.init');
             gapi.client.init({
                 apiKey: API_KEY,
                 clientId: CLIENT_ID,
@@ -89,13 +89,13 @@ function siteManager() {
 
         var updateSigninStatus = function(isSignedIn) {
             if (isSignedIn) {
-                //console.log('gapi.client.drive.files.list');
+                console.log('gapi.client.drive.files.list');
                 gapi.client.drive.files.list({
                     q: 'name="lwm_config.json"',
                     spaces: 'appDataFolder',
                     fields: 'files(id)'
                 }).then(function(response) {
-                    //console.log(response);
+                    console.log(response);
                     if (response.status === 200) {
                         if (response.result.files.length === 0) {
                             createConfig();
@@ -128,12 +128,12 @@ function siteManager() {
                 mimeType: 'application/json',
                 uploadType: 'multipart'
             };
-            //console.log('gapi.client.drive.files.create');
+            console.log('gapi.client.drive.files.create');
             gapi.client.drive.files.create({
                 resource: fileMetadata,
                 fields: 'id,name'
             }).then(function(response) {
-                //console.log(response);
+                console.log(response);
                 if (response.status === 200) {
                     configFileID = response.result.id;
                     saveConfig();
@@ -160,7 +160,7 @@ function siteManager() {
                 coords_trades: GM_config.get('coords_trades')
             };
 
-            //console.log('gapi.client.request',saveObj);
+            console.log('gapi.client.request',saveObj);
             gapi.client.request({
                 path: '/upload/drive/v3/files/' + configFileID,
                 method: 'PATCH',
@@ -170,7 +170,7 @@ function siteManager() {
                 },
                 body: JSON.stringify(saveObj)
             }).then(function (response) {
-                //console.log(response);
+                console.log(response);
                 if (response.status !== 200) {
                     console.error('files.create: ' + response);
                 }
@@ -180,12 +180,12 @@ function siteManager() {
         }
 
         var getConfig = function () {
-            //console.log('gapi.client.drive.files.get');
+            console.log('gapi.client.drive.files.get');
             gapi.client.drive.files.get({
                 fileId: configFileID,
                 alt: 'media'
             }).then(function (response) {
-                //console.log(response);
+                console.log(response);
                 if (response.status === 200) {
                     config.lwm.set(response.result);
                 } else {
@@ -528,11 +528,11 @@ function siteManager() {
                 // first ubersicht load is usually not caught by our wrapper. But in case it is, return because we invoke this manually
                 if (firstLoad && page === 'ubersicht') return;
 
-                //console.log(page);
+                console.log(page);
 
                 var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
                                     'get_info_for_flotten_pages'];
-                var ignorePages =  ['galaxy_view','change_flotten','flottenkommando','flottenbasen_all','fremde_flottenbasen','flottenbasen_planet'];
+                var ignorePages =  ['make_command','galaxy_view','change_flotten','flottenkommando','flottenbasen_all','fremde_flottenbasen','flottenbasen_planet'];
 
                 if ((settings.url.match(/content/) || processPages.indexOf(page) !== -1) && ignorePages.indexOf(page) === -1) process(page, xhr);
             });
@@ -734,7 +734,7 @@ function siteManager() {
                     var $table = lwm_jQuery('<table></table>'); $td.append($table);
                     var $tbody = lwm_jQuery('<tbody></tbody>'); $table.append($tbody);
                     var $tr1 = lwm_jQuery('<tr><td class="sameWith roheisenVariable">Roheisen</td><td class="sameWith kristallVariable">Kristall</td><td class="sameWith frubinVariable">Frubin</td><td class="sameWith orizinVariable">Orizin</td><td class="sameWith frurozinVariable">Frurozin</td><td class="sameWith goldVariable">Gold</td></tr>');
-                    var $tr2 = lwm_jQuery('<tr><td class="roheisenVariable">'+Math.round(d.Planet_Roheisen)+'</td><td class="kristallVariable">'+Math.round(d.Planet_Kristall)+'</td><td class="frubinVariable">'+Math.round(d.Planet_Frubin)+'</td><td class="orizinVariable">'+Math.round(d.Planet_Orizin)+'</td><td class="frurozinVariable">'+Math.round(d.Planet_Frurozin)+'</td><td class="goldVariable">'+Math.round(d.Planet_Gold)+'</td></tr>');
+                    var $tr2 = lwm_jQuery('<tr><td class="roheisenVariable">'+site_jQuery.number(Math.round(d.Planet_Roheisen), 0, ',', '.' )+'</td><td class="kristallVariable">'+site_jQuery.number(Math.round(d.Planet_Kristall), 0, ',', '.' )+'</td><td class="frubinVariable">'+site_jQuery.number(Math.round(d.Planet_Frubin), 0, ',', '.' )+'</td><td class="orizinVariable">'+site_jQuery.number(Math.round(d.Planet_Orizin), 0, ',', '.' )+'</td><td class="frurozinVariable">'+site_jQuery.number(Math.round(d.Planet_Frurozin), 0, ',', '.' )+'</td><td class="goldVariable">'+site_jQuery.number(Math.round(d.Planet_Gold), 0, ',', '.' )+'</td></tr>');
                     $tbody.append($tr1).append($tr2);
                     $Posle.find('tbody').append($tr);
                 });
@@ -956,7 +956,7 @@ function siteManager() {
             config.promises.content = getPromise('.hauptgebaude');
             config.promises.content.then(function () {
                 //add confirmation dialog before deletion and add data-page
-                helper.addResMemory(lwm_jQuery('.greenButton'), 'building');
+                //helper.addResMemory(lwm_jQuery('.greenButton'), 'building'); <-- future feature
                 lwm_jQuery('.greenButton,.yellowButton,.redButton').each(function () {
                     var $td = lwm_jQuery(this).parent();
                     $td.css('cursor', 'hand');
@@ -1331,21 +1331,21 @@ function siteManager() {
                         '</tr>'+
                         '<tr>'+
                         '<td class="">per hour</td>'+
-                        '<td class="roheisenVariable">'+numeral(resTotals.fe).format('0,0')+'</td>'+
-                        '<td class="kristallVariable">'+numeral(resTotals.kris).format('0,0')+'</td>'+
-                        '<td class="frubinVariable">'+numeral(resTotals.frub).format('0,0')+'</td>'+
-                        '<td class="orizinVariable">'+numeral(resTotals.ori).format('0,0')+'</td>'+
-                        '<td class="frurozinVariable">'+numeral(resTotals.fruro).format('0,0')+'</td>'+
-                        '<td class="goldVariable">'+numeral(resTotals.gold).format('0,0')+'</td>'+
+                        '<td class="roheisenVariable">'+site_jQuery.number(resTotals.fe, 0, ',', '.' )+'</td>'+
+                        '<td class="kristallVariable">'+site_jQuery.number(resTotals.kris, 0, ',', '.' )+'</td>'+
+                        '<td class="frubinVariable">'+site_jQuery.number(resTotals.frub, 0, ',', '.' )+'</td>'+
+                        '<td class="orizinVariable">'+site_jQuery.number(resTotals.ori, 0, ',', '.' )+'</td>'+
+                        '<td class="frurozinVariable">'+site_jQuery.number(resTotals.fruro, 0, ',', '.' )+'</td>'+
+                        '<td class="goldVariable">'+site_jQuery.number(resTotals.gold, 0, ',', '.' )+'</td>'+
                         '</tr>'+
                         '<tr>'+
                         '<td class="">per day</td>'+
-                        '<td class="roheisenVariable">'+numeral(resTotals.fe*24).format('0,0')+'</td>'+
-                        '<td class="kristallVariable">'+numeral(resTotals.kris*24).format('0,0')+'</td>'+
-                        '<td class="frubinVariable">'+numeral(resTotals.frub*24).format('0,0')+'</td>'+
-                        '<td class="orizinVariable">'+numeral(resTotals.ori*24).format('0,0')+'</td>'+
-                        '<td class="frurozinVariable">'+numeral(resTotals.fruro*24).format('0,0')+'</td>'+
-                        '<td class="goldVariable">'+numeral(resTotals.gold*24).format('0,0')+'</td>'+
+                        '<td class="roheisenVariable">'+site_jQuery.number(resTotals.fe*24, 0, ',', '.' )+'</td>'+
+                        '<td class="kristallVariable">'+site_jQuery.number(resTotals.kris*24, 0, ',', '.' )+'</td>'+
+                        '<td class="frubinVariable">'+site_jQuery.number(resTotals.frub*24, 0, ',', '.' )+'</td>'+
+                        '<td class="orizinVariable">'+site_jQuery.number(resTotals.ori*24, 0, ',', '.' )+'</td>'+
+                        '<td class="frurozinVariable">'+site_jQuery.number(resTotals.fruro*24, 0, ',', '.' )+'</td>'+
+                        '<td class="goldVariable">'+site_jQuery.number(resTotals.gold*24, 0, ',', '.' )+'</td>'+
                         '</tr>'+
                         '</tbody></table>');
 
@@ -1653,7 +1653,6 @@ function siteManager() {
 
                 lwm_jQuery('#folottenbewegungenPageDiv table tr:gt(0)').remove();
 
-                var clocks = [];
                 lwm_jQuery.each(config.gameData.fleetInfo.send_infos, function(i, fleetData) {
                     var trStyle         = '';
                     var fleetInfoString = '';
@@ -1664,63 +1663,54 @@ function siteManager() {
                     var ownCoords       = fleetData.Galaxy_send + "x" + fleetData.System_send + "x" + fleetData.Planet_send;
                     switch (parseInt(fleetData.Type)) {
                         case 1:
-                            clocks.push(fleetData);
                             trStyle = 'background-color:red;';
                             fleetInfoString = "Eine Flotte vom Planet "+ oppCoords +" greift deinen Planeten " + ownCoords + " an.";
                             fleetTimeString = fleetData.ComeTime;
-                            fleetClock =      fleetData.clock_id;
+                            fleetClock =      'clock_' + fleetData.clock_id;
                             break;
                         case 2:
-                            clocks.push(fleetData);
                             fleetInfoString = "Fremde Flotte vom "+ oppCoords +" ("+oppNick+") transportiert Rohstoffe nach "+ ownCoords +".";
                             fleetTimeString = fleetData.ComeTime;
-                            fleetClock =      fleetData.clock_id;
+                            fleetClock =      'clock_' + fleetData.clock_id;
                             break;
                         case 3:
                             if(fleetData.Status == 1) {
-                                clocks.push(fleetData);
                                 fleetInfoString = "Eine Flotte vom Planet "+ oppCoords +" verteidigt deinen Planeten "+ ownCoords +".";
                                 fleetTimeString = fleetData.ComeTime;
-                                fleetClock =      fleetData.clock_id;
+                                fleetClock =      'clock_' + fleetData.clock_id;
                             } else if(fleetData.Status == 3) {
                                 fleetInfoString = "Eine Flotte von Planet "+ oppCoords +" verteidigt deinen Planeten "+ ownCoords +".";
                                 fleetTimeString = fleetData.DefendingTime;
                                 if(send_info.DefendingTime == null) fleetClock = "unbefristet";
                                 else
                                 {
-                                    clocks.push(fleetData);
-                                    fleetClock = fleetData.clock_id;
+                                    fleetClock = 'clock_' + fleetData.clock_id;
                                 }
                             }
                             break;
                         case 5:
-                            clocks.push(fleetData);
                             fleetInfoString = "Fremde Flotte von "+ oppCoords +" wird überstellt nach "+ ownCoords +".";
                             fleetTimeString = fleetData.ComeTime;
-                            fleetClock =      fleetData.clock_id;
+                            fleetClock =      'clock_' + fleetData.clock_id;
                             break;
                     }
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append('<tr style='+trStyle+'><td>'+fleetInfoString+'</td><td>'+fleetTimeString+'</td><td id=\''+fleetClock+'\'>'+fleetClock+'</td></tr>');
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append('<tr style='+trStyle+'><td>'+fleetInfoString+'</td><td>'+fleetTimeString+'</td><td id=\''+fleetClock+'\'>'+moment.duration(fleetData.secounds, 'seconds').format("hh:mm:ss", { trim: false, forceLength: true })+'</td></tr>');
                 });
 
                 lwm_jQuery.each(config.gameData.fleetInfo.all_informations, function(i, fleetData) {
-                    clocks.push(fleetData);
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + onfig.gameData.planetCoords.system + "x" + onfig.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + " )</td><td>" + fleetData.time + "</td><td id='" + fleetData.clock_id + "'></td></tr>");
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + onfig.gameData.planetCoords.system + "x" + onfig.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + " )</td><td>" + fleetData.time + "</td><td id='" + fleetData.clock_id + "'>"+moment.duration(fleetData.secounds, 'seconds').format("hh:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
                 });
 
                 lwm_jQuery.each(config.gameData.fleetInfo.dron_observationens, function(i, fleetData) {
-                    clocks.push(fleetData);
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.system + " )</td><td>" + fleetData.time + "</td><td id='" + fleetData.clock_id + "'></td></tr>");
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.system + " )</td><td>" + fleetData.time + "</td><td id='" + fleetData.clock_id + "'>"+moment.duration(fleetData.secounds, 'seconds').format("hh:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
                 });
 
                 lwm_jQuery.each(config.gameData.fleetInfo.dron_planetenscanners, function(i, fleetData) {
-                    clocks.push(fleetData);
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.system + " )</td><td>" + fleetData.time + "</td><td id='" + fleetData.clock_id + "'></td></tr>");
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.system + " )</td><td>" + fleetData.time + "</td><td id='" + fleetData.clock_id + "'>"+moment.duration(fleetData.secounds, 'seconds').format("hh:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
                 });
 
                 lwm_jQuery.each(config.gameData.fleetInfo.buy_ships_array, function(i, fleetData) {
-                    clocks.push(fleetData);
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Flotte vom Handelsposten wird überstellt nach " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + ".</td><td>" + fleetData.time + "</td><td id='" + fleetData.clock_id + "'></td></tr>");
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Flotte vom Handelsposten wird überstellt nach " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + ".</td><td>" + fleetData.time + "</td><td id='" + fleetData.clock_id + "'>"+moment.duration(fleetData.secounds, 'seconds').format("hh:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
                 });
 
                 lwm_jQuery.each(config.gameData.fleetInfo.fleet_informations, function(i, fleetData) {
@@ -1733,7 +1723,6 @@ function siteManager() {
                     var lkomLink        = '<i class="fas fa-wifi faa-flash animated" onclick="changeContent(\'flotten_view\', \'third\', \'Flotten-Kommando\', \'' + fleetData.id + '\')" style="cursor:hand;margin-right:5px;color:#66f398"></i>';
                     switch (fleetData.Type) {
                         case '1':
-                            clocks.push(fleetData);
                             fleetInfoString = lkomLink+'Eigene Flotte vom Planet '+ ownCoords;
                             if (fleetData.Status == 1) fleetInfoString += " greift Planet ";
                             else                       fleetInfoString += " kehrt von ";
@@ -1741,19 +1730,17 @@ function siteManager() {
                             if (fleetData.Status == 1) fleetInfoString += " an.";
                             else                       fleetInfoString += " zurück.";
                             fleetTimeString = fleetData.ComeTime;
-                            fleetClock =      fleetData.clock_id;
+                            fleetClock =      'clock_' + fleetData.clock_id;
                             break;
                         case '2':
-                            clocks.push(fleetData);
                             fleetInfoString = lkomLink+'Eigene Flotte vom Planet '+ ownCoords;
                             if (fleetData.Status == 1) fleetInfoString += " transportiert Rohstoffe nach ";
                             else                       fleetInfoString += " kehrt zurück von ";
                             fleetInfoString += oppCoords + ' ('+oppNick+').';
                             fleetTimeString = fleetData.ComeTime;
-                            fleetClock =      fleetData.clock_id;
+                            fleetClock =      'clock_' + fleetData.clock_id;
                             break;
                         case '3':
-                            clocks.push(fleetData);
                             fleetInfoString = lkomLink+'Eigene Flotte vom Planet '+ ownCoords;
                             if (fleetData.Status == 1)     fleetInfoString += " verteidigt Planet ";
                             else if(fleetData.Status == 2) fleetInfoString += " kehrt zurück vom ";
@@ -1761,35 +1748,30 @@ function siteManager() {
                             fleetInfoString += oppCoords + '( '+oppNick+' )';
                             if(fleetData.Status != 3) {
                                 fleetTimeString = fleetData.ComeTime;
-                                fleetClock =      fleetData.clock_id;
-                                clocks.push(fleetData);
+                                fleetClock =      'clock_' + fleetData.clock_id;
                             } else {
                                 fleetTimeString = fleetData.DefendingTime;
                                 if(fleetData.DefendingTime == null) fleetClock = 'unbefristet';
                                 else
                                 {
-                                    clocks.push(fleetData);
-                                    fleetClock = fleetData.clock_id;
+                                    fleetClock = 'clock_' + fleetData.clock_id;
                                 }
                             }
                             break;
                         case '4':
-                            clocks.push(fleetData);
                             fleetInfoString = lkomLink+'Eigene Flotte von Planet '+ ownCoords +' kolonisiert Planeten '+ oppCoords +'.';
                             fleetTimeString = fleetData.ComeTime;
-                            fleetClock =      fleetData.clock_id;
+                            fleetClock =      'clock_' + fleetData.clock_id;
                             break;
                         case '5':
-                            clocks.push(fleetData);
                             fleetInfoString = lkomLink+'Eigene Flotte von Planet '+ ownCoords +' wird überstellt nach '+ oppCoords +' ( '+oppNick+' ).';
                             fleetTimeString = fleetData.ComeTime;
-                            fleetClock =      fleetData.clock_id;
+                            fleetClock =      'clock_' + fleetData.clock_id;
                             break;
                     }
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append('<tr><td>'+fleetInfoString+'</td><td>'+fleetTimeString+'</td><td id=\''+fleetClock+'\'></td></tr>');
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append('<tr><td>'+fleetInfoString+'</td><td>'+fleetTimeString+'</td><td id=\''+fleetClock+'\'>'+moment.duration(fleetData.secounds, 'seconds').format("hh:mm:ss", { trim: false, forceLength: true })+'</td></tr>');
                 });
 
-                unsafeWindow.initializeFlottenbewegungenClock(clocks);
                 if (GM_config.get('addon_clock')) {
                     clearInterval(unsafeWindow.timeinterval_flottenbewegungen);
                     helper.setDataForClocks();
@@ -1936,12 +1918,12 @@ function siteManager() {
         addResMemory: function ($list, type) {
             lwm_jQuery.each($list, function (i, el) {
                 $(el).click(function () {
-                    config.currentSavedProject.fe = numeral($(this).parents('tr').find('.roheisenVariable').text().replace('.', '')).value();
-                    config.currentSavedProject.kris = numeral($(this).parents('tr').find('.kristallVariable').text().replace('.', '')).value();
-                    config.currentSavedProject.frub = numeral($(this).parents('tr').find('.frubinVariable').text().replace('.', '')).value();
-                    config.currentSavedProject.ori = numeral($(this).parents('tr').find('.orizinVariable').text().replace('.', '')).value();
-                    config.currentSavedProject.fruro = numeral($(this).parents('tr').find('.frurozinVariable').text().replace('.', '')).value();
-                    config.currentSavedProject.gold = numeral($(this).parents('tr').find('.goldVariable').text().replace('.', '')).value();
+                    config.currentSavedProject.fe = numeral($(this).parents('tr').find('.roheisenVariable').text().replace(/\D/, '')).value();
+                    config.currentSavedProject.kris = numeral($(this).parents('tr').find('.kristallVariable').text().replace(/\D/, '')).value();
+                    config.currentSavedProject.frub = numeral($(this).parents('tr').find('.frubinVariable').text().replace(/\D/, '')).value();
+                    config.currentSavedProject.ori = numeral($(this).parents('tr').find('.orizinVariable').text().replace(/\D/, '')).value();
+                    config.currentSavedProject.fruro = numeral($(this).parents('tr').find('.frurozinVariable').text().replace(/\D/, '')).value();
+                    config.currentSavedProject.gold = numeral($(this).parents('tr').find('.goldVariable').text().replace(/\D/, '')).value();
                     config.currentSavedProject.ts = moment().unix();
                     config.currentSavedProject.name = $(this).parents('tr').find('.constructionName').text();
                     config.currentSavedProject.type = type;
