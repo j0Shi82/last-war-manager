@@ -649,6 +649,7 @@ function siteManager() {
             case "shiptree":                 pageTweaks.buildingTree(); break;
             case "verteidigung_tree":        pageTweaks.buildingTree(); break;
             case "rohstoffe":                pageTweaks.resources(); break;
+            case "kreditinstitut":           pageTweaks.credit(); break;
             default:                         pageTweaks.default(); break;
         }
 
@@ -700,6 +701,7 @@ function siteManager() {
                         case 'flottenbasen_all': lwm_jQuery(this).prepend('<i class="fas fa-plane-departure"></i>'); break;
                         case 'fremde_flottenbasen': lwm_jQuery(this).prepend('<i class="fas fa-plane-departure"></i>'); break;
                         case 'bank': lwm_jQuery(this).prepend('<i class="fas fa-university"></i>'); break;
+                        case 'kreditinstitut': lwm_jQuery(this).prepend('<i class="fab fa-cc-visa"></i>'); break;
                     }
                 });
                 if (window.matchMedia("(min-width: 849px)").matches) {
@@ -1476,6 +1478,27 @@ function siteManager() {
                 config.loadStates.content = false;
             });
         },
+        credit: function () {
+            config.promises.content = getPromise('#kreditinstitutDiv');
+            config.promises.content.then(function () {
+                lwm_jQuery('[type=\'number\']').after('<i class="fas fa-2x fa-angle-double-left"></i>');
+                lwm_jQuery('.fa-angle-double-left').each(function () {
+                    lwm_jQuery(this).parent().css('display','flex');
+                    lwm_jQuery(this).parent().css('justify-content','space-evenly');
+                    lwm_jQuery(this).parent().css('align-items','center');
+                    lwm_jQuery(this).click(function () {
+                        $input = lwm_jQuery(this).parent().find('input');
+                        $input.val(lwm_jQuery(this).parents('tr').find('[id*=\'max\']').text().replace(/\D/, ''));
+                    });
+                });
+
+                config.loadStates.content = false;
+            }).catch(function (e) {
+                console.log(e);
+                config.loadStates.content = false;
+            });
+        }
+
     }
 
     var global = {
