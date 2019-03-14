@@ -53,8 +53,8 @@ function siteManager() {
 
     var driveManager = (function() {
         var gapi = null;
-        var CLIENT_ID = '807071171095-5trhq916ijf00a72o3jn2sq6nmbdtiac.apps.googleusercontent.com';
-        var API_KEY = 'AIzaSyCGYh3sXQhvxA90qVs7uM07KFDpJr3M66s';
+        var CLIENT_ID = '807071171095-2r28v4jpvgujv5n449ja4lrmk4hg88ie.apps.googleusercontent.com';
+        var API_KEY = 'AIzaSyA7VHXY213eg3suaarrMmrbOlX8T9hVwrc';
         var DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
         var SCOPES = 'https://www.googleapis.com/auth/drive.appfolder https://www.googleapis.com/auth/drive.file';
         var configFileID = null;
