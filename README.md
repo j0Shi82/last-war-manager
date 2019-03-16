@@ -56,3 +56,7 @@ A German feedback thread can be found on the [official message board](http://for
 - **GALAXY**
   - Sending spy drones from the galaxy view
   - Ability to browse through the galaxy using the arrow keys
+
+# Changelogs
+
+[changelog.md](CHANGELOG.md)
