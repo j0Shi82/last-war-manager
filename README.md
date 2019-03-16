@@ -29,7 +29,7 @@ A German feedback thread can be found on the [official message board](http://for
 - Visual improvements for Desktop resolutions and a full mobile layout.
 - Export and import settings from Google Drive
 - Show planet fleet activity on all pages (optional)
-- Security confirmations for buildings, researches, and production sites (optional)
+- Security confirmations for buildings, researches, and production pages (optional)
 - Settings page that lets you control what the script should do
 - **OVERVIEW**
   - Resources get added to the planets on the overview
@@ -37,6 +37,8 @@ A German feedback thread can be found on the [official message board](http://for
 - **PRODUCTION**
   - Ability to hide ships (workaround for a known issue that prevents users to delete ship designs)
   - Filter to only show ships that meet certain criteria
+- **UPGRADE & RECYCLE**
+  - Buttons to bulk add ships to fleets
 - **FLEETS**
   - Callback button added to the fleet pages
   - Buttons to bulk add ships to fleets
@@ -53,6 +55,9 @@ A German feedback thread can be found on the [official message board](http://for
   - Hide all achieved technologies
 - **MESSAGES**
   - Ability to browse through messages with arrow keys
+  - Direkt links to combat and spy reports from the message root folder
 - **GALAXY**
   - Sending spy drones from the galaxy view
   - Ability to browse through the galaxy using the arrow keys
+- **OBSERVATIONS**
+  - Ability to sort obervations by coords

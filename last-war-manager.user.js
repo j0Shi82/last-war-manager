@@ -11,7 +11,7 @@
 // @match         https://*.last-war.de/main.php*
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e07de5c0a13d416fda88134f999baccfee6f7059/assets/jquery.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
-// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@b5c68029febb99bdea7f6bdc92d14afb72d14e31/last-war-manager.css
+// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@c2f1a8579dfd0b687530a0ef377305b597eaa5d1/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
 // @grant         GM.setValue
@@ -520,12 +520,15 @@ function siteManager() {
             site_jQuery.when(config.getGameData.all(),loadVendor).then(function () {
                 // wait for game date because some stuff depends on it
                 global.hotkeySetup();
-                // load settings from google or browser
 
+                // load settings from google or browser
                 site_jQuery.getScript('//apis.google.com/js/api.js').then(function () {
                     if (!GM_config.get('confirm_drive_sync')) config.setGMValues();
                     driveManager.init(unsafeWindow.gapi);
                 });
+
+                // the first ubersicht load is sometimes not caught by our ajax wrapper, so do manually
+                process('ubersicht');
             });
 
             //we're hooking into ajax requests to figure out on which page we are and fire our own stuff
@@ -542,7 +545,7 @@ function siteManager() {
                 console.log(page);
 
                 var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
-                                    'get_info_for_flotten_pages'];
+                                    'get_info_for_flotten_pages','get_change_flotten_info'];
                 var ignorePages =  ['make_command','galaxy_view','change_flotten','flottenkommando','flottenbasen_all','fremde_flottenbasen','flottenbasen_planet'];
 
                 if ((settings.url.match(/content/) || processPages.indexOf(page) !== -1) && ignorePages.indexOf(page) === -1) process(page, xhr);
@@ -625,24 +628,24 @@ function siteManager() {
 
         switch (page) {
             case "ubersicht":                pageTweaks.uebersicht(); break;
-            case "produktion":               pageTweaks.produktion(); break;
-            case "verteidigung":             pageTweaks.defense(); break;
+            case "produktion":               pageTweaks.produktion(); pageTweaks.replaceArrows(); break;
+            case "verteidigung":             pageTweaks.defense(); pageTweaks.replaceArrows(); break;
             case "construction":             pageTweaks.construction(); break;
             case "research":                 pageTweaks.research(); break;
             case "aktuelle_produktion":      pageTweaks.prodQueue(); break;
             case "handelsposten":            pageTweaks.shipPost(); break;
-            case "upgrade_defence":          pageTweaks.upgradeDef(); break;
-            case "recycling_defence":        pageTweaks.recycleDef(); break;
+            case "upgrade_defence":          pageTweaks.upgradeDef(); pageTweaks.replaceArrows(); break;
+            case "recycling_defence":        pageTweaks.recycleDef(); pageTweaks.replaceArrows(); break;
             case "planeten":                 pageTweaks.planeten(); break;
             case "get_inbox_load_info":      pageTweaks.inbox(); break;
             case "get_inbox_message":        pageTweaks.inbox(); break;
             case "new_trade_offer":          pageTweaks.newTrade(); break;
-            case "raumdock":                 pageTweaks.shipdock(); break;
+            case "raumdock":                 pageTweaks.shipdock(); pageTweaks.replaceArrows(); break;
             case "get_galaxy_view_info":     pageTweaks.galaxyView(); break;
             case "observationen":            pageTweaks.obs(); break;
             case "schiffskomponenten":       pageTweaks.designShips(); break;
             case "get_make_command_info":    pageTweaks.fleetCommand(); break;
-            case "get_change_flotten_info":  pageTweaks.changeFleet(); break;
+            case "get_change_flotten_info":  pageTweaks.changeFleet(); pageTweaks.replaceArrows(); break;
             case "get_info_for_flotten_pages": pageTweaks.allFleets(xhr); break;
             case "building_tree":            pageTweaks.buildingTree(); break;
             case "research_tree":            pageTweaks.buildingTree(); break;
@@ -652,6 +655,8 @@ function siteManager() {
             case "kreditinstitut":           pageTweaks.credit(); break;
             default:                         pageTweaks.default(); break;
         }
+
+
 
         /* addons */
         /* config.isPageLoad is currently set to false here because it's the last thing that runs */
@@ -729,6 +734,20 @@ function siteManager() {
             }).catch(function (e) {
                 console.log(e);
                 config.loadStates.content = false;
+            });
+        },
+        replaceArrows: function() {
+            getLoadStatePromise('content').then(function () {
+                lwm_jQuery('.arrow-left,.arrow-left-recycle').removeClass('arrow-left arrow-left-recycle').addClass('fa-2x fas fa-angle-left');
+                lwm_jQuery('.arrow-right,.arrow-right-recycle').removeClass('arrow-right arrow-right-recycle').addClass('fa-2x fas fa-angle-right');
+                lwm_jQuery('.fa-angle-right,.fa-angle-left').each(function () {
+                    lwm_jQuery(this)
+                        .attr('style','')
+                        .css('width','1em')
+                        .css('cursor','hand');
+                });
+            }).catch(function (e) {
+                console.log(e);
             });
         },
         uebersicht: function() {
@@ -2212,8 +2231,6 @@ function siteManager() {
     }
 
     install();
-    // the first ubersicht load is sometimes not caught by our ajax wrapper, so do manually
-    process('ubersicht');
 };
 
 (function() {
