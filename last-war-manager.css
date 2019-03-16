@@ -911,6 +911,11 @@ td.constructionName,
   margin-top: 3%;
   margin-right: 0;
 }
+#upgradeDefenceDiv [onclick*="upgradeDefenceFunction"] {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 /* DEFENSE END */
 /* TOOLTIP **/
 .big_img_alt {
