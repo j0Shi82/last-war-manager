@@ -1,6 +1,6 @@
 #Changelog
 
-##v0.5.2
+## v0.5.2
 
 - Fixed a bug that caused fleet movements to disappear under certain circumstances
 - Fixed a bug that caused timers to not work for drone fleets
