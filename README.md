@@ -61,3 +61,7 @@ A German feedback thread can be found on the [official message board](http://for
   - Ability to browse through the galaxy using the arrow keys
 - **OBSERVATIONS**
   - Ability to sort obervations by coords
+
+# Changelogs
+
+[changelog.md](CHANGELOG.md)
