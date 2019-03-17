@@ -1123,7 +1123,7 @@ function siteManager() {
                                 $tradeDiv.find('tr:eq('+(i+5)+') td').last().addClass('redBackground');
                                 $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
                             }
-                            if ((amount + parseInt(offer.resource[i+12])) > capacities[i]) {
+                            if ((amount + parseInt(offer.resource[i+12])) > capacities[i] && offer.galaxy == config.gameData.planetCoords.galaxy && offer.system == config.gameData.planetCoords.system && offer.planet == config.gameData.planetCoords.planet) {
                                 $tradeDiv.find('tr:eq('+(i+5)+') td').first().addClass('redBackground');
                                 $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
                             }
