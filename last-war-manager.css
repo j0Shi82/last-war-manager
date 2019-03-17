@@ -736,6 +736,7 @@ td.constructionName,
 }
 #tradeOfferDiv th {
   background-color: #4290a157;
+  word-break: normal !important;
 }
 .hideCommponetShips .bla {
   display: flex;
