@@ -746,6 +746,9 @@
     word-break: break-all;
     background-color: #4290a157;
   }
+  #tradeOfferDiv th {
+    background-color: #4290a157;
+  }
   .hideCommponetShips .bla {
     display: flex;
     justify-content: center;

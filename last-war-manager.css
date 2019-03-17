@@ -723,7 +723,6 @@ th.resursiUnos {
 #constructionPageDiv th,
 td.constructionName,
 #researchPageDiv th,
-#tradeOfferDiv th,
 #newTradeOfferDiv th,
 #raumdockDiv th,
 #changeFlottenDiv th,
@@ -733,6 +732,9 @@ td.constructionName,
 #observationenDiv th,
 #tableForChangingPlanet tr {
   word-break: break-all;
+  background-color: #4290a157;
+}
+#tradeOfferDiv th {
   background-color: #4290a157;
 }
 .hideCommponetShips .bla {
