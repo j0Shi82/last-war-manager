@@ -737,10 +737,20 @@ function siteManager() {
                 lwm_jQuery('.arrow-left,.arrow-left-recycle,.spionage-arrow-left,.raumdock-arrow-left').removeClass('arrow-left arrow-left-recycle spionage-arrow-left raumdock-arrow-left').addClass('fa-2x fas fa-angle-left');
                 lwm_jQuery('.arrow-right,.arrow-right-recycle,.spionage-arrow-right,.raumdock-arrow-right').removeClass('arrow-right arrow-right-recycle spionage-arrow-right raumdock-arrow-right').addClass('fa-2x fas fa-angle-right');
                 lwm_jQuery('.fa-angle-right,.fa-angle-left').each(function () {
+                    var longpress = 500;
+                    var self = lwm_jQuery(this);
+                    var start, interval1, interval2, interval3, timeout1, timeout2, timeout3;
                     lwm_jQuery(this)
                         .attr('style','')
                         .css('width','1em')
-                        .css('cursor','hand');
+                        .css('cursor','hand')
+                        .on( 'mousedown', function( e ) {
+                            timeout1 = setTimeout(function () { interval1 = setInterval( function () { self.click(); },150); }, 250);
+                            timeout2 = setTimeout(function () { clearInterval(interval1); interval2 = setInterval( function () { self.click(); },75); }, 2250);
+                            timeout3 = setTimeout(function () { clearInterval(interval2); interval3 = setInterval( function () { self.click(); },25); }, 5250);
+                        })
+                        .on( 'mouseleave', function( e ) { clearInterval(interval1); clearInterval(interval2); clearInterval(interval3); clearTimeout(timeout1); clearTimeout(timeout2); clearTimeout(timeout3); })
+                        .on( 'mouseup', function( e ) { clearInterval(interval1); clearInterval(interval2); clearInterval(interval3); clearTimeout(timeout1); clearTimeout(timeout2); clearTimeout(timeout3); });
                 });
             }).catch(function (e) {
                 console.log(e);
