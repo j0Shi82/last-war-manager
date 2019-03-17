@@ -11,7 +11,7 @@
 // @match         https://*.last-war.de/main.php*
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e07de5c0a13d416fda88134f999baccfee6f7059/assets/jquery.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
-// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@c2f1a8579dfd0b687530a0ef377305b597eaa5d1/last-war-manager.css
+// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@c379c80a7be74b57419d89ad9d2dfca46e72d94c/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
 // @grant         GM.setValue
@@ -339,6 +339,7 @@ function siteManager() {
             messageData: {},
             fleetInfo: {},
             observationInfo: {},
+            tradeInfo: {},
 
             checkDataReloads: function () {
                 lwm_jQuery.each(config.gameData.reloads, function (type, state) {
@@ -547,19 +548,22 @@ function siteManager() {
             });
 
             site_jQuery(window).focus(function () { addOns.load(); });
-            site_jQuery(window).blur(function () { addOns.blur(); });
 
             site_jQuery(document).ajaxComplete(function( event, xhr, settings ) {
                 var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
                 // save specific responses for later use
-                var saveRequest = ['get_ubersicht_info','get_flottenbewegungen_info','get_inbox_message','get_info_for_observationen_page','get_spionage_info'];
+                var saveRequest = ['get_ubersicht_info','get_flottenbewegungen_info','get_inbox_message','get_info_for_observationen_page','get_spionage_info','get_trade_offers'];
                 if (saveRequest.indexOf(page) !== -1) {
                     if (page === 'get_ubersicht_info')              config.gameData.overviewInfo     = xhr.responseJSON;
                     if (page === 'get_flottenbewegungen_info')      config.gameData.fleetInfo        = xhr.responseJSON;
                     if (page === 'get_inbox_message')               config.gameData.messageData      = xhr.responseJSON;
                     if (page === 'get_info_for_observationen_page') config.gameData.obsvervationInfo = xhr.responseJSON;
                     if (page === 'get_spionage_info')               config.gameData.spionageInfos    = xhr.responseJSON;
+                    if (page === 'get_trade_offers') {
+                                                                    config.gameData.tradeInfo        = xhr.responseJSON;
+                                                                    addOns.checkCapacities();
+                    }
                 }
 
                 var listenPages = ['put_building'];
@@ -635,6 +639,7 @@ function siteManager() {
             case "planeten":                 pageTweaks.planeten(); break;
             case "get_inbox_load_info":      pageTweaks.inbox(); break;
             case "get_inbox_message":        pageTweaks.inbox(); break;
+            case "trade_offer":              pageTweaks.trades(); break;
             case "new_trade_offer":          pageTweaks.newTrade(); break;
             case "raumdock":                 pageTweaks.shipdock(); break;
             case "get_galaxy_view_info":     pageTweaks.galaxyView(); break;
@@ -1102,6 +1107,33 @@ function siteManager() {
                 config.loadStates.content = false;
             });
         },
+        trades: function () {
+            config.promises.content = getPromise('#tradeOfferDiv');
+            config.promises.content.then(function () {
+                //mark trades that would exceed capacities
+                var tradeInfo = config.gameData.tradeInfo;
+                var capacities = unsafeWindow.resourceCapacityArray;
+                var currentRes = [unsafeWindow.Roheisen,unsafeWindow.Kristall,unsafeWindow.Frubin,unsafeWindow.Orizin,unsafeWindow.Frurozin,unsafeWindow.Gold];
+                $.each(tradeInfo.trade_offers, function (i, offer) {
+                    var $tradeDiv = lwm_jQuery('#div_'+offer.trade_id);
+                    $.each(currentRes, function (i, amount) {
+                        if ((amount + parseInt(offer.resource[i+6])) > capacities[i]) {
+                            $tradeDiv.find('tr:eq('+(i+5)+') td').last().addClass('redBackground');
+                            $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
+                        }
+                        if ((amount + parseInt(offer.resource[i+12])) > capacities[i]) {
+                            $tradeDiv.find('tr:eq('+(i+5)+') td').first().addClass('redBackground');
+                            $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
+                        }
+                    });
+                });
+
+                config.loadStates.content = false;
+            }).catch(function (e) {
+                console.log(e);
+                config.loadStates.content = false;
+            });
+        },
         newTrade: function() {
             config.promises.content = getPromise('#newTradeOfferDiv');
             config.promises.content.then(function () {
@@ -1421,9 +1453,11 @@ function siteManager() {
                 var resTotal = getResourcePerHour();
                 var resTypes = ['roheisen','kristall','frubin','orizin','frurozin','gold'];
                 var resValue = [unsafeWindow.Roheisen,unsafeWindow.Kristall,unsafeWindow.Frubin,unsafeWindow.Orizin,unsafeWindow.Frurozin,unsafeWindow.Gold];
+                var incomingRes = helper.getIncomingResArray();
+
                 lwm_jQuery('#rohstoffeDiv > .rohstoffeTableClass > tbody > tr > td > .rohstoffeTableClass').find('> tbody > tr:eq(4)').each(function (i, table) {
                     if (!resTotal[0][resTypes[i]]) return true;
-                    var hoursTillFull = (resourceCapacityArray[i]-resValue[i])/(resTotal[0][resTypes[i]]);
+                    var hoursTillFull = (resourceCapacityArray[i]-resValue[i]-incomingRes[i])/(resTotal[0][resTypes[i]]);
                     lwm_jQuery(this).after('<tr><td class="second" valign="top" align="right">Time till capacity reached:</td><td class="second" ><span class=\''+(hoursTillFull < 8 ? 'redBackground' : '')+'\' id=\'clock_lwm_'+resTypes[i]+'\'>'+moment.duration(hoursTillFull, "hours").format("HH:mm:ss")+'</span></td></tr>');
                 });
 
@@ -1695,6 +1729,7 @@ function siteManager() {
         config: {
             fleetRefreshInterval: null,
             tradeRefreshInterval: null,
+            capacityRefreshInterval: null,
             clockInterval: null,
             fleetCompleteHandlerAdded: false
         },
@@ -1703,7 +1738,10 @@ function siteManager() {
             config.promises.addons = getLoadStatePromise('submenu');
             config.promises.addons.then(function () {
                 config.loadStates.fleetaddon = true;
-                addOns.showFleetActivityGlobally();
+                if (GM_config.get('addon_fleet')) {
+                    addOns.showFleetActivityGlobally();
+                    requests.get_flottenbewegungen_info();
+                }
                 addOns.refreshTrades();
                 if (GM_config.get('addon_clock')) addOns.addClockInterval();
 
@@ -1720,12 +1758,10 @@ function siteManager() {
                 config.loadStates.fleetaddon = false;
             });
         },
-        blur: function () {
-            if (GM_config.get('addon_fleet')) requests.get_flottenbewegungen_info();
-        },
         unload: function () {
             if (addOns.config.fleetRefreshInterval !== null) { clearInterval(addOns.config.fleetRefreshInterval); addOns.config.fleetRefreshInterval = null; }
             if (addOns.config.tradeRefreshInterval !== null) { clearInterval(addOns.config.tradeRefreshInterval); addOns.config.tradeRefreshInterval = null; }
+            if (addOns.config.capacityRefreshInterval !== null) { clearInterval(addOns.config.capacityRefreshInterval); addOns.config.capacityRefreshInterval = null; }
             if (addOns.config.clockInterval !== null) { clearInterval(addOns.config.clockInterval); addOns.config.clockInterval = null; }
         },
         //refresh trades every minute to make it unnecessary to visit the trade page for trade to go through
@@ -1755,7 +1791,26 @@ function siteManager() {
                 requestTrades();
             }, 60000);
         },
+        //checks whether trades would surpass resource capacities and highlights a warning
+        checkCapacities: function () {
+            var tradeInfo = config.gameData.tradeInfo;
+            var capacities = unsafeWindow.resourceCapacityArray;
+            var resSpans = [lwm_jQuery('#roheisenAmount'),lwm_jQuery('#kristallAmount'),lwm_jQuery('#frubinAmount'),lwm_jQuery('#orizinAmount'),lwm_jQuery('#frurozinAmount'),lwm_jQuery('#goldAmount')];
+            var currentRes = [unsafeWindow.Roheisen,unsafeWindow.Kristall,unsafeWindow.Frubin,unsafeWindow.Orizin,unsafeWindow.Frurozin,unsafeWindow.Gold];
+            var incomingRes = helper.getIncomingResArray();
 
+            $.each(currentRes, function (i, amount) {
+                if (amount+incomingRes[i] > capacities[i]) resSpans[i].addClass('redBackground');
+                else                                       resSpans[i].removeClass('redBackground');
+            });
+
+            //add invterval
+            if (addOns.config.capacityRefreshInterval === null) {
+                addOns.config.capacityRefreshInterval = setInterval(function () {
+                    addOns.checkCapacities();
+                }, 10000);
+            }
+        },
         addClockInterval: function() {
             if (addOns.config.clockInterval !== null) return;
             addOns.config.clockInterval = setInterval(function () {
@@ -1777,7 +1832,6 @@ function siteManager() {
                 });
             }, 1000);
         },
-
         showFleetActivityGlobally: function() {
             //no fleet config set, return
             if (!GM_config.get('addon_fleet')) {
@@ -1934,8 +1988,7 @@ function siteManager() {
                 addOns.config.fleetCompleteHandlerAdded = true;
             }
             //add fleets to page
-            if (firstLoad) requests.get_flottenbewegungen_info();
-            else           addFleetDiv();
+            addFleetDiv();
 
             //add refresh interval
             if (addOns.config.fleetRefreshInterval !== null) return;
@@ -2213,6 +2266,16 @@ function siteManager() {
         checkCoords: function (coords) {
             if (!Array.isArray(coords)) coords = coords.split("x");
             return Number.isInteger(parseInt(coords[0])) && Number.isInteger(parseInt(coords[1])) && Number.isInteger(parseInt(coords[2]));
+        },
+        getIncomingResArray: function () {
+            return [
+                lwm_jQuery.map(config.gameData.tradeInfo.trade_offers, function (trade, i) { return parseInt(trade.accept) * parseInt(trade.resource[12]); }).reduce(function (total, num) { return total + num; }),
+                lwm_jQuery.map(config.gameData.tradeInfo.trade_offers, function (trade, i) { return parseInt(trade.accept) * parseInt(trade.resource[13]); }).reduce(function (total, num) { return total + num; }),
+                lwm_jQuery.map(config.gameData.tradeInfo.trade_offers, function (trade, i) { return parseInt(trade.accept) * parseInt(trade.resource[14]); }).reduce(function (total, num) { return total + num; }),
+                lwm_jQuery.map(config.gameData.tradeInfo.trade_offers, function (trade, i) { return parseInt(trade.accept) * parseInt(trade.resource[15]); }).reduce(function (total, num) { return total + num; }),
+                lwm_jQuery.map(config.gameData.tradeInfo.trade_offers, function (trade, i) { return parseInt(trade.accept) * parseInt(trade.resource[16]); }).reduce(function (total, num) { return total + num; }),
+                lwm_jQuery.map(config.gameData.tradeInfo.trade_offers, function (trade, i) { return parseInt(trade.accept) * parseInt(trade.resource[17]); }).reduce(function (total, num) { return total + num; }),
+            ];
         }
     }
 

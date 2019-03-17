@@ -3,6 +3,7 @@
 ## v0.6.0
 
 - All arrow keys that add or remove ships or defense bulk add them when you hold the mouse button
+- Resources on the main page get highlighed when running trade would exceed their storage capacity
 
 - **OBSERVATIONS**
   - Ability to sort obervations by coords
@@ -16,6 +17,9 @@
 
 - **RESOURCES**
   - Page now shows the time until capacities are reached for all resources
+
+- **TRADE**
+  - Trades that would exceed storage capacities when accepted/denied are highlighted
 
 ## v0.5.2
 

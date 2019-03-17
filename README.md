@@ -31,6 +31,7 @@ A German feedback thread can be found on the [official message board](http://for
 - Show planet fleet activity on all pages (optional)
 - Security confirmations for buildings, researches, and production pages (optional)
 - All arrow keys that add or remove ships or defense bulk add them when you hold the mouse button
+- Resources on the main page get highlighed when running trade would exceed their storage capacity
 - Settings page that lets you control what the script should do
 - **OVERVIEW**
   - Resources get added to the planets on the overview
@@ -47,6 +48,7 @@ A German feedback thread can be found on the [official message board](http://for
 - **TRADE**
    - Ability to store last used coords
    - Two-click save to own planets
+   - Trades that would exceed storage capacities when accepted/denied are highlighted
 - **RESOURCES**
   - New table that shows hourly and daily production for all planets
   - Page now shows the time until capacities are reached for all resources
