@@ -1108,31 +1108,34 @@ function siteManager() {
             });
         },
         trades: function () {
-            config.promises.content = getPromise('#tradeOfferDiv');
-            config.promises.content.then(function () {
-                //mark trades that would exceed capacities
-                var tradeInfo = config.gameData.tradeInfo;
-                var capacities = unsafeWindow.resourceCapacityArray;
-                var currentRes = [unsafeWindow.Roheisen,unsafeWindow.Kristall,unsafeWindow.Frubin,unsafeWindow.Orizin,unsafeWindow.Frurozin,unsafeWindow.Gold];
-                $.each(tradeInfo.trade_offers, function (i, offer) {
-                    var $tradeDiv = lwm_jQuery('#div_'+offer.trade_id);
-                    $.each(currentRes, function (i, amount) {
-                        if ((amount + parseInt(offer.resource[i+6])) > capacities[i]) {
-                            $tradeDiv.find('tr:eq('+(i+5)+') td').last().addClass('redBackground');
-                            $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
-                        }
-                        if ((amount + parseInt(offer.resource[i+12])) > capacities[i]) {
-                            $tradeDiv.find('tr:eq('+(i+5)+') td').first().addClass('redBackground');
-                            $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
-                        }
+            if (config.gameData.tradeInfo.trade_offers.length === 0) config.loadStates.content = false;
+            else {
+                config.promises.content = getPromise('#tradeOfferDiv');
+                config.promises.content.then(function () {
+                    //mark trades that would exceed capacities
+                    var tradeInfo = config.gameData.tradeInfo;
+                    var capacities = unsafeWindow.resourceCapacityArray;
+                    var currentRes = [unsafeWindow.Roheisen,unsafeWindow.Kristall,unsafeWindow.Frubin,unsafeWindow.Orizin,unsafeWindow.Frurozin,unsafeWindow.Gold];
+                    $.each(tradeInfo.trade_offers, function (i, offer) {
+                        var $tradeDiv = lwm_jQuery('#div_'+offer.trade_id);
+                        $.each(currentRes, function (i, amount) {
+                            if ((amount + parseInt(offer.resource[i+6])) > capacities[i]) {
+                                $tradeDiv.find('tr:eq('+(i+5)+') td').last().addClass('redBackground');
+                                $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
+                            }
+                            if ((amount + parseInt(offer.resource[i+12])) > capacities[i]) {
+                                $tradeDiv.find('tr:eq('+(i+5)+') td').first().addClass('redBackground');
+                                $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
+                            }
+                        });
                     });
-                });
 
-                config.loadStates.content = false;
-            }).catch(function (e) {
-                console.log(e);
-                config.loadStates.content = false;
-            });
+                    config.loadStates.content = false;
+                }).catch(function (e) {
+                    console.log(e);
+                    config.loadStates.content = false;
+                });
+            }
         },
         newTrade: function() {
             config.promises.content = getPromise('#newTradeOfferDiv');
@@ -2268,6 +2271,7 @@ function siteManager() {
             return Number.isInteger(parseInt(coords[0])) && Number.isInteger(parseInt(coords[1])) && Number.isInteger(parseInt(coords[2]));
         },
         getIncomingResArray: function () {
+            if (config.gameData.tradeInfo.trade_offers.length === 0) return [0,0,0,0,0,0];
             return [
                 lwm_jQuery.map(config.gameData.tradeInfo.trade_offers, function (trade, i) { return parseInt(trade.accept) * parseInt(trade.resource[12]); }).reduce(function (total, num) { return total + num; }),
                 lwm_jQuery.map(config.gameData.tradeInfo.trade_offers, function (trade, i) { return parseInt(trade.accept) * parseInt(trade.resource[13]); }).reduce(function (total, num) { return total + num; }),
