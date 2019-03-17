@@ -2,6 +2,8 @@
 
 ## v0.6.0
 
+- All arrow keys that add or remove ships or defense bulk add them when you hold the mouse button
+
 - **OBSERVATIONS**
   - Ability to sort obervations by coords
 
@@ -11,6 +13,9 @@
 - **GALAXY**
   - Add spy links to all planets
   - Sending obs drones from the galaxy view
+
+- **RESOURCES**
+  - Page now shows the time until capacities are reached for all resources
 
 ## v0.5.2
 

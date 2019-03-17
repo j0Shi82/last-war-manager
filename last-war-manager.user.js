@@ -1303,8 +1303,8 @@ function siteManager() {
                     if (value !== '' && value !== 'false' && value !== '0' && lwm_jQuery(this).next().html() === '') {
                         var spydrones = lwm_jQuery.grep(config.gameData.spionageInfos.planetenscanner_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
                         var obsdrones = lwm_jQuery.grep(config.gameData.spionageInfos.observations_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
-                        if (spydrones.length > 0) lwm_jQuery(this).next().append('<a href="#" class="actionClass spionagePlanetenscannerAction fa-stack" onclick="javascript:void(0)"><i class="far fa-circle fa-stack-2x"></i><i class="fas fa-search fa-stack-1x"></i></a>');
                         if (obsdrones.length > 0) lwm_jQuery(this).next().append('<a href="#" class="actionClass spionageObservationsAction fa-stack" onclick="javascript:void(0)"><i class="far fa-circle fa-stack-2x"></i><i class="fas fa-search-plus fa-stack-1x"></i></a>');
+                        if (spydrones.length > 0) lwm_jQuery(this).next().append('<a href="#" class="actionClass spionagePlanetenscannerAction fa-stack" onclick="javascript:void(0)"><i class="far fa-circle fa-stack-2x"></i><i class="fas fa-search fa-stack-1x"></i></a>');
                     }
                 });
 
@@ -1417,6 +1417,15 @@ function siteManager() {
         resources: function () {
             config.promises.content = getPromise('#rohstoffeDiv');
             config.promises.content.then(function () {
+                // add time that's needed to reach capacity
+                var resTotal = getResourcePerHour();
+                var resTypes = ['roheisen','kristall','frubin','orizin','frurozin','gold'];
+                var resValue = [unsafeWindow.Roheisen,unsafeWindow.Kristall,unsafeWindow.Frubin,unsafeWindow.Orizin,unsafeWindow.Frurozin,unsafeWindow.Gold];
+                lwm_jQuery('#rohstoffeDiv > .rohstoffeTableClass > tbody > tr > td > .rohstoffeTableClass').find('> tbody > tr:eq(4)').each(function (i, table) {
+                    if (!resTotal[0][resTypes[i]]) return true;
+                    var hoursTillFull = (resourceCapacityArray[i]-resValue[i])/(resTotal[0][resTypes[i]]);
+                    lwm_jQuery(this).after('<tr><td class="second" valign="top" align="right">Time till capacity reached:</td><td class="second" ><span class=\''+(hoursTillFull < 8 ? 'redBackground' : '')+'\' id=\'clock_lwm_'+resTypes[i]+'\'>'+moment.duration(hoursTillFull, "hours").format("HH:mm:ss")+'</span></td></tr>');
+                });
 
                 if (config.gameData.planets.length === Object.values(config.lwm.resProd[config.gameData.playerID]).length) {
                     //add resources analysis
