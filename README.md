@@ -57,8 +57,9 @@ A German feedback thread can be found on the [official message board](http://for
   - Ability to browse through messages with arrow keys
   - Direkt links to combat and spy reports from the message root folder
 - **GALAXY**
-  - Sending spy drones from the galaxy view
+  - Sending spy and obs drones from the galaxy view
   - Ability to browse through the galaxy using the arrow keys
+  - Add spy and obs links to all planets
 - **OBSERVATIONS**
   - Ability to sort obervations by coords
 

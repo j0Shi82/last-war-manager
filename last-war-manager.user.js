@@ -350,8 +350,7 @@ function siteManager() {
             },
 
             reloads: {
-                productionInfos: false,
-                spionageInfos: false
+                productionInfos: false
             }
         },
         lwm: {
@@ -470,14 +469,10 @@ function siteManager() {
 
                 // returns a promise because other stuff has to wait for the data
                 return lwm_jQuery.when(
-                    config.getGameData.spionageInfos(),
+                    requests.get_spionage_info(),
                     config.getGameData.productionInfos(),
                     config.getGameData.planetInformation()
                 );
-            },
-            spionageInfos: function () {
-                var uriData = 'galaxy_check='+config.gameData.planetCoords.galaxy+'&system_check='+config.gameData.planetCoords.system+'&planet_check='+config.gameData.planetCoords.planet;
-                return site_jQuery.getJSON('/ajax_request/get_spionage_info.php?'+uriData, function( data ) { config.gameData.spionageInfos = data; });
             },
             productionInfos: function () {
                 var uriData = 'galaxy_check='+config.gameData.planetCoords.galaxy+'&system_check='+config.gameData.planetCoords.system+'&planet_check='+config.gameData.planetCoords.planet;
@@ -558,12 +553,13 @@ function siteManager() {
                 var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
                 // save specific responses for later use
-                var saveRequest = ['get_ubersicht_info','get_flottenbewegungen_info','get_inbox_message','get_info_for_observationen_page'];
+                var saveRequest = ['get_ubersicht_info','get_flottenbewegungen_info','get_inbox_message','get_info_for_observationen_page','get_spionage_info'];
                 if (saveRequest.indexOf(page) !== -1) {
-                    if (page === 'get_ubersicht_info')              config.gameData.overviewInfo = xhr.responseJSON;
-                    if (page === 'get_flottenbewegungen_info')      config.gameData.fleetInfo    = xhr.responseJSON;
-                    if (page === 'get_inbox_message')               config.gameData.messageData  = xhr.responseJSON;
-                    if (page === 'get_info_for_observationen_page') config.gameData.obsvervationInfo  = xhr.responseJSON;
+                    if (page === 'get_ubersicht_info')              config.gameData.overviewInfo     = xhr.responseJSON;
+                    if (page === 'get_flottenbewegungen_info')      config.gameData.fleetInfo        = xhr.responseJSON;
+                    if (page === 'get_inbox_message')               config.gameData.messageData      = xhr.responseJSON;
+                    if (page === 'get_info_for_observationen_page') config.gameData.obsvervationInfo = xhr.responseJSON;
+                    if (page === 'get_spionage_info')               config.gameData.spionageInfos    = xhr.responseJSON;
                 }
 
                 var listenPages = ['put_building'];
@@ -628,24 +624,24 @@ function siteManager() {
 
         switch (page) {
             case "ubersicht":                pageTweaks.uebersicht(); break;
-            case "produktion":               pageTweaks.produktion(); pageTweaks.replaceArrows(); break;
-            case "verteidigung":             pageTweaks.defense(); pageTweaks.replaceArrows(); break;
+            case "produktion":               pageTweaks.produktion(); break;
+            case "verteidigung":             pageTweaks.defense(); break;
             case "construction":             pageTweaks.construction(); break;
             case "research":                 pageTweaks.research(); break;
             case "aktuelle_produktion":      pageTweaks.prodQueue(); break;
             case "handelsposten":            pageTweaks.shipPost(); break;
-            case "upgrade_defence":          pageTweaks.upgradeDef(); pageTweaks.replaceArrows(); break;
-            case "recycling_defence":        pageTweaks.recycleDef(); pageTweaks.replaceArrows(); break;
+            case "upgrade_defence":          pageTweaks.upgradeDef(); break;
+            case "recycling_defence":        pageTweaks.recycleDef(); break;
             case "planeten":                 pageTweaks.planeten(); break;
             case "get_inbox_load_info":      pageTweaks.inbox(); break;
             case "get_inbox_message":        pageTweaks.inbox(); break;
             case "new_trade_offer":          pageTweaks.newTrade(); break;
-            case "raumdock":                 pageTweaks.shipdock(); pageTweaks.replaceArrows(); break;
+            case "raumdock":                 pageTweaks.shipdock(); break;
             case "get_galaxy_view_info":     pageTweaks.galaxyView(); break;
             case "observationen":            pageTweaks.obs(); break;
             case "schiffskomponenten":       pageTweaks.designShips(); break;
             case "get_make_command_info":    pageTweaks.fleetCommand(); break;
-            case "get_change_flotten_info":  pageTweaks.changeFleet(); pageTweaks.replaceArrows(); break;
+            case "get_change_flotten_info":  pageTweaks.changeFleet(); break;
             case "get_info_for_flotten_pages": pageTweaks.allFleets(xhr); break;
             case "building_tree":            pageTweaks.buildingTree(); break;
             case "research_tree":            pageTweaks.buildingTree(); break;
@@ -656,7 +652,7 @@ function siteManager() {
             default:                         pageTweaks.default(); break;
         }
 
-
+        pageTweaks.replaceArrows();
 
         /* addons */
         /* config.isPageLoad is currently set to false here because it's the last thing that runs */
@@ -700,7 +696,7 @@ function siteManager() {
                         case 'produktion': lwm_jQuery(this).prepend('<i class="fas fa-fighter-jet"></i>'); break;
                         case 'upgrade_defence': lwm_jQuery(this).prepend('<i class="fas fa-arrow-alt-circle-up"></i>'); break;
                         case 'recycling_defence': lwm_jQuery(this).prepend('<i class="fas fa-recycle"></i>'); break;
-                        case 'recycling_ships': lwm_jQuery(this).prepend('<i class="fas fa-recycle"></i>'); break;
+                        case 'recycling_anlage': lwm_jQuery(this).prepend('<i class="fas fa-recycle"></i>'); break;
                         case 'new_trade_offer': lwm_jQuery(this).prepend('<i class="fas fa-plus-circle"></i>'); break;
                         case 'flottenbasen_planet': lwm_jQuery(this).prepend('<i class="fas fa-plane-departure"></i>'); break;
                         case 'flottenbasen_all': lwm_jQuery(this).prepend('<i class="fas fa-plane-departure"></i>'); break;
@@ -738,8 +734,8 @@ function siteManager() {
         },
         replaceArrows: function() {
             getLoadStatePromise('content').then(function () {
-                lwm_jQuery('.arrow-left,.arrow-left-recycle').removeClass('arrow-left arrow-left-recycle').addClass('fa-2x fas fa-angle-left');
-                lwm_jQuery('.arrow-right,.arrow-right-recycle').removeClass('arrow-right arrow-right-recycle').addClass('fa-2x fas fa-angle-right');
+                lwm_jQuery('.arrow-left,.arrow-left-recycle,.spionage-arrow-left,.raumdock-arrow-left').removeClass('arrow-left arrow-left-recycle spionage-arrow-left raumdock-arrow-left').addClass('fa-2x fas fa-angle-left');
+                lwm_jQuery('.arrow-right,.arrow-right-recycle,.spionage-arrow-right,.raumdock-arrow-right').removeClass('arrow-right arrow-right-recycle spionage-arrow-right raumdock-arrow-right').addClass('fa-2x fas fa-angle-right');
                 lwm_jQuery('.fa-angle-right,.fa-angle-left').each(function () {
                     lwm_jQuery(this)
                         .attr('style','')
@@ -859,33 +855,6 @@ function siteManager() {
 
                 helper.addIconToHtmlElements(lwm_jQuery('button[onclick*=\'upgradeDefenceFunction\']'), 'fas fa-2x fa-arrow-alt-circle-up');
 
-                //correct arrow margins
-                lwm_jQuery('.arrow-left-recycle,.arrow-right-recycle').css('margin-top', '0');
-
-                //buttons to add or remove all of specific ship
-                lwm_jQuery('.arrow-right-recycle').each(function () {
-                    lwm_jQuery(this).after('<i class="fas fa-check-circle"></i>');
-                });
-                lwm_jQuery('.arrow-left-recycle').each(function () {
-                    lwm_jQuery(this).before('<i class="fas fa-ban"></i>');
-                });
-                lwm_jQuery('.fa-check-circle').click(function () {
-                    var curCount = 0;
-                    do {
-                        curCount = parseInt(lwm_jQuery(this).parent().text() || lwm_jQuery(this).parent().find('input').val());
-                        if (isNaN(curCount)) break;
-                        lwm_jQuery(this).parent().find('.arrow-right-recycle').click();
-
-                    } while (parseInt(lwm_jQuery(this).parent().text() || lwm_jQuery(this).parent().find('input').val()) !== curCount)
-                });
-                lwm_jQuery('.fa-ban').click(function () {
-                    var curCount = 0;
-                    do {
-                        curCount = parseInt(lwm_jQuery(this).parent().text()  || lwm_jQuery(this).parent().find('input').val());
-                        lwm_jQuery(this).parent().find('.arrow-left-recycle').click();
-
-                    } while (curCount > 0)
-                });
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
@@ -1249,7 +1218,7 @@ function siteManager() {
                 //button to add all ships
                 var $allShips = lwm_jQuery('<button class="createShipButton createFleetRaumdock" id="lwm_selectAllShips">Alle Schiffe</button>');
                 $allShips.click(function () {
-                    lwm_jQuery('.raumdock-arrow-right').each(function () {
+                    lwm_jQuery('[onclick*=\'addNumberRaumdock\']').each(function () {
                         var curCount = 0;
                         do {
                             curCount = parseInt(lwm_jQuery(this).prev().text() || lwm_jQuery(this).prev().val());
@@ -1260,31 +1229,6 @@ function siteManager() {
                     });
                 });
                 $allShips.appendTo(lwm_jQuery('.raumdockNameButtonDiv'));
-
-                //buttons to add or remove all of specific ship
-                lwm_jQuery('.raumdock-arrow-right').each(function () {
-                    lwm_jQuery(this).after('<i class="fas fa-check-circle"></i>');
-                });
-                lwm_jQuery('.raumdock-arrow-left').each(function () {
-                    lwm_jQuery(this).before('<i class="fas fa-ban"></i>');
-                });
-                lwm_jQuery('.fa-check-circle').click(function () {
-                    var curCount = 0;
-                    do {
-                        curCount = parseInt(lwm_jQuery(this).parent().text() || lwm_jQuery(this).parent().find('input').val());
-                        if (isNaN(curCount)) break;
-                        lwm_jQuery(this).parent().find('.raumdock-arrow-right').click();
-
-                    } while (parseInt(lwm_jQuery(this).parent().text() || lwm_jQuery(this).parent().find('input').val()) !== curCount)
-                });
-                lwm_jQuery('.fa-ban').click(function () {
-                    var curCount = 0;
-                    do {
-                        curCount = parseInt(lwm_jQuery(this).parent().text()  || lwm_jQuery(this).parent().find('input').val());
-                        lwm_jQuery(this).parent().find('.raumdock-arrow-left').click();
-
-                    } while (curCount > 0)
-                });
 
                 config.loadStates.content = false;
             }).catch(function (e) {
@@ -1343,7 +1287,18 @@ function siteManager() {
                 lwm_jQuery('a.spionageObservationsAction').addClass('fa-stack').append('<i class="far fa-circle fa-stack-2x"></i>').append('<i class="fas fa-search-plus fa-stack-1x"></i>');
                 lwm_jQuery('a.changePlanetAction').addClass('fa-stack').append('<i class="far fa-circle fa-stack-2x"></i>').append('<i class="fas fa-exchange-alt fa-stack-1x"></i>');
 
-                //add spionage action
+                //add spy buttons for planets that's missing it
+                lwm_jQuery('#galaxyViewInfoTable tr').find('td:eq(3)').each(function () {
+                    var value = lwm_jQuery(this).text();
+                    if (value !== '' && value !== 'false' && value !== '0' && lwm_jQuery(this).next().html() === '') {
+                        var spydrones = lwm_jQuery.grep(config.gameData.spionageInfos.planetenscanner_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
+                        var obsdrones = lwm_jQuery.grep(config.gameData.spionageInfos.observations_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
+                        if (spydrones.length > 0) lwm_jQuery(this).next().append('<a href="#" class="actionClass spionagePlanetenscannerAction fa-stack" onclick="javascript:void(0)"><i class="far fa-circle fa-stack-2x"></i><i class="fas fa-search fa-stack-1x"></i></a>');
+                        if (obsdrones.length > 0) lwm_jQuery(this).next().append('<a href="#" class="actionClass spionageObservationsAction fa-stack" onclick="javascript:void(0)"><i class="far fa-circle fa-stack-2x"></i><i class="fas fa-search-plus fa-stack-1x"></i></a>');
+                    }
+                });
+
+                //add spionage actions
                 lwm_jQuery('a.spionagePlanetenscannerAction').each(function () {
                     lwm_jQuery(this).attr('onclick', 'javascript:void(0)');
                     var coords = lwm_jQuery(this).parents('tr').find('td').first().text().split('x');
@@ -1351,6 +1306,14 @@ function siteManager() {
                     coords[1] = coords[1].match(/\d+/)[0];
                     coords[2] = coords[2].match(/\d+/)[0]; //filter planet type
                     lwm_jQuery(this).click(function () { operations.performSpionage(coords) });
+                });
+                lwm_jQuery('a.spionageObservationsAction').each(function () {
+                    lwm_jQuery(this).attr('onclick', 'javascript:void(0)');
+                    var coords = lwm_jQuery(this).parents('tr').find('td').first().text().split('x');
+                    coords[0] = coords[0].match(/\d+/)[0];
+                    coords[1] = coords[1].match(/\d+/)[0];
+                    coords[2] = coords[2].match(/\d+/)[0]; //filter planet type
+                    lwm_jQuery(this).click(function () { operations.performObservation(coords) });
                 });
 
                 //move observation and search div
@@ -1862,11 +1825,11 @@ function siteManager() {
                 });
 
                 lwm_jQuery.each(config.gameData.fleetInfo.dron_observationens, function(i, fleetData) {
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.system + " )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(fleetData.secounds, 'seconds').format("hh:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.planet + " )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(fleetData.secounds, 'seconds').format("hh:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
                 });
 
                 lwm_jQuery.each(config.gameData.fleetInfo.dron_planetenscanners, function(i, fleetData) {
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.system + " )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(fleetData.secounds, 'seconds').format("hh:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.planet + " )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(fleetData.secounds, 'seconds').format("hh:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
                 });
 
                 lwm_jQuery.each(config.gameData.fleetInfo.buy_ships_array, function(i, fleetData) {
@@ -1967,6 +1930,9 @@ function siteManager() {
     var requests = {
         get_flottenbewegungen_info: function () {
             return site_jQuery.getJSON('/ajax_request/get_flottenbewegungen_info.php?galaxy='+config.gameData.planetCoords.galaxy+'&system='+config.gameData.planetCoords.system+'&planet='+config.gameData.planetCoords.planet);
+        },
+        get_spionage_info: function () {
+            return site_jQuery.getJSON('/ajax_request/get_spionage_info.php?galaxy_check='+config.gameData.planetCoords.galaxy+'&system_check='+config.gameData.planetCoords.system+'&planet_check='+config.gameData.planetCoords.planet);
         }
     };
 
@@ -1976,7 +1942,7 @@ function siteManager() {
             if (data.planetenscanner_drons.length === 0) alert('Unable to find drones to use');
 
             //grab the first eligable drone with IOB and roll with it
-            var drone = lwm_jQuery.grep(data.planetenscanner_drons, function (el, i) { return el.engine_type === 'IOB'; });
+            var drone = lwm_jQuery.grep(data.planetenscanner_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
             if (drone.length === 0) alert('Unable to find drones to use');
 
             var droneID = drone[0].id;
@@ -2052,10 +2018,107 @@ function siteManager() {
                                         planet_check: unsafeWindow.my_planet
                                     },function (data) {
                                         if (data == "1") {
-                                            //refresh fleets
-                                            addOns.showFleetActivityGlobally();
-                                            //mark spionageInfo to get reloaded
-                                            config.gameData.reloads.spionageInfos = true;
+                                            //refresh fleets and spy infos
+                                            requests.get_flottenbewegungen_info();
+                                            requests.get_spionage_info();
+                                        }
+                                        else {
+                                            alert("some error occured :/");
+                                        }
+                                    })
+
+                                }
+                            } else {
+                                alert("some error occured :/");
+                            }
+                        }
+                    }
+                }
+            });
+        },
+        performObservation: function (coords) {
+            var data = config.gameData.spionageInfos;
+            if (data.observations_drons.length === 0) alert('Unable to find drones to use');
+
+            //grab the first eligable drone with IOB and roll with it
+            var drone = lwm_jQuery.grep(data.observations_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
+            if (drone.length === 0) alert('Unable to find drones to use');
+
+            var droneID = drone[0].id;
+
+            var obj = {
+                "galaxy_check": unsafeWindow.my_galaxy,
+                "system_check": unsafeWindow.my_system,
+                "planet_check": unsafeWindow.my_planet,
+                "type": "1",
+                "dron_id": droneID,
+                "dron_quantity": 1,
+                "galaxy_spionage": coords[0],
+                "system_from_spionage": coords[1],
+                "planet_from_spionage": coords[2],
+                "planet_to_spionage": -1
+            };
+
+            //we're using a simplified version of sendSpionageAction in spionage.js
+            site_jQuery.ajax({
+                type: "POST",
+                dataType: "json",
+                url: "/ajax_request/send_spionage_action.php",
+                data: obj,
+                error: function(jqXHR, textStatus, errorThrown) {
+                    alert(textStatus + ": " + errorThrown);
+                },
+                success: function(data){
+                    if(data == "-1" || data == "500" || data == "-2" || data == "-4" || data == "-5" || data == "-6" ||
+                        data == "-10" || data == "-11" || data == "-12" ||
+                        data == "-20" || data == "-21" || data == "-22" || data == "-23" || data == "24" || data == "-30")
+                    {
+                        alert("some error occured :/");
+                    }
+                    else if(!data)
+                    {
+                        unsafeWindow.logoutRequest();
+                    }
+                    else{
+                        if(data.error)
+                        {
+                            alert(data.error);
+                        }
+                        else {
+                            if (data.dron_id) {
+                                var message = '';
+                                if(data.real_number == 1)
+                                {
+                                    message = "Frurozin benötigt: " + data.Frurozin_d + ", Ankunftszeit: " + data.string + ". Möchtest du abschicken?";
+                                }
+                                else if(data.real_number > 1)
+                                {
+                                    message = "Frurozin benötigt: " + data.Frurozin_d + ". Möchtest du abschicken?";
+                                }
+
+                                var r = confirm(message);
+                                if (r == true)
+                                {
+                                    lwm_jQuery.post('/ajax_request/put_observationen_drons.php', {
+                                        Units: data.Units,
+                                        EngineType_Drone: data.EngineType_Drone,
+                                        Speed_Drone: data.Speed_Drone,
+                                        Name_Dron: data.Name_Dron,
+                                        galaxy1:data.spionage_galaxy,
+                                        system1: data.spionage_system_from,
+                                        planet1: data.spionage_planet_from,
+                                        planet2: data.spionage_planet_to,
+                                        real_number: data.real_number,
+                                        id_drones: data.dron_id,
+                                        Frurozin_d: data.Frurozin_d,
+                                        galaxy_check: unsafeWindow.my_galaxy,
+                                        system_check: unsafeWindow.my_system,
+                                        planet_check: unsafeWindow.my_planet
+                                    },function (data) {
+                                        if (data == "1") {
+                                            //refresh fleets and spy infos
+                                            requests.get_flottenbewegungen_info();
+                                            requests.get_spionage_info();
                                         }
                                         else {
                                             alert("some error occured :/");

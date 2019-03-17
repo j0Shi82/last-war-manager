@@ -1,6 +1,18 @@
 #Changelog
 
-##v.0.5.2
+## v0.6.0
+
+- **OBSERVATIONS**
+  - Ability to sort obervations by coords
+
+- **MESSAGES**
+  - Direkt links to combat and spy reports from the message root folder
+
+- **GALAXY**
+  - Add spy links to all planets
+  - Sending obs drones from the galaxy view
+
+## v0.5.2
 
 - Fixed a bug that caused fleet movements to disappear under certain circumstances
 - Fixed a bug that caused timers to not work for drone fleets
