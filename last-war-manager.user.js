@@ -1122,14 +1122,16 @@ function siteManager() {
                         var tradeInfo = config.gameData.tradeInfo;
                         var capacities = unsafeWindow.resourceCapacityArray;
                         var currentRes = [unsafeWindow.Roheisen,unsafeWindow.Kristall,unsafeWindow.Frubin,unsafeWindow.Orizin,unsafeWindow.Frurozin,unsafeWindow.Gold];
+                        var incomingRes = helper.getIncomingResArray();
                         $.each(tradeInfo.trade_offers, function (i, offer) {
+                            var tradeRunning = offer.accept === "1";
                             var $tradeDiv = lwm_jQuery('#div_'+offer.trade_id);
                             $.each(currentRes, function (i, amount) {
-                                if ((amount + parseInt(offer.resource[i+6])) > capacities[i]) {
+                                if ((incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+6]) : 0)) > capacities[i]) {
                                     $tradeDiv.find('tr:eq('+(i+5)+') td').last().addClass('redBackground');
                                     $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
                                 }
-                                if ((amount + parseInt(offer.resource[i+12])) > capacities[i] && offer.galaxy == config.gameData.planetCoords.galaxy && offer.system == config.gameData.planetCoords.system && offer.planet == config.gameData.planetCoords.planet) {
+                                if ((incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+12]) : 0)) > capacities[i] && offer.galaxy == config.gameData.planetCoords.galaxy && offer.system == config.gameData.planetCoords.system && offer.planet == config.gameData.planetCoords.planet) {
                                     $tradeDiv.find('tr:eq('+(i+5)+') td').first().addClass('redBackground');
                                     $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
                                 }
@@ -1938,8 +1940,8 @@ function siteManager() {
                     var lkomLink        = '<i class="fas fa-wifi faa-flash animated" onclick="changeContent(\'flotten_view\', \'third\', \'Flotten-Kommando\', \'' + fleetData.id + '\')" style="cursor:hand;margin-right:5px;color:#66f398"></i>';
                     switch (fleetData.Type) {
                         case '1':
-                            fleetInfoString = lkomLink+'Eigene Flotte vom Planet '+ ownCoords;
-                            if (fleetData.Status == 1) fleetInfoString += " greift Planet ";
+                            fleetInfoString = 'Eigene Flotte vom Planet '+ ownCoords;
+                            if (fleetData.Status == 1) fleetInfoString = lkomLink+fleetInfoString+" greift Planet ";
                             else                       fleetInfoString += " kehrt von ";
                             fleetInfoString += oppCoords + ' ('+oppNick+')';
                             if (fleetData.Status == 1) fleetInfoString += " an.";
@@ -1948,17 +1950,17 @@ function siteManager() {
                             fleetClock =      'clock_' + fleetData.clock_id;
                             break;
                         case '2':
-                            fleetInfoString = lkomLink+'Eigene Flotte vom Planet '+ ownCoords;
-                            if (fleetData.Status == 1) fleetInfoString += " transportiert Rohstoffe nach ";
+                            fleetInfoString = 'Eigene Flotte vom Planet '+ ownCoords;
+                            if (fleetData.Status == 1) fleetInfoString = lkomLink+fleetInfoString+" transportiert Rohstoffe nach ";
                             else                       fleetInfoString += " kehrt zurück von ";
                             fleetInfoString += oppCoords + ' ('+oppNick+').';
                             fleetTimeString = fleetData.ComeTime;
                             fleetClock =      'clock_' + fleetData.clock_id;
                             break;
                         case '3':
-                            fleetInfoString = lkomLink+'Eigene Flotte vom Planet '+ ownCoords;
+                            fleetInfoString = 'Eigene Flotte vom Planet '+ ownCoords;
                             if (fleetData.Status == 1)     fleetInfoString += " verteidigt Planet ";
-                            else if(fleetData.Status == 2) fleetInfoString += " kehrt zurück vom ";
+                            else if(fleetData.Status == 2) fleetInfoString = lkomLink+fleetInfoString+" kehrt zurück vom ";
                             else if(fleetData.Status == 3) fleetInfoString += " verteidigt den Planeten ";
                             fleetInfoString += oppCoords + '( '+oppNick+' )';
                             if(fleetData.Status != 3) {
