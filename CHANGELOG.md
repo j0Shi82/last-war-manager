@@ -1,5 +1,10 @@
 #Changelog
 
+## v0.7.0
+
+- **FLEETS**
+  - The icon to recall a fleet now only shows up in case the fleet is on its way to the target
+
 ## v0.6.0
 
 - All arrow keys that add or remove ships or defense bulk add them when you hold the mouse button

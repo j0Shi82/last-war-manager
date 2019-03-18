@@ -18,7 +18,7 @@
 // @grant         GM_getResourceText
 // @grant         GM_addStyle
 // @run-at        document-start
-// @version       0.6
+// @version       0.7
 // ==/UserScript==
 
 var firstLoad = true;
@@ -58,6 +58,7 @@ function siteManager() {
         var DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
         var SCOPES = 'https://www.googleapis.com/auth/drive.appfolder https://www.googleapis.com/auth/drive.file';
         var configFileID = null;
+        var fetchedConfig = false;
 
         /**
              *  On load, called to load the auth2 library and API client library.
@@ -136,6 +137,7 @@ function siteManager() {
                 console.log(response);
                 if (response.status === 200) {
                     configFileID = response.result.id;
+                    fetchedConfig = true;
                     saveConfig();
                 } else {
                     console.error('files.create: ' + response);
@@ -148,6 +150,12 @@ function siteManager() {
         }
 
         var saveConfig = function () {
+            // check whether config is ready
+            if (!fetchedConfig) {
+                console.log('gapi.client.request failed due to fetchedConfig');
+                return;
+            }
+            //save
             var saveObj = JSON.parse(JSON.stringify(config.lwm));
             saveObj.menu = {
                 addon_clock: GM_config.get('addon_clock'),
@@ -188,6 +196,7 @@ function siteManager() {
                 console.log(response);
                 if (response.status === 200) {
                     config.lwm.set(response.result);
+                    fetchedConfig = true;
                 } else {
                     console.error('files.create: ' + response);
                     config.setGMValues();
@@ -215,7 +224,8 @@ function siteManager() {
             signOut: signOut,
             isSignedIn: isSignedIn,
             save: saveConfig,
-            init: handleClientLoad
+            init: handleClientLoad,
+            fetchedConfig: fetchedConfig
         };
     })();
 
@@ -325,6 +335,7 @@ function siteManager() {
         },
         gameData: {
             playerID: null,
+            playerName: null,
             planetCoords: {
                 string: null,
                 galaxy: null,
@@ -360,6 +371,7 @@ function siteManager() {
             productionFilters: {},
             hiddenShips: {},
             resProd: {},
+            calendar: [],
 
             set: function (data) {
                 if (typeof data.lastTradeCoords !== "undefined") config.lwm.lastTradeCoords = data.lastTradeCoords;
@@ -367,6 +379,7 @@ function siteManager() {
                 if (typeof data.productionFilters !== "undefined") config.lwm.productionFilters = data.productionFilters;
                 if (typeof data.hiddenShips !== "undefined") config.lwm.hiddenShips = data.hiddenShips;
                 if (typeof data.resProd !== "undefined") config.lwm.resProd = data.resProd;
+                if (typeof data.calendar !== "undefined") config.lwm.calendar = data.calendar;
                 if (typeof data.menu !== "undefined") {
                     GM_config.set('addon_clock', data.menu.addon_clock);
                     GM_config.set('addon_fleet', data.menu.addon_fleet);
@@ -384,9 +397,10 @@ function siteManager() {
                 GM.setValue('lwm_productionFilters', JSON.stringify(config.lwm.productionFilters));
                 GM.setValue('lwm_hiddenShips', JSON.stringify(config.lwm.hiddenShips));
                 GM.setValue('lwm_resProd', JSON.stringify(config.lwm.resProd));
+                GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
 
                 config.setGMValues();
-            }
+            },
         },
         pages: {
             inbox: {
@@ -453,9 +467,20 @@ function siteManager() {
                 GM.setValue('lwm_productionFilters', JSON.stringify(config.lwm.productionFilters));
             });
 
+            GM.getValue('lwm_calendar', '[]').then(function (data) {
+                try { config.lwm.calendar = JSON.parse(data); } catch (e) { config.lwm.calendar = []; }
+                GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
+            });
+
             //need another promise here to make sure save fires after settings were loaded
             GM.getValue('lwm_productionFilters', '{}').then(function () {
-                if (GM_config.get('confirm_drive_sync')) driveManager.save();
+                if (GM_config.get('confirm_drive_sync')) {
+                    driveManager.fetchedConfig = true;
+                    //driveManager.save(); <-- this is triggered in storeOverview below
+                }
+                //process calendar overview and fleets here because it makes sure Google Drive is all set up already
+                addOns.calendar.storeFleets(config.gameData.fleetInfo);
+                addOns.calendar.storeOverview(config.gameData.overviewInfo);
             });
         },
         getGameData: {
@@ -467,6 +492,7 @@ function siteManager() {
                     planet: unsafeWindow.my_planet
                 };
                 config.gameData.playerID = unsafeWindow.my_id;
+                config.gameData.playerName = unsafeWindow.my_username;
 
                 // returns a promise because other stuff has to wait for the data
                 return lwm_jQuery.when(
@@ -553,10 +579,19 @@ function siteManager() {
                 var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
                 // save specific responses for later use
-                var saveRequest = ['get_ubersicht_info','get_flottenbewegungen_info','get_inbox_message','get_info_for_observationen_page','get_spionage_info','get_trade_offers'];
+                var saveRequest = ['get_aktuelle_production_info', 'get_ubersicht_info','get_flottenbewegungen_info','get_inbox_message','get_info_for_observationen_page','get_spionage_info','get_trade_offers'];
                 if (saveRequest.indexOf(page) !== -1) {
-                    if (page === 'get_ubersicht_info')              config.gameData.overviewInfo     = xhr.responseJSON;
-                    if (page === 'get_flottenbewegungen_info')      config.gameData.fleetInfo        = xhr.responseJSON;
+                    if (page === 'get_ubersicht_info') {
+                                                                    config.gameData.overviewInfo     = xhr.responseJSON;
+                                                                    // skip on firstLoad because we might have to wait for Google Drive init
+                                                                    if (!firstLoad) addOns.calendar.storeOverview(xhr.responseJSON);
+                    }
+                    if (page === 'get_aktuelle_production_info')    addOns.calendar.storeProd(xhr.responseJSON);
+                    if (page === 'get_flottenbewegungen_info') {
+                                                                    config.gameData.fleetInfo        = xhr.responseJSON;
+                                                                    // skip on firstLoad because we might have to wait for Google Drive init
+                                                                    if (!firstLoad) addOns.calendar.storeFleets(xhr.responseJSON);
+                    }
                     if (page === 'get_inbox_message')               config.gameData.messageData      = xhr.responseJSON;
                     if (page === 'get_info_for_observationen_page') config.gameData.obsvervationInfo = xhr.responseJSON;
                     if (page === 'get_spionage_info')               config.gameData.spionageInfos    = xhr.responseJSON;
@@ -2017,6 +2052,92 @@ function siteManager() {
                 config.loadStates.fleetaddon = true;
                 requests.get_flottenbewegungen_info();
             }, 30000);
+        },
+        calendar: {
+            storeOverview: function (data) {
+                lwm_jQuery.each(data.all_planets_for_use, function (i, planet) {
+                    var coords = planet.galaxy_pom + 'x' + planet.system_pom + 'x' + planet.planet_pom;
+                    if (planet.BuildingName !== '') addOns.calendar.store({
+                        playerID: config.gameData.playerID,
+                        playerName: config.gameData.playerName,
+                        coords: coords,
+                        type: 'building',
+                        text: planet.BuildingName,
+                        ts: moment(planet.FinishTimeForBuilding).valueOf()
+                    });
+                    if (planet.BuildingName2 !== '') addOns.calendar.store({
+                        playerID: config.gameData.playerID,
+                        playerName: config.gameData.playerName,
+                        coords: coords,
+                        type: 'building',
+                        text: planet.BuildingName2,
+                        ts: moment(planet.FinishTimeForBuilding2).valueOf()
+                    });
+                });
+
+                //we're also using this function to truncate old stuff
+                config.lwm.calendar = config.lwm.calendar.filter(function (entry) {
+                    return entry.ts > moment().valueOf();
+                });
+
+                GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
+                if (GM_config.get('confirm_drive_sync')) driveManager.save();
+            },
+            storeFleets: function (data) {
+                var dataTypes = ['all_informations','buy_ships_array','dron_observationens','dron_planetenscanners','fleet_informations','send_infos'];
+                lwm_jQuery.each(dataTypes, function (i, type) {
+                    lwm_jQuery.each(data[type], function (f, fleetData) {
+                        var time = fleetData.ComeTime || fleetData.DefendingTime || fleetData.time;
+                        if (!time) return true;
+                        addOns.calendar.store({
+                            playerID: config.gameData.playerID,
+                            playerName: config.gameData.playerName,
+                            coords: config.gameData.planetCoords.string,
+                            type: 'fleet',
+                            text: 'Flotte Typ '+fleetData.Type+' mit Status '+fleetData.Status+' und Coords ' + fleetData.Galaxy_send + "x" + fleetData.System_send + "x" + fleetData.Planet_send,
+                            ts: moment(time).valueOf()
+                        });
+                    });
+                });
+
+                GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
+                if (GM_config.get('confirm_drive_sync')) driveManager.save();
+            },
+            storeProd: function (data) {
+                lwm_jQuery.each(data.planet_defense, function (i, prodData) {
+                    addOns.calendar.store({
+                        playerID: config.gameData.playerID,
+                        playerName: config.gameData.playerName,
+                        coords: config.gameData.planetCoords.string,
+                        type: 'defense',
+                        text: prodData.name,
+                        ts: moment(prodData.finishTime).valueOf()
+                    });
+                });
+
+                lwm_jQuery.each(data.ships, function (i, prodData) {
+                    addOns.calendar.store({
+                        playerID: config.gameData.playerID,
+                        playerName: config.gameData.playerName,
+                        coords: config.gameData.planetCoords.string,
+                        type: 'ships',
+                        text: prodData.name,
+                        ts: moment(prodData.finishTime).valueOf()
+                    });
+                });
+
+                GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
+                if (GM_config.get('confirm_drive_sync')) driveManager.save();
+            },
+            store: function (data) {
+                var check = config.lwm.calendar.filter(function (entry) {
+                    return JSON.stringify(entry) === JSON.stringify(data);
+                });
+                if (check.length === 0) {
+                    //not found, add!
+                    config.lwm.calendar.push(data);
+                }
+            }
         }
     }
 
