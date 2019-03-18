@@ -72,7 +72,7 @@ function siteManager() {
              *  listeners.
              */
         var initClient = function() {
-            console.log('gapi.client.init');
+            //console.log('gapi.client.init');
             gapi.client.init({
                 apiKey: API_KEY,
                 clientId: CLIENT_ID,
@@ -89,13 +89,13 @@ function siteManager() {
 
         var updateSigninStatus = function(isSignedIn) {
             if (isSignedIn) {
-                console.log('gapi.client.drive.files.list');
+                //console.log('gapi.client.drive.files.list');
                 gapi.client.drive.files.list({
                     q: 'name="lwm_config.json"',
                     spaces: 'appDataFolder',
                     fields: 'files(id)'
                 }).then(function(response) {
-                    console.log(response);
+                    //console.log(response);
                     if (response.status === 200) {
                         if (response.result.files.length === 0) {
                             createConfig();
@@ -128,12 +128,12 @@ function siteManager() {
                 mimeType: 'application/json',
                 uploadType: 'multipart'
             };
-            console.log('gapi.client.drive.files.create');
+            //console.log('gapi.client.drive.files.create');
             gapi.client.drive.files.create({
                 resource: fileMetadata,
                 fields: 'id,name'
             }).then(function(response) {
-                console.log(response);
+                //console.log(response);
                 if (response.status === 200) {
                     configFileID = response.result.id;
                     saveConfig();
@@ -160,7 +160,7 @@ function siteManager() {
                 coords_trades: GM_config.get('coords_trades')
             };
 
-            console.log('gapi.client.request',saveObj);
+            //console.log('gapi.client.request',saveObj);
             gapi.client.request({
                 path: '/upload/drive/v3/files/' + configFileID,
                 method: 'PATCH',
@@ -170,7 +170,7 @@ function siteManager() {
                 },
                 body: JSON.stringify(saveObj)
             }).then(function (response) {
-                console.log(response);
+                //console.log(response);
                 if (response.status !== 200) {
                     console.error('files.create: ' + response);
                 }
@@ -180,12 +180,12 @@ function siteManager() {
         }
 
         var getConfig = function () {
-            console.log('gapi.client.drive.files.get');
+            //console.log('gapi.client.drive.files.get');
             gapi.client.drive.files.get({
                 fileId: configFileID,
                 alt: 'media'
             }).then(function (response) {
-                console.log(response);
+                //console.log(response);
                 if (response.status === 200) {
                     config.lwm.set(response.result);
                 } else {
@@ -532,13 +532,13 @@ function siteManager() {
                 var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
                 if (settings.url.search(/lwm_ignoreProcess/) !== -1) {
-                    console.log('lwm_ignoreProcess... skipping');
+                    //console.log('lwm_ignoreProcess... skipping');
                     return;
                 }
                 // first ubersicht load is usually not caught by our wrapper. But in case it is, return because we invoke this manually
                 if (firstLoad && page === 'ubersicht') return;
 
-                console.log(page);
+                //console.log(page);
 
                 var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
                                     'get_info_for_flotten_pages','get_change_flotten_info'];
@@ -569,8 +569,8 @@ function siteManager() {
                 var listenPages = ['put_building'];
 
                 if (listenPages.indexOf(page) !== -1) {
-                    console.log(event, xhr, settings);
-                    console.log('ajaxComplete',page, xhr.responseJSON);
+                    //console.log(event, xhr, settings);
+                    //console.log('ajaxComplete',page, xhr.responseJSON);
                 }
             });
         });
@@ -1090,7 +1090,7 @@ function siteManager() {
                 }
 
                 if ([2,4].includes(unsafeWindow.window.current_view_type)) {
-                    console.log('messageData', config.gameData.messageData);
+                    //console.log('messageData', config.gameData.messageData);
                     lwm_jQuery.each(config.gameData.messageData[1], function (i, m) {
                         if (m.subject.search(/Kampfbericht|Spionagebericht/) !== -1 && m.user_nickname === 'Systemnachricht') {
                             site_jQuery.getJSON('/ajax_request/get_message_info.php?id_conversation='+m.id, { lwm_ignoreProcess: 1 }, function (data) {
