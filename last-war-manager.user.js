@@ -1479,7 +1479,7 @@ function siteManager() {
                 lwm_jQuery('#rohstoffeDiv > .rohstoffeTableClass > tbody > tr > td > .rohstoffeTableClass').find('> tbody > tr:eq(4)').each(function (i, table) {
                     if (!resTotal[0][resTypes[i]]) return true;
                     var hoursTillFull = (resourceCapacityArray[i]-resValue[i]-incomingRes[i])/(resTotal[0][resTypes[i]]);
-                    lwm_jQuery(this).after('<tr><td class="second" valign="top" align="right">Time till capacity reached:</td><td class="second" ><span class=\''+(hoursTillFull < 8 ? 'redBackground' : '')+'\' id=\'clock_lwm_'+resTypes[i]+'\'>'+moment.duration(hoursTillFull, "hours").format("HH:mm:ss")+'</span></td></tr>');
+                    lwm_jQuery(this).after('<tr><td class="second" valign="top" align="right">Time till capacity reached:</td><td class="second" ><span class=\''+(hoursTillFull < 8 ? 'redBackground' : '')+'\' id=\'clock_lwm_'+resTypes[i]+'\'>'+moment.duration(hoursTillFull, "hours").format("HH:mm:ss", { trim: false, forceLength: true })+'</span></td></tr>');
                 });
 
                 if (config.gameData.planets.length === Object.values(config.lwm.resProd[config.gameData.playerID]).length) {
@@ -1845,7 +1845,7 @@ function siteManager() {
                         lwm_jQuery(this).html('--:--:--');
                     } else {
                         var md = moment.duration(data, 'seconds');
-                        lwm_jQuery(this).html(md.format("hh:mm:ss", {
+                        lwm_jQuery(this).html(md.format("HH:mm:ss", {
                             trim: false,
                             forceLength: true
                         }));
@@ -1911,23 +1911,23 @@ function siteManager() {
                             fleetClock =      'clock_' + fleetData.clock_id;
                             break;
                     }
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append('<tr style='+trStyle+'><td>'+fleetInfoString+'</td><td>'+fleetTimeString+'</td><td id=\''+fleetClock+'\'>'+moment.duration(fleetData.secounds, 'seconds').format("hh:mm:ss", { trim: false, forceLength: true })+'</td></tr>');
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append('<tr style='+trStyle+'><td>'+fleetInfoString+'</td><td>'+fleetTimeString+'</td><td id=\''+fleetClock+'\'>'+moment.duration(fleetData.secounds, 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+'</td></tr>');
                 });
 
                 lwm_jQuery.each(config.gameData.fleetInfo.all_informations, function(i, fleetData) {
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + " )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(fleetData.secounds, 'seconds').format("hh:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + " )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(fleetData.secounds, 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
                 });
 
                 lwm_jQuery.each(config.gameData.fleetInfo.dron_observationens, function(i, fleetData) {
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.planet + " )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(fleetData.secounds, 'seconds').format("hh:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.planet + " )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(fleetData.secounds, 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
                 });
 
                 lwm_jQuery.each(config.gameData.fleetInfo.dron_planetenscanners, function(i, fleetData) {
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.planet + " )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(fleetData.secounds, 'seconds').format("hh:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.planet + " )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(fleetData.secounds, 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
                 });
 
                 lwm_jQuery.each(config.gameData.fleetInfo.buy_ships_array, function(i, fleetData) {
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Flotte vom Handelsposten wird überstellt nach " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + ".</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(fleetData.secounds, 'seconds').format("hh:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Flotte vom Handelsposten wird überstellt nach " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + ".</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(fleetData.secounds, 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
                 });
 
                 lwm_jQuery.each(config.gameData.fleetInfo.fleet_informations, function(i, fleetData) {
@@ -1986,7 +1986,7 @@ function siteManager() {
                             fleetClock =      'clock_' + fleetData.clock_id;
                             break;
                     }
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append('<tr><td>'+fleetInfoString+'</td><td>'+fleetTimeString+'</td><td id=\''+fleetClock+'\'>'+moment.duration(fleetData.secounds, 'seconds').format("hh:mm:ss", { trim: false, forceLength: true })+'</td></tr>');
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append('<tr><td>'+fleetInfoString+'</td><td>'+fleetTimeString+'</td><td id=\''+fleetClock+'\'>'+moment.duration(fleetData.secounds, 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+'</td></tr>');
                 });
 
                 if (GM_config.get('addon_clock')) {
