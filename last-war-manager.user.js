@@ -658,7 +658,7 @@ function siteManager() {
 
         if (!preserveSubmenu) {
             submenu.clear();
-            submenu.move();
+            submenu.move(page);
         }
 
         switch (page) {
@@ -700,13 +700,25 @@ function siteManager() {
     }
 
     var submenu = {
-        move: function() {
+        move: function(page) {
+            //setup page => data-page pairs that should get ignored
+            var ignoreItems = {
+                produktion: ['raumdock'],
+                aktuelle_produktion: ['raumdock'],
+                schiffskomponenten: ['raumdock'],
+                recycling_anlage: ['raumdock']
+            };
             //submenu loads after content
             config.loadStates.submenu = true;
             config.promises.submenu = getLoadStatePromise('content');
             config.promises.submenu.then(function () {
                 lwm_jQuery('#link .navButton, #veticalLink .navButton').each(function () {
                     lwm_jQuery(this).attr('data-page', lwm_jQuery(this).attr('onclick').match(/(\'|\")([a-z0-9A-Z_]*)(\'|\")/)[2]);
+                    //check if items can be skipped
+                    if (ignoreItems[page] && ignoreItems[page].includes(lwm_jQuery(this).attr('data-page'))) {
+                        lwm_jQuery(this).remove();
+                        return true;
+                    }
                     switch (lwm_jQuery(this).attr('data-page')) {
                         case 'trade_offer': lwm_jQuery(this).prepend('<i class="fas fa-handshake"></i>'); break;
                         case 'handelsposten': lwm_jQuery(this).prepend('<i class="fas fa-dollar-sign"></i>'); break;

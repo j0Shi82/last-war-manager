@@ -2,6 +2,8 @@
 
 ## v0.7.0
 
+- The production page no longer has the shipdock in its submenu
+
 - **FLEETS**
   - The icon to recall a fleet now only shows up in case the fleet is on its way to the target
 
