@@ -11,7 +11,7 @@
 // @match         https://*.last-war.de/main.php*
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e07de5c0a13d416fda88134f999baccfee6f7059/assets/jquery.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
-// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@c379c80a7be74b57419d89ad9d2dfca46e72d94c/last-war-manager.css
+// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@af7e0d15b77504558d752b7e4ade7e6d669a459b/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
 // @grant         GM.setValue
@@ -696,7 +696,7 @@ function siteManager() {
 
         /* addons */
         /* config.isPageLoad is currently set to false here because it's the last thing that runs */
-        addOns.load();
+        addOns.load(page);
     }
 
     var submenu = {
@@ -706,7 +706,14 @@ function siteManager() {
                 produktion: ['raumdock'],
                 aktuelle_produktion: ['raumdock'],
                 schiffskomponenten: ['raumdock'],
-                recycling_anlage: ['raumdock']
+                recycling_anlage: ['raumdock'],
+                raumdock: ['flottenbewegungen','trade_offer'],
+                flottenkommando: ['flottenbewegungen'],
+                get_info_for_flotten_pages: ['flottenbewegungen'],
+                flottenbasen_planet: ['flottenbewegungen'],
+                flottenbasen_all: ['flottenbewegungen'],
+                fremde_flottenbasen: ['flottenbewegungen'],
+                flottenbewegungen: ['raumdock','spionage','flottenkommando','flottenbewegungen']
             };
             //submenu loads after content
             config.loadStates.submenu = true;
@@ -1713,7 +1720,9 @@ function siteManager() {
                 lwm_jQuery('#research').prepend('<i class="fas fa-database"></i>');
                 lwm_jQuery('#verteidigung').prepend('<i class="fas fa-shield-alt"></i>');
                 lwm_jQuery('#produktion').prepend('<i class="fas fa-fighter-jet"></i>');
-                lwm_jQuery('#flottenbewegungen').prepend('<i class="fas fa-plane-departure"></i>');
+                lwm_jQuery('#flottenbewegungen').after(lwm_jQuery('#flottenbewegungen').clone().prepend('<i class="far fa-calendar"></i>').attr('id','calendar'));
+                lwm_jQuery('#calendar span').text('Kalender');
+                lwm_jQuery('#flottenbewegungen').prepend('<i class="fas fa-plane-departure"></i>').attr('id','raumdock').attr('onclick', 'changeContent(\'flottenbasen_all\', \'second\', \'Flotten-Kommando\');');
                 lwm_jQuery('#trade_offer').prepend('<i class="fas fa-handshake"></i>');
                 lwm_jQuery('#rohstoffe').prepend('<i class="fas fa-gem"></i>');
                 lwm_jQuery('#planeten').prepend('<i class="fas fa-globe"></i>');
@@ -1801,14 +1810,16 @@ function siteManager() {
             clockInterval: null,
             fleetCompleteHandlerAdded: false
         },
-        load: function () {
+        load: function (page) {
             //load addons after submenu
             config.promises.addons = getLoadStatePromise('submenu');
             config.promises.addons.then(function () {
                 config.loadStates.fleetaddon = true;
-                if (GM_config.get('addon_fleet')) {
+                if (GM_config.get('addon_fleet') && page !== 'flottenbewegungen') {
                     addOns.showFleetActivityGlobally();
                     requests.get_flottenbewegungen_info();
+                } else {
+                    config.loadStates.fleetaddon = false;
                 }
                 addOns.refreshTrades();
                 if (GM_config.get('addon_clock')) addOns.addClockInterval();

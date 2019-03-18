@@ -3,6 +3,8 @@
 ## v0.7.0
 
 - The production page no longer has the shipdock in its submenu
+- The fleet page now turned to a calendar page that lists all running tasks
+- The fleet page was scratched from all sumbenus
 
 - **FLEETS**
   - The icon to recall a fleet now only shows up in case the fleet is on its way to the target
