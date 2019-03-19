@@ -59,14 +59,25 @@ function siteManager() {
         var DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
         var SCOPES = 'https://www.googleapis.com/auth/drive.appfolder https://www.googleapis.com/auth/drive.file';
         var configFileID = null;
-        var fetchedConfig = false;
+
+        //if drive fails to load, set loadstate and los browser config instead
+        var handleError = function () {
+            config.loadStates.gdrive = false;
+            config.setGMValues();
+        }
 
         /**
              *  On load, called to load the auth2 library and API client library.
              */
         var handleClientLoad = function(g) {
             gapi = g;
-            gapi.load('client:auth2', initClient);
+            gapi.load('client:auth2', {
+                callback: initClient,
+                onerror: function () {
+                    console.error('gapi.client failed to load!');
+                    handleError();
+                }
+            });
         }
 
         /**
@@ -85,7 +96,7 @@ function siteManager() {
                 updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
             }, function (error) {
                 console.error(JSON.stringify(error, null, 2));
-                config.setGMValues();
+                handleError();
             });
         }
 
@@ -107,15 +118,15 @@ function siteManager() {
                         }
                     } else {
                         console.error('files.create: ' + response);
-                        config.setGMValues();
+                        handleError();
                     }
                 }, function (error) {
                     console.error(JSON.stringify(error, null, 2));
-                    config.setGMValues();
+                    handleError();
                 });
             } else {
                 //we're not logged in, load browser settings
-                config.setGMValues();
+                handleError();
                 //also reset the google settings
                 if (GM_config.set('confirm_drive_sync')) alert('Couldn\'t sync with Google Drive. Please go to the settings and reconnect the service!');
                 GM_config.set('confirm_drive_sync', false);
@@ -138,22 +149,22 @@ function siteManager() {
                 console.log(response);
                 if (response.status === 200) {
                     configFileID = response.result.id;
-                    fetchedConfig = true;
+                    config.loadStates.gdrive = false;
                     saveConfig();
                 } else {
                     console.error('files.create: ' + response);
-                    config.setGMValues();
+                    handleError();
                 }
             }, function (error) {
                 console.error(JSON.stringify(error, null, 2));
-                config.setGMValues();
+                handleError();
             });
         }
 
         var saveConfig = function () {
             // check whether config is ready
-            if (!fetchedConfig) {
-                console.log('gapi.client.request failed due to fetchedConfig');
+            if (config.loadStates.gdrive) {
+                console.log('gapi.client.request failed due to config.loadStates.gdrive');
                 return;
             }
             //save
@@ -197,14 +208,14 @@ function siteManager() {
                 console.log(response);
                 if (response.status === 200) {
                     config.lwm.set(response.result);
-                    fetchedConfig = true;
+                    //config.loadStates.gdrive = false; <-- loadState is updated in config.lwm.set()
                 } else {
                     console.error('files.create: ' + response);
-                    config.setGMValues();
+                    handleError();
                 }
             }, function (error) {
                 console.error(JSON.stringify(error, null, 2));
-                config.setGMValues();
+                handleError();
             });
         }
 
@@ -225,8 +236,7 @@ function siteManager() {
             signOut: signOut,
             isSignedIn: isSignedIn,
             save: saveConfig,
-            init: handleClientLoad,
-            fetchedConfig: fetchedConfig
+            init: handleClientLoad
         };
     })();
 
@@ -318,6 +328,7 @@ function siteManager() {
     var config = {
         menu: GM_config,
         loadStates: {
+            gdrive: false,
             content: false,
             submenu: false,
             addons: false,
@@ -476,13 +487,10 @@ function siteManager() {
 
             //need another promise here to make sure save fires after settings were loaded
             GM.getValue('lwm_productionFilters', '{}').then(function () {
-                if (GM_config.get('confirm_drive_sync')) {
-                    driveManager.fetchedConfig = true;
-                    //driveManager.save(); <-- this is triggered in storeOverview below
-                }
-                //process calendar overview and fleets here because it makes sure Google Drive is all set up already
-                addOns.calendar.storeFleets(config.gameData.fleetInfo);
-                addOns.calendar.storeOverview(config.gameData.overviewInfo);
+                config.loadStates.gdrive = false; // <-- this ends gdrive setup on first load
+                if (GM_config.get('confirm_drive_sync')) driveManager.save();
+            }).finally(function () {
+                config.loadStates.gdrive = false; // <-- this ends gdrive setup on first load
             });
         },
         getGameData: {
@@ -500,6 +508,7 @@ function siteManager() {
                 return lwm_jQuery.when(
                     requests.get_spionage_info(),
                     config.getGameData.productionInfos(),
+                    config.getGameData.overviewInfos(),
                     config.getGameData.planetInformation()
                 );
             },
@@ -526,8 +535,13 @@ function siteManager() {
                         config.gameData.planets.push({galaxy:d.Galaxy,system:d.System,planet:d.Planet,string:d.Galaxy+'x'+d.System+'x'+d.Planet});
                     });
                 });
+            },
+            overviewInfos: function(data) {
+                var uriData = 'galaxy_check='+config.gameData.planetCoords.galaxy+'&system_check='+config.gameData.planetCoords.system+'&planet_check='+config.gameData.planetCoords.planet;
+                return site_jQuery.getJSON('/ajax_request/get_ubersicht_info.php?'+uriData, function (data) {
+                    config.gameData.overviewInfo = data;
+                });
             }
-
         },
 
     };
@@ -540,19 +554,20 @@ function siteManager() {
 
             global.uiChanges();
 
-            //var loadVendor = site_jQuery.getScript('https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js');
-            site_jQuery.when(config.getGameData.all()).then(function () {
-                // wait for game date because some stuff depends on it
-                global.hotkeySetup();
+            //set google drive load state to true here so other can listen to it
+            config.loadStates.gdrive = true;
 
-                // load settings from google or browser
-                site_jQuery.getScript('//apis.google.com/js/api.js').then(function () {
+            site_jQuery.getScript('//apis.google.com/js/api.js').then(function gApiThenable() {
+                driveManager.init(unsafeWindow.gapi);
+                //var loadVendor = site_jQuery.getScript('https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js');
+                config.getGameData.all().then(getLoadStatePromise('gdrive').then(function gDriveThenable() {
+                    //wait for gameData and google because some stuff depends on it
+                    global.hotkeySetup();
                     if (!GM_config.get('confirm_drive_sync')) config.setGMValues();
-                    driveManager.init(unsafeWindow.gapi);
-                });
 
-                // the first ubersicht load is sometimes not caught by our ajax wrapper, so do manually
-                process('ubersicht');
+                    // the first ubersicht load is sometimes not caught by our ajax wrapper, so do manually
+                    process('ubersicht');
+                }));
             });
 
             //we're hooking into ajax requests to figure out on which page we are and fire our own stuff
@@ -562,16 +577,12 @@ function siteManager() {
                 // save specific responses for later use
                 var saveRequest = ['get_aktuelle_production_info', 'get_ubersicht_info','get_flottenbewegungen_info','get_inbox_message','get_info_for_observationen_page','get_spionage_info','get_trade_offers'];
                 if (saveRequest.indexOf(page) !== -1) {
-                    if (page === 'get_ubersicht_info') {
-                                                                    config.gameData.overviewInfo     = xhr.responseJSON;
-                                                                    // on firstLoad this probably fails because we have to wait for Google Drive init
-                                                                    addOns.calendar.storeOverview(xhr.responseJSON);
-                    }
+                    if (page === 'get_ubersicht_info')              config.gameData.overviewInfo     = xhr.responseJSON;
                     if (page === 'get_aktuelle_production_info')    addOns.calendar.storeProd(xhr.responseJSON);
                     if (page === 'get_flottenbewegungen_info') {
                                                                     config.gameData.fleetInfo        = xhr.responseJSON;
-                                                                    // on firstLoad this probably fails because we have to wait for Google Drive init
-                                                                    addOns.calendar.storeFleets(xhr.responseJSON);
+                                                                    // skip on first load because we can't be sure that everything is set up
+                                                                    if (!config.loadStates.gdrive) addOns.calendar.storeFleets(xhr.responseJSON);
                     }
                     if (page === 'get_inbox_message')               config.gameData.messageData      = xhr.responseJSON;
                     if (page === 'get_info_for_observationen_page') config.gameData.obsvervationInfo = xhr.responseJSON;
@@ -845,6 +856,9 @@ function siteManager() {
                     $tbody.append($tr1).append($tr2);
                     $Posle.find('tbody').append($tr);
                 });
+
+                // save overview times to calendar
+                addOns.calendar.storeOverview(config.gameData.overviewInfo);
 
                 if (GM_config.get('addon_clock')) {
                     clearInterval(unsafeWindow.timeinterval_uber);
