@@ -321,7 +321,8 @@ function siteManager() {
             content: false,
             submenu: false,
             addons: false,
-            fleetaddon: false
+            fleetaddon: false,
+            lastLoadedPage: null
         },
         currentSavedProject: {
             fe: 0,
@@ -603,7 +604,7 @@ function siteManager() {
 
                 var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
                                     'get_info_for_flotten_pages','get_change_flotten_info','get_trade_offers'];
-                var ignorePages =  ['trade_offer','make_command','galaxy_view','change_flotten','flottenkommando','flottenbasen_all','fremde_flottenbasen','flottenbasen_planet'];
+                var ignorePages =  ['inbox','trade_offer','make_command','galaxy_view','change_flotten','flottenkommando','flottenbasen_all','fremde_flottenbasen','flottenbasen_planet'];
 
                 if ((settings.url.match(/content/) || processPages.indexOf(page) !== -1) && ignorePages.indexOf(page) === -1) process(page, xhr);
             });
@@ -617,7 +618,11 @@ function siteManager() {
     }
 
     var process = function (page, xhr) {
+        //prevent the same page to get processed twice
+        if (config.loadStates.content && config.loadStates.lastLoadedPage === page) return;
+
         config.loadStates.content = true;
+        config.loadStates.lastLoadedPage = page;
         config.loadStates.addons = true;
         //reject current promises to cancel pending loads
         if (config.promises.content !== null) config.promises.content.reject();
@@ -677,6 +682,7 @@ function siteManager() {
             case "get_inbox_message":        pageTweaks.inbox(); break;
             case "get_trade_offers":         pageTweaks.trades(); break;
             case "new_trade_offer":          pageTweaks.newTrade(); break;
+            case "flottenbewegungen":        pageTweaks.calendar(); break;
             case "raumdock":                 pageTweaks.shipdock(); break;
             case "get_galaxy_view_info":     pageTweaks.galaxyView(); break;
             case "observationen":            pageTweaks.obs(); break;
@@ -1118,7 +1124,7 @@ function siteManager() {
         },
         inbox: function() {
             //clear content so loadStates doesn't fire too early
-            lwm_jQuery('#inboxContent').html('');
+            //lwm_jQuery('#inboxContent').html('');
             config.promises.content = getPromise('.inboxDeleteMessageButtons,#messagesListTableInbox');
             config.promises.content.then(function () {
                 config.loadStates.content = false;
@@ -1347,6 +1353,26 @@ function siteManager() {
                     });
                 });
                 $allShips.appendTo(lwm_jQuery('.raumdockNameButtonDiv'));
+
+                config.loadStates.content = false;
+            }).catch(function (e) {
+                console.log(e);
+                config.loadStates.content = false;
+            });
+        },
+        calendar: function() {
+            config.promises.content = getPromise('#folottenbewegungenPageDiv');
+            config.promises.content.then(function () {
+                //remove fleet div
+                lwm_jQuery('#folottenbewegungenPageDiv').remove();
+
+                //add our calendar table
+                var $tableBase = lwm_jQuery(''+
+                    '<div id="calendarDiv">'+
+                        '<table><tbody>'+
+                            '<tr><th><Th></tr>'+
+                        '</tbody></table>'+
+                    '</div>');
 
                 config.loadStates.content = false;
             }).catch(function (e) {
@@ -2101,6 +2127,16 @@ function siteManager() {
                     });
                 });
 
+                addOns.calendar.deleteCat('research',config.gameData.playerID);
+                if (data.research_info.ResearchName !== '') addOns.calendar.store({
+                    playerID: config.gameData.playerID,
+                    playerName: config.gameData.playerName,
+                    coords: data.research_info.researchGalaxy + 'x' + data.research_info.researchSystem + 'x' + data.research_info.researchPlanet,
+                    type: 'research',
+                    text: data.research_info.ResearchName,
+                    ts: moment(data.research_info.FinishTime).valueOf()
+                });
+
                 //we're also using this function to truncate old stuff
                 config.lwm.calendar = config.lwm.calendar.filter(function (entry) {
                     return entry.ts > moment().valueOf();
@@ -2111,6 +2147,7 @@ function siteManager() {
             },
             storeFleets: function (data) {
                 var dataTypes = ['all_informations','buy_ships_array','dron_observationens','dron_planetenscanners','fleet_informations','send_infos'];
+                addOns.calendar.deleteCat('fleet',config.gameData.playerID, config.gameData.planetCoords.string);
                 lwm_jQuery.each(dataTypes, function (i, type) {
                     lwm_jQuery.each(data[type], function (f, fleetData) {
                         var time = fleetData.ComeTime || fleetData.DefendingTime || fleetData.time;
@@ -2130,6 +2167,7 @@ function siteManager() {
                 if (GM_config.get('confirm_drive_sync')) driveManager.save();
             },
             storeProd: function (data) {
+                addOns.calendar.deleteCat('defense',config.gameData.playerID, config.gameData.planetCoords.string);
                 lwm_jQuery.each(data.planet_defense, function (i, prodData) {
                     addOns.calendar.store({
                         playerID: config.gameData.playerID,
@@ -2141,6 +2179,7 @@ function siteManager() {
                     });
                 });
 
+                addOns.calendar.deleteCat('ships',config.gameData.playerID, config.gameData.planetCoords.string);
                 lwm_jQuery.each(data.ships, function (i, prodData) {
                     addOns.calendar.store({
                         playerID: config.gameData.playerID,
