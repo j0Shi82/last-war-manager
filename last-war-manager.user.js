@@ -11,6 +11,7 @@
 // @match         https://*.last-war.de/main.php*
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e07de5c0a13d416fda88134f999baccfee6f7059/assets/jquery.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
+// @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js
 // @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@af7e0d15b77504558d752b7e4ade7e6d669a459b/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
@@ -538,8 +539,8 @@ function siteManager() {
 
             global.uiChanges();
 
-            var loadVendor = site_jQuery.getScript('https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js');
-            site_jQuery.when(config.getGameData.all(),loadVendor).then(function () {
+            //var loadVendor = site_jQuery.getScript('https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js');
+            site_jQuery.when(config.getGameData.all()).then(function () {
                 // wait for game date because some stuff depends on it
                 global.hotkeySetup();
 
@@ -554,27 +555,6 @@ function siteManager() {
             });
 
             //we're hooking into ajax requests to figure out on which page we are and fire our own stuff
-            site_jQuery(document).ajaxSend(function( event, xhr, settings ) {
-                var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
-
-                if (settings.url.search(/lwm_ignoreProcess/) !== -1) {
-                    console.log('lwm_ignoreProcess... skipping');
-                    return;
-                }
-                // first ubersicht load is usually not caught by our wrapper. But in case it is, return because we invoke this manually
-                if (firstLoad && page === 'ubersicht') return;
-
-                console.log(page);
-
-                var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
-                                    'get_info_for_flotten_pages','get_change_flotten_info'];
-                var ignorePages =  ['make_command','galaxy_view','change_flotten','flottenkommando','flottenbasen_all','fremde_flottenbasen','flottenbasen_planet'];
-
-                if ((settings.url.match(/content/) || processPages.indexOf(page) !== -1) && ignorePages.indexOf(page) === -1) process(page, xhr);
-            });
-
-            site_jQuery(window).focus(function () { addOns.load(); });
-
             site_jQuery(document).ajaxComplete(function( event, xhr, settings ) {
                 var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
@@ -583,14 +563,14 @@ function siteManager() {
                 if (saveRequest.indexOf(page) !== -1) {
                     if (page === 'get_ubersicht_info') {
                                                                     config.gameData.overviewInfo     = xhr.responseJSON;
-                                                                    // skip on firstLoad because we might have to wait for Google Drive init
-                                                                    if (!firstLoad) addOns.calendar.storeOverview(xhr.responseJSON);
+                                                                    // on firstLoad this probably fails because we have to wait for Google Drive init
+                                                                    addOns.calendar.storeOverview(xhr.responseJSON);
                     }
                     if (page === 'get_aktuelle_production_info')    addOns.calendar.storeProd(xhr.responseJSON);
                     if (page === 'get_flottenbewegungen_info') {
                                                                     config.gameData.fleetInfo        = xhr.responseJSON;
-                                                                    // skip on firstLoad because we might have to wait for Google Drive init
-                                                                    if (!firstLoad) addOns.calendar.storeFleets(xhr.responseJSON);
+                                                                    // on firstLoad this probably fails because we have to wait for Google Drive init
+                                                                    addOns.calendar.storeFleets(xhr.responseJSON);
                     }
                     if (page === 'get_inbox_message')               config.gameData.messageData      = xhr.responseJSON;
                     if (page === 'get_info_for_observationen_page') config.gameData.obsvervationInfo = xhr.responseJSON;
@@ -608,6 +588,27 @@ function siteManager() {
                     console.log('ajaxComplete',page, xhr.responseJSON);
                 }
             });
+
+            site_jQuery(document).ajaxComplete(function( event, xhr, settings ) {
+                var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
+
+                if (settings.url.search(/lwm_ignoreProcess/) !== -1) {
+                    console.log('lwm_ignoreProcess... skipping');
+                    return;
+                }
+                // first ubersicht load is usually not caught by our wrapper. But in case it is, return because we invoke this manually
+                if (firstLoad && page === 'ubersicht') return;
+
+                console.log(page);
+
+                var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
+                                    'get_info_for_flotten_pages','get_change_flotten_info','get_trade_offers'];
+                var ignorePages =  ['trade_offer','make_command','galaxy_view','change_flotten','flottenkommando','flottenbasen_all','fremde_flottenbasen','flottenbasen_planet'];
+
+                if ((settings.url.match(/content/) || processPages.indexOf(page) !== -1) && ignorePages.indexOf(page) === -1) process(page, xhr);
+            });
+
+            site_jQuery(window).focus(function () { addOns.load(); });
         });
     }
 
@@ -674,7 +675,7 @@ function siteManager() {
             case "planeten":                 pageTweaks.planeten(); break;
             case "get_inbox_load_info":      pageTweaks.inbox(); break;
             case "get_inbox_message":        pageTweaks.inbox(); break;
-            case "trade_offer":              pageTweaks.trades(); break;
+            case "get_trade_offers":         pageTweaks.trades(); break;
             case "new_trade_offer":          pageTweaks.newTrade(); break;
             case "raumdock":                 pageTweaks.shipdock(); break;
             case "get_galaxy_view_info":     pageTweaks.galaxyView(); break;
@@ -708,11 +709,11 @@ function siteManager() {
                 schiffskomponenten: ['raumdock'],
                 recycling_anlage: ['raumdock'],
                 raumdock: ['flottenbewegungen','trade_offer'],
-                flottenkommando: ['flottenbewegungen'],
-                get_info_for_flotten_pages: ['flottenbewegungen'],
-                flottenbasen_planet: ['flottenbewegungen'],
-                flottenbasen_all: ['flottenbewegungen'],
-                fremde_flottenbasen: ['flottenbewegungen'],
+                flottenkommando: ['flottenbewegungen','trade_offer'],
+                get_info_for_flotten_pages: ['flottenbewegungen','trade_offer'],
+                flottenbasen_planet: ['flottenbewegungen','trade_offer'],
+                flottenbasen_all: ['flottenbewegungen','trade_offer'],
+                fremde_flottenbasen: ['flottenbewegungen','trade_offer'],
                 flottenbewegungen: ['raumdock','spionage','flottenkommando','flottenbewegungen']
             };
             //submenu loads after content
@@ -777,7 +778,7 @@ function siteManager() {
         },
         clear: function () {
             lwm_jQuery('.secound_line .navButton').remove();
-            lwm_jQuery('#link').html('');
+            //lwm_jQuery('#link').html('');
         }
     };
 
@@ -1849,6 +1850,7 @@ function siteManager() {
                 var uriData = 'galaxy_check='+config.gameData.planetCoords.galaxy+'&system_check='+config.gameData.planetCoords.system+'&planet_check='+config.gameData.planetCoords.planet;
                 site_jQuery.ajax({
                     url: '/ajax_request/get_trade_offers.php?'+uriData,
+                    data: { lwm_ignoreProcess: 1 },
                     success: function(data) {
                         unsafeWindow.Roheisen = parseInt(data.resource['Roheisen']);
                         unsafeWindow.Kristall = parseInt(data.resource['Kristall']);
@@ -2078,6 +2080,7 @@ function siteManager() {
         },
         calendar: {
             storeOverview: function (data) {
+                addOns.calendar.deleteCat('building',config.gameData.playerID);
                 lwm_jQuery.each(data.all_planets_for_use, function (i, planet) {
                     var coords = planet.galaxy_pom + 'x' + planet.system_pom + 'x' + planet.planet_pom;
                     if (planet.BuildingName !== '') addOns.calendar.store({
@@ -2160,6 +2163,12 @@ function siteManager() {
                     //not found, add!
                     config.lwm.calendar.push(data);
                 }
+            },
+            deleteCat: function (cat, playerID, coords) {
+                var coords = coords || null;
+                config.lwm.calendar = config.lwm.calendar.filter(function (entry) {
+                    return !(entry.type === cat && entry.playerID === playerID && (entry.coords === coords || coords === null));
+                });
             }
         }
     }
