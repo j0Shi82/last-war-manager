@@ -571,6 +571,33 @@ function siteManager() {
             });
 
             //we're hooking into ajax requests to figure out on which page we are and fire our own stuff
+            var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
+                                'get_info_for_flotten_pages','get_change_flotten_info','get_trade_offers'];
+            var ignorePages =  ['inbox','trade_offer','make_command','galaxy_view','change_flotten','flottenkommando','flottenbasen_all','fremde_flottenbasen','flottenbasen_planet'];
+            var preserveSubmenuPages = ['get_inbox_message','get_message_info'];
+
+            site_jQuery(document).ajaxSend(function( event, xhr, settings ) {
+                var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
+
+                //prevent the same page to get processed twice
+                if (config.loadStates.content && config.loadStates.lastLoadedPage === page) return;
+
+                if (settings.url.search(/lwm_ignoreProcess/) !== -1) {
+                    console.log('lwm_ignoreProcess... skipping');
+                    return;
+                }
+                // first ubersicht load is usually not caught by our wrapper. But in case it is, return because we invoke this manually
+                if (firstLoad && page === 'ubersicht') return;
+
+                console.log(page);
+
+                if ((settings.url.match(/content/) || processPages.indexOf(page) !== -1) && ignorePages.indexOf(page) === -1) {
+                    if (!preserveSubmenuPages.includes(page)) submenu.clear();
+                    lwm_jQuery('#all').hide();
+                    lwm_jQuery('.loader').show();
+                }
+            });
+
             site_jQuery(document).ajaxComplete(function( event, xhr, settings ) {
                 var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
@@ -604,6 +631,9 @@ function siteManager() {
             site_jQuery(document).ajaxComplete(function( event, xhr, settings ) {
                 var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
+                //prevent the same page to get processed twice
+                if (config.loadStates.content && config.loadStates.lastLoadedPage === page) return;
+
                 if (settings.url.search(/lwm_ignoreProcess/) !== -1) {
                     console.log('lwm_ignoreProcess... skipping');
                     return;
@@ -613,11 +643,9 @@ function siteManager() {
 
                 console.log(page);
 
-                var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
-                                    'get_info_for_flotten_pages','get_change_flotten_info','get_trade_offers'];
-                var ignorePages =  ['inbox','trade_offer','make_command','galaxy_view','change_flotten','flottenkommando','flottenbasen_all','fremde_flottenbasen','flottenbasen_planet'];
+                var preserveSubmenu = preserveSubmenuPages.includes(page);
 
-                if ((settings.url.match(/content/) || processPages.indexOf(page) !== -1) && ignorePages.indexOf(page) === -1) process(page, xhr);
+                if ((settings.url.match(/content/) || processPages.indexOf(page) !== -1) && ignorePages.indexOf(page) === -1) process(page, xhr, preserveSubmenu);
             });
 
             site_jQuery(window).focus(function () { addOns.load(); });
@@ -628,10 +656,7 @@ function siteManager() {
         addOns.unload();
     }
 
-    var process = function (page, xhr) {
-        //prevent the same page to get processed twice
-        if (config.loadStates.content && config.loadStates.lastLoadedPage === page) return;
-
+    var process = function (page, xhr, preserveSubmenu) {
         config.loadStates.content = true;
         config.loadStates.lastLoadedPage = page;
         config.loadStates.addons = true;
@@ -640,14 +665,11 @@ function siteManager() {
         if (config.promises.addons !== null) config.promises.addons.reject();
 
         //figure out whether or not to process submenu and reject ongoing load in case
-        var preserveSubmenu = page === 'get_inbox_message' || page === 'get_message_info';
-        if (!preserveSubmenu && config.promises.submenu !== null) config.promises.submenu.reject();
+        if (preserveSubmenu && config.promises.submenu !== null) config.promises.submenu.reject();
 
         //check whether any gameData is marked as refresh
         config.gameData.checkDataReloads();
 
-        lwm_jQuery('#all').hide();
-        lwm_jQuery('.loader').show();
         getPageLoadPromise().then(function () {
             lwm_jQuery('.loader').hide();
             lwm_jQuery('#all').show();
@@ -674,7 +696,6 @@ function siteManager() {
         });
 
         if (!preserveSubmenu) {
-            submenu.clear();
             submenu.move(page);
         }
 
@@ -1384,10 +1405,31 @@ function siteManager() {
                 var $tableBase = lwm_jQuery(''+
                     '<div id="calendarDiv">'+
                         '<table><tbody>'+
-                            '<tr><th><Th></tr>'+
+                            '<tr><th>Player</th>'+
+                            '<th>Coord</th>'+
+                            '<th>Type</th>'+
+                            '<th>Text</th>'+
+                            '<th>Time</th>'+
+                            '<th>Finished</th></tr>'+
                         '</tbody></table>'+
                     '</div>');
 
+                lwm_jQuery.each(config.lwm.calendar, function (i, entry) {
+                    $tableBase.find('tbody').append('<tr data-ts="'+entry.ts+'"><td>'+entry.playerName+'</td><td>'+entry.coords+'</td><td>'+entry.type+'</td><td>'+entry.text+'</td><td>'+moment(entry.ts).format("YYYY-MM-DD hh:mm:ss")+'</td><td id="clock_calendar_'+i+'">'+moment.duration(entry.ts-moment().valueOf(), "milliseconds").format("HH:mm:ss", { trim: false, forceLength: true })+'</td></tr>')
+                });
+
+                //sort calendar
+                $tableBase.find('table tbody tr:gt(0)').sort(function (a, b) {
+                    var tsA = parseInt(lwm_jQuery(a).data('ts'));
+                    var tsB = parseInt(lwm_jQuery(b).data('ts'));
+                    return tsA - tsB;
+                }).each(function() {
+                    var $elem = lwm_jQuery(this).detach();
+                    lwm_jQuery($elem).appendTo($tableBase.find('table tbody'));
+                });
+
+                $tableBase.appendTo('.pageContent');
+                helper.setDataForClocks();
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
@@ -1436,7 +1478,7 @@ function siteManager() {
             });
         },
         galaxyView: function () {
-            lwm_jQuery('#galaxyViewInfoTable').html('');
+            //lwm_jQuery('#galaxyViewInfoTable').html('');
             config.promises.content = getPromise('#galaxyViewInfoTable');
             config.promises.content.then(function () {
                 lwm_jQuery('a.flottenKommandoAction').addClass('fa-stack').append('<i class="far fa-circle fa-stack-2x"></i>').append('<i class="fas fa-fighter-jet fa-stack-1x"></i>');
@@ -1961,6 +2003,12 @@ function siteManager() {
             }
 
             var addFleetDiv = function () {
+                //exclude flottenbewegungen here as the only page that should not show fleets even with setting set
+                if (unsafeWindow.active_page === 'flottenbewegungen') {
+                    config.loadStates.fleetaddon = false;
+                    return;
+                }
+
                 if (lwm_jQuery('#folottenbewegungenPageDiv').length === 0) {
                     var $div = lwm_jQuery('<div class="pageContent" style="margin-bottom:20px;"><div id="folottenbewegungenPageDiv"><table><tbody><tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>Ankunft</td><td>Restflugzeit</td></tr></tbody></table></div></div>');
                     $div.hide();
