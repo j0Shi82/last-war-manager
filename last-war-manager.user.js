@@ -62,6 +62,12 @@ function siteManager() {
 
         //if drive fails to load, set loadstate and los browser config instead
         var handleError = function () {
+            //reset the google settings
+            if (GM_config.set('confirm_drive_sync')) alert('Couldn\'t sync with Google Drive. Please go to the settings and reconnect the service!');
+            signOut();
+            GM_config.set('confirm_drive_sync', false);
+
+            //load browser values
             config.loadStates.gdrive = false;
             config.setGMValues();
         }
@@ -125,11 +131,7 @@ function siteManager() {
                     handleError();
                 });
             } else {
-                //we're not logged in, load browser settings
                 handleError();
-                //also reset the google settings
-                if (GM_config.set('confirm_drive_sync')) alert('Couldn\'t sync with Google Drive. Please go to the settings and reconnect the service!');
-                GM_config.set('confirm_drive_sync', false);
             }
         }
 
@@ -192,7 +194,7 @@ function siteManager() {
             }).then(function (response) {
                 console.log(response);
                 if (response.status !== 200) {
-                    console.error('files.create: ' + response);
+                    console.error('client.request: ' + response);
                 }
             }, function (error) {
                 console.error(JSON.stringify(error, null, 2));
@@ -640,8 +642,6 @@ function siteManager() {
                 }
                 // first ubersicht load is usually not caught by our wrapper. But in case it is, return because we invoke this manually
                 if (firstLoad && page === 'ubersicht') return;
-
-                console.log(page);
 
                 var preserveSubmenu = preserveSubmenuPages.includes(page);
 
@@ -1163,6 +1163,9 @@ function siteManager() {
             config.promises.content = getPromise('.inboxDeleteMessageButtons,#messagesListTableInbox');
             config.promises.content.then(function () {
                 config.loadStates.content = false;
+
+                // workaround to bring the submenu in if you come to message from anywhere else than the message manu button
+                if (lwm_jQuery('#veticalLink a.navButton').length !== 0) submenu.move();
 
                 // go through messages and add direct link to fight and spy reports
                 // we do this after updating loadstate to not slow down page load
@@ -2168,6 +2171,7 @@ function siteManager() {
         },
         calendar: {
             storeOverview: function (data) {
+                var dataBuildingBefore = JSON.stringify(addOns.calendar.getData('building',config.gameData.playerID));
                 addOns.calendar.deleteCat('building',config.gameData.playerID);
                 lwm_jQuery.each(data.all_planets_for_use, function (i, planet) {
                     var coords = planet.galaxy_pom + 'x' + planet.system_pom + 'x' + planet.planet_pom;
@@ -2188,7 +2192,9 @@ function siteManager() {
                         ts: moment(planet.FinishTimeForBuilding2).valueOf()
                     });
                 });
+                var dataBuildingAfter = JSON.stringify(addOns.calendar.getData('building',config.gameData.playerID));
 
+                var dataResearchBefore = JSON.stringify(addOns.calendar.getData('research',config.gameData.playerID));
                 addOns.calendar.deleteCat('research',config.gameData.playerID);
                 if (data.research_info.ResearchName !== '') addOns.calendar.store({
                     playerID: config.gameData.playerID,
@@ -2198,17 +2204,21 @@ function siteManager() {
                     text: data.research_info.ResearchName,
                     ts: moment(data.research_info.FinishTime).valueOf()
                 });
+                var dataResearchAfter = JSON.stringify(addOns.calendar.getData('research',config.gameData.playerID));
 
                 //we're also using this function to truncate old stuff
+                var dataBefore = JSON.stringify(addOns.calendar.getData());
                 config.lwm.calendar = config.lwm.calendar.filter(function (entry) {
                     return entry.ts > moment().valueOf();
                 });
+                var dataAfter = JSON.stringify(addOns.calendar.getData());
 
                 GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
-                if (GM_config.get('confirm_drive_sync')) driveManager.save();
+                if (GM_config.get('confirm_drive_sync') && (dataBefore !== dataAfter || dataResearchBefore !== dataResearchAfter || dataBuildingBefore !== dataBuildingAfter)) driveManager.save();
             },
             storeFleets: function (data) {
                 var dataTypes = ['all_informations','buy_ships_array','dron_observationens','dron_planetenscanners','fleet_informations','send_infos'];
+                var dataFleetBefore = JSON.stringify(addOns.calendar.getData('fleet',config.gameData.playerID, config.gameData.planetCoords.string));
                 addOns.calendar.deleteCat('fleet',config.gameData.playerID, config.gameData.planetCoords.string);
                 lwm_jQuery.each(dataTypes, function (i, type) {
                     lwm_jQuery.each(data[type], function (f, fleetData) {
@@ -2224,11 +2234,13 @@ function siteManager() {
                         });
                     });
                 });
+                var dataFleetAfter = JSON.stringify(addOns.calendar.getData('fleet',config.gameData.playerID, config.gameData.planetCoords.string));
 
                 GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
-                if (GM_config.get('confirm_drive_sync')) driveManager.save();
+                if (GM_config.get('confirm_drive_sync') && dataFleetBefore !== dataFleetAfter) driveManager.save();
             },
             storeProd: function (data) {
+                var dataDefenseBefore = JSON.stringify(addOns.calendar.getData('defense',config.gameData.playerID, config.gameData.planetCoords.string));
                 addOns.calendar.deleteCat('defense',config.gameData.playerID, config.gameData.planetCoords.string);
                 lwm_jQuery.each(data.planet_defense, function (i, prodData) {
                     addOns.calendar.store({
@@ -2240,7 +2252,9 @@ function siteManager() {
                         ts: moment(prodData.finishTime).valueOf()
                     });
                 });
+                var dataDefenseAfter = JSON.stringify(addOns.calendar.getData('defense',config.gameData.playerID, config.gameData.planetCoords.string));
 
+                var dataShipsBefore = JSON.stringify(addOns.calendar.getData('ships',config.gameData.playerID, config.gameData.planetCoords.string));
                 addOns.calendar.deleteCat('ships',config.gameData.playerID, config.gameData.planetCoords.string);
                 lwm_jQuery.each(data.ships, function (i, prodData) {
                     addOns.calendar.store({
@@ -2252,9 +2266,10 @@ function siteManager() {
                         ts: moment(prodData.finishTime).valueOf()
                     });
                 });
+                var dataShipsAfter = JSON.stringify(addOns.calendar.getData('ships',config.gameData.playerID, config.gameData.planetCoords.string));
 
                 GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
-                if (GM_config.get('confirm_drive_sync')) driveManager.save();
+                if (GM_config.get('confirm_drive_sync') && (dataDefenseBefore !== dataDefenseAfter || dataShipsBefore !== dataShipsAfter)) driveManager.save();
             },
             store: function (data) {
                 var check = config.lwm.calendar.filter(function (entry) {
@@ -2270,6 +2285,14 @@ function siteManager() {
                 config.lwm.calendar = config.lwm.calendar.filter(function (entry) {
                     return !(entry.type === cat && entry.playerID === playerID && (entry.coords === coords || coords === null));
                 });
+            },
+            getData: function (cat, playerID, coords) {
+                var coords = coords || null;
+                var cat = cat || null;
+                var playerID = playerID || null;
+                return config.lwm.calendar.filter(function (entry) {
+                    return ((entry.type === cat || cat === null) && (entry.playerID === playerID || playerID === null) && (entry.coords === coords || coords === null));
+                }).sort(function (a,b) { return a.ts - b.ts; });
             }
         }
     }
