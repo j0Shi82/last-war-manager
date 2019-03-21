@@ -578,8 +578,9 @@ function siteManager() {
 
             //we're hooking into ajax requests to figure out on which page we are and fire our own stuff
             var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
-                                'get_info_for_flotten_pages','get_change_flotten_info','get_trade_offers'];
-            var ignorePages =  ['inbox','trade_offer','make_command','galaxy_view','change_flotten','flottenkommando','flottenbasen_all','fremde_flottenbasen','flottenbasen_planet'];
+                                'get_info_for_flotten_pages','get_change_flotten_info','get_trade_offers','get_flotten_informations_info'];
+            var ignorePages =  ['inbox','trade_offer','make_command','galaxy_view','change_flotten','flottenkommando',
+                                'flottenbasen_all','fremde_flottenbasen','flottenbasen_planet','flotten_informations'];
             var preserveSubmenuPages = ['get_inbox_message','get_message_info'];
 
             site_jQuery(document).ajaxSend(function( event, xhr, settings ) {
@@ -730,6 +731,7 @@ function siteManager() {
             case "get_make_command_info":    pageTweaks.fleetCommand(); break;
             case "get_change_flotten_info":  pageTweaks.changeFleet(); break;
             case "get_info_for_flotten_pages": pageTweaks.allFleets(xhr); break;
+            case "get_flotten_informations_info": pageTweaks.fleetSend(xhr.responseJSON); break;
             case "building_tree":            pageTweaks.buildingTree(); break;
             case "research_tree":            pageTweaks.buildingTree(); break;
             case "shiptree":                 pageTweaks.buildingTree(); break;
@@ -1540,6 +1542,28 @@ function siteManager() {
                     if (i !== linksSave.length - 1) $divSave.append(' - ');
                 });
                 $divSave.appendTo($lastTR.find('td').first());
+
+                config.loadStates.content = false;
+            }).catch(function (e) {
+                console.log(e);
+                helper.throwError();
+                config.loadStates.content = false;
+            });
+        },
+        fleetSend: function (data) {
+            config.promises.content = getPromise('#flottenInformationPage');
+            config.promises.content.then(function () {
+                var maxSpeed = data.max_speed_transport;
+                var minTime  = moment.duration(data.send_time, "seconds");
+                var minHour = moment().add(minTime.asSeconds()*2, "seconds");
+                //round up to the next full hour
+                minHour = minHour.minute() || minHour.second() || minHour.millisecond() ? minHour.add(1, 'hour').startOf('hour') : minHour.startOf('hour');
+
+                //build time choose select
+                var $select = lwm_jQuery('<select></select>');
+                for (var i = 0; i < 10; i++) {
+                    //$select
+                }
 
                 config.loadStates.content = false;
             }).catch(function (e) {
