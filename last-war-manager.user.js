@@ -182,6 +182,11 @@ function siteManager() {
                 coords_trades: GM_config.get('coords_trades')
             };
 
+            if (Object.keys(config.lwm.lastTradeCoords[config.gameData.playerID]).length < 5) {
+                alert( 'save might have been reset!');
+                return;
+            }
+
             console.log('gapi.client.request',saveObj);
             gapi.client.request({
                 path: '/upload/drive/v3/files/' + configFileID,
@@ -569,8 +574,8 @@ function siteManager() {
 
                     // the first ubersicht load is sometimes not caught by our ajax wrapper, so do manually
                     process('ubersicht');
-                }));
-            });
+                },function () { helper.throwError(); }));
+            },function () { helper.throwError(); });
 
             //we're hooking into ajax requests to figure out on which page we are and fire our own stuff
             var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
@@ -685,6 +690,7 @@ function siteManager() {
             }
         }).catch(function (e) {
             console.log(e);
+            helper.throwError();
             lwm_jQuery('.loader').hide();
             lwm_jQuery('#all').show();
             if (firstLoad) {
@@ -811,6 +817,7 @@ function siteManager() {
                 config.loadStates.submenu = false;
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.submenu = false;
             });
         },
@@ -827,6 +834,7 @@ function siteManager() {
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.content = false;
             });
         },
@@ -852,6 +860,7 @@ function siteManager() {
                 });
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
             });
         },
         uebersicht: function() {
@@ -888,6 +897,7 @@ function siteManager() {
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.content = false;
             });
         },
@@ -907,6 +917,7 @@ function siteManager() {
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.content = false;
             });
         },
@@ -921,6 +932,7 @@ function siteManager() {
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.content = false;
             });
         },
@@ -938,6 +950,7 @@ function siteManager() {
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.content = false;
             });
         },
@@ -953,6 +966,7 @@ function siteManager() {
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.content = false;
             });
         },
@@ -969,6 +983,7 @@ function siteManager() {
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.content = false;
             });
         },
@@ -1098,6 +1113,7 @@ function siteManager() {
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.content = false;
             });
         },
@@ -1119,6 +1135,7 @@ function siteManager() {
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.content = false;
             });
         },
@@ -1139,6 +1156,7 @@ function siteManager() {
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.content = false;
             });
         },
@@ -1154,6 +1172,7 @@ function siteManager() {
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.content = false;
             });
         },
@@ -1203,6 +1222,7 @@ function siteManager() {
                 }
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.content = false;
             });
         },
@@ -1251,6 +1271,7 @@ function siteManager() {
                 }
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.content = false;
             });
         },
@@ -1329,6 +1350,7 @@ function siteManager() {
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.content = false;
             });
         },
@@ -1355,6 +1377,7 @@ function siteManager() {
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.content = false;
             });
         },
@@ -1371,6 +1394,7 @@ function siteManager() {
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.content = false;
             });
         },
@@ -1395,6 +1419,7 @@ function siteManager() {
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.content = false;
             });
         },
@@ -1433,9 +1458,57 @@ function siteManager() {
 
                 $tableBase.appendTo('.pageContent');
                 helper.setDataForClocks();
+
+                //set up filters
+                var calendarFilters = function () {
+                    /*
+                    var process = function () {
+                        var filterFunctions = {
+                            all: function() {
+                                return lwm_jQuery.map(config.gameData.productionInfos,function (el, k) { return el.id; });
+                            },
+                            freight: function () { return lwm_jQuery.map(lwm_jQuery.grep(config.gameData.productionInfos, function (el, k) { return parseInt(el.cargo) > 0; }),function (el, k) { return el.id; }); },
+                            kolo: function () { return lwm_jQuery.map(lwm_jQuery.grep(config.gameData.productionInfos, function (el, k) { return parseInt(el.kolonisationsmodul) > 0; }),function (el, k) { return el.id; }); },
+                            traeger: function () { return lwm_jQuery.map(lwm_jQuery.grep(config.gameData.productionInfos, function (el, k) { return parseInt(el.tragerdeck) > 0; }),function (el, k) { return el.id; }); },
+                            tarn: function () { return lwm_jQuery.map(lwm_jQuery.grep(config.gameData.productionInfos, function (el, k) { return parseInt(el.tarnvorrichtung) > 0; }),function (el, k) { return el.id; }); },
+                            nuk: function () { return lwm_jQuery.map(lwm_jQuery.grep(config.gameData.productionInfos, function (el, k) { return el.engineShortCode === 'NUK'; }),function (el, k) { return el.id; }); },
+                            hyp: function () { return lwm_jQuery.map(lwm_jQuery.grep(config.gameData.productionInfos, function (el, k) { return el.engineShortCode === 'Hyp'; }),function (el, k) { return el.id; }); },
+                            gty: function () { return lwm_jQuery.map(lwm_jQuery.grep(config.gameData.productionInfos, function (el, k) { return el.engineShortCode === 'Gty'; }),function (el, k) { return el.id; }); }
+                        };
+
+                        lwm_jQuery('#productionDiv tr').each(function () {
+                            if (lwm_jQuery(this).data('hide')) return true;
+                            //get first class name and strip s_ from it => then test for null in case regexp turns out empty
+                            var shipClass = getShipClassFromElement(lwm_jQuery(this));
+                            if (shipClass !== '' && lwm_jQuery.inArray(shipClass, shipClasses) === -1) lwm_jQuery(this).hide();
+                            else                                                              lwm_jQuery(this).show();
+                        });
+                    };
+                    */
+
+                    var usernames = lwm_jQuery.map(config.lwm.calendar, function (el, i) { return el.playerName; }).filter(function (value, index, self) { return self.indexOf(value) === index; });
+
+                    /*
+                    var $div = lwm_jQuery('<div class="tableFilters"><div class="tableFilters_header">Filter</div><div class="tableFilters_content"></div></div>');
+                    var $freightButton = lwm_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterFreight" data-filter="freight"><a class="formButton" href="javascript:void(0)">Fracht > 0</a></div>').appendTo($div.find('.tableFilters_content'));
+                    var $koloButton = lwm_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterKolo" data-filter="kolo"><a class="formButton" href="javascript:void(0)">Module: Kolo</a></div>').appendTo($div.find('.tableFilters_content'));
+                    var $tragerButton = lwm_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterTraeger" data-filter="traeger"><a class="formButton" href="javascript:void(0)">Module: Trägerdeck</a></div>').appendTo($div.find('.tableFilters_content'));
+                    var $tarnButton = lwm_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterTarn" data-filter="tarn"><a class="formButton" href="javascript:void(0)">Module: Tarn</a></div>').appendTo($div.find('.tableFilters_content'));
+                    var $nukButton = lwm_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterNuk" data-filter="nuk"><a class="formButton" href="javascript:void(0)">Engine: Nuk</a></div>').appendTo($div.find('.tableFilters_content'));
+                    var $hypButton = lwm_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterHyp" data-filter="hyp"><a class="formButton" href="javascript:void(0)">Engine: Hyp</a></div>').appendTo($div.find('.tableFilters_content'));
+                    var $gtyButton = lwm_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterGty" data-filter="gty"><a class="formButton" href="javascript:void(0)">Engine: Gty</a></div>').appendTo($div.find('.tableFilters_content'));
+
+                    $div.find('.buttonRowInbox').click(function () { lwm_jQuery(this).find('.formButton').toggleClass('activeBox'); process(lwm_jQuery(this)); });
+                    lwm_jQuery('#productionDiv').prepend($div);
+
+                    return {process: process};
+                    */
+                }();
+
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.content = false;
             });
         },
@@ -1477,6 +1550,7 @@ function siteManager() {
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.content = false;
             });
         },
@@ -1528,6 +1602,7 @@ function siteManager() {
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.content = false;
             });
         },
@@ -1566,6 +1641,7 @@ function siteManager() {
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.content = false;
             });
         },
@@ -1576,6 +1652,7 @@ function siteManager() {
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.content = false;
             });
         },
@@ -1604,6 +1681,7 @@ function siteManager() {
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.content = false;
             });
         },
@@ -1671,6 +1749,7 @@ function siteManager() {
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.content = false;
             });
         },
@@ -1691,6 +1770,7 @@ function siteManager() {
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
+                helper.throwError();
                 config.loadStates.content = false;
             });
         }
@@ -1915,6 +1995,7 @@ function siteManager() {
                     config.loadStates.addons = false;
                 }).catch(function (e) {
                     console.log(e);
+                    helper.throwError();
                     config.loadStates.addons = false;
                 });
             }).catch(function (e) {
@@ -1944,6 +2025,7 @@ function siteManager() {
                         unsafeWindow.Frurozin = parseInt(data.resource['Frurozin']);
                         unsafeWindow.Gold = parseInt(data.resource['Gold']);
                     },
+                    error: function () { helper.throwError(); },
                     dataType: 'json'
                 });
             }
@@ -2576,6 +2658,11 @@ function siteManager() {
                 lwm_jQuery.map(config.gameData.tradeInfo.trade_offers, function (trade, i) { return parseInt(trade.accept) * ((parseInt(trade.galaxy) === config.gameData.planetCoords.galaxy && parseInt(trade.system) === config.gameData.planetCoords.system && parseInt(trade.planet) === config.gameData.planetCoords.planet) ? parseInt(trade.resource[16]) : parseInt(trade.resource[10])); }).reduce(function (total, num) { return total + num; }),
                 lwm_jQuery.map(config.gameData.tradeInfo.trade_offers, function (trade, i) { return parseInt(trade.accept) * ((parseInt(trade.galaxy) === config.gameData.planetCoords.galaxy && parseInt(trade.system) === config.gameData.planetCoords.system && parseInt(trade.planet) === config.gameData.planetCoords.planet) ? parseInt(trade.resource[17]) : parseInt(trade.resource[11])); }).reduce(function (total, num) { return total + num; }),
             ];
+        },
+        throwError: function (m) {
+            if (lwm_jQuery('#all .lwm-loaderror').length) return;
+            var m = m || 'Something went wrong while loading the page. Not all functions might be fully functional!';
+            lwm_jQuery('#all').prepend('<div class="pageContent lwm-loaderror" style="margin-bottom: 20px;><i class="fas fa-exclamation-triangle" style="font-color: rgba(255, 0, 0, 0.75);"></i>'+m+'</div>');
         }
     }
 
