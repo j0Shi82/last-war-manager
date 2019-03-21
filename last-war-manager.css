@@ -730,6 +730,7 @@ td.constructionName,
 #folottenbewegungenPageDiv table tr:first-child,
 #galaxyViewInfoTable th,
 #observationenDiv th,
+#calendarDiv th,
 #tableForChangingPlanet tr {
   word-break: break-all;
   background-color: #4290a157;
@@ -1172,3 +1173,17 @@ body#lwmSettings .section_desc {
   margin: 0 !important;
 }
 /* BANK END */
+/* CALENDAR */
+@media (max-width: 850px) {
+  #calendarDiv tr td:nth-child(1),
+  #calendarDiv tr td:nth-child(1) {
+    word-break: break-all;
+  }
+  #calendarDiv tr td:nth-child(1) {
+    min-width: 50px;
+  }
+  #calendarDiv tr td:nth-child(2) {
+    min-width: 25px;
+  }
+}
+/* CALENDAR END*/
