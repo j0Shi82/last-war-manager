@@ -12,7 +12,7 @@
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e07de5c0a13d416fda88134f999baccfee6f7059/assets/jquery.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js
-// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@af7e0d15b77504558d752b7e4ade7e6d669a459b/last-war-manager.css
+// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@33c29844f64a3266b081af30ac85bd399c5f1ed7/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
 // @grant         GM.setValue
@@ -336,6 +336,7 @@ function siteManager() {
         menu: GM_config,
         loadStates: {
             gdrive: false,
+            gameData: false,
             content: false,
             submenu: false,
             addons: false,
@@ -419,7 +420,8 @@ function siteManager() {
                 GM.setValue('lwm_resProd', JSON.stringify(config.lwm.resProd));
                 GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
 
-                config.setGMValues();
+                // wait for gameData, then process
+                getLoadStatePromise('gameData').then(function () { config.setGMValues() },function () { helper.throwError(); });
             },
         },
         pages: {
@@ -471,7 +473,7 @@ function siteManager() {
             GM.getValue('lwm_resProd', '{}').then(function (data) {
                 try { config.lwm.resProd = JSON.parse(data); } catch (e) { config.lwm.resProd = {}; }
                 checkConfigPerCoordsSetup('resProd');
-                config.getGameData.resProd(); //get res here so config is loaded before fetching current values
+                config.getGameData.setResProd(); //get res here so config is loaded before fetching current values
                 GM.setValue('lwm_resProd', JSON.stringify(config.lwm.resProd));
             });
 
@@ -511,26 +513,24 @@ function siteManager() {
                 config.gameData.playerID = unsafeWindow.my_id;
                 config.gameData.playerName = unsafeWindow.my_username;
 
-                // returns a promise because other stuff has to wait for the data
-                return lwm_jQuery.when(
-                    requests.get_spionage_info(),
-                    config.getGameData.productionInfos(),
+                // resolves loadState because other stuff has to wait for the data
+                lwm_jQuery.when(
                     config.getGameData.overviewInfos(),
                     config.getGameData.planetInformation()
-                );
+                ).then(function () { config.loadStates.gameData = false; },function () { helper.throwError(); });
+
+                // spionage is not needed initially and can be loaded later
+                requests.get_spionage_info();
             },
-            productionInfos: function () {
-                var uriData = 'galaxy_check='+config.gameData.planetCoords.galaxy+'&system_check='+config.gameData.planetCoords.system+'&planet_check='+config.gameData.planetCoords.planet;
-                return site_jQuery.getJSON("/ajax_request/get_production_info.php?"+uriData, function( data ) {
-                    lwm_jQuery.each(data, function (i, cat) {
-                        if (!lwm_jQuery.isArray(cat)) return true;
-                        lwm_jQuery.each(cat, function (j, ship) {
-                            config.gameData.productionInfos.push(ship);
-                        });
+            setProductionInfos: function (data) {
+                lwm_jQuery.each(data, function (i, cat) {
+                    if (!lwm_jQuery.isArray(cat)) return true;
+                    lwm_jQuery.each(cat, function (j, ship) {
+                        config.gameData.productionInfos.push(ship);
                     });
                 });
             },
-            resProd: function () {
+            setResProd: function () {
                 config.lwm.resProd[config.gameData.playerID][config.gameData.planetCoords.string] = unsafeWindow.getResourcePerHour()[0];
                 GM.setValue('lwm_resProd', JSON.stringify(config.lwm.resProd));
             },
@@ -563,18 +563,17 @@ function siteManager() {
 
             //set google drive load state to true here so other can listen to it
             config.loadStates.gdrive = true;
+            config.loadStates.gameData = true;
 
-            site_jQuery.getScript('//apis.google.com/js/api.js').then(function gApiThenable() {
-                driveManager.init(unsafeWindow.gapi);
-                //var loadVendor = site_jQuery.getScript('https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js');
-                config.getGameData.all().then(getLoadStatePromise('gdrive').then(function gDriveThenable() {
-                    //wait for gameData and google because some stuff depends on it
-                    global.hotkeySetup();
-                    if (!GM_config.get('confirm_drive_sync')) config.setGMValues();
+            config.getGameData.all();
+            site_jQuery.getScript('//apis.google.com/js/api.js').then(function () { driveManager.init(unsafeWindow.gapi); },function () { helper.throwError(); });
+            getLoadStatePromise('gdrive').then(function () {
+                //wait for gameData and google because some stuff depends on it
+                global.hotkeySetup();
+                if (!GM_config.get('confirm_drive_sync')) config.setGMValues();
 
-                    // the first ubersicht load is sometimes not caught by our ajax wrapper, so do manually
-                    process('ubersicht');
-                },function () { helper.throwError(); }));
+                // the first ubersicht load is sometimes not caught by our ajax wrapper, so do manually
+                process('ubersicht');
             },function () { helper.throwError(); });
 
             //we're hooking into ajax requests to figure out on which page we are and fire our own stuff
@@ -609,9 +608,12 @@ function siteManager() {
                 var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
                 // save specific responses for later use
-                var saveRequest = ['get_aktuelle_production_info', 'get_ubersicht_info','get_flottenbewegungen_info','get_inbox_message','get_info_for_observationen_page','get_spionage_info','get_trade_offers'];
+                var saveRequest = ['get_production_info', 'get_aktuelle_production_info', 'get_ubersicht_info',
+                                   'get_flottenbewegungen_info','get_inbox_message','get_info_for_observationen_page',
+                                   'get_spionage_info','get_trade_offers'];
                 if (saveRequest.indexOf(page) !== -1) {
                     if (page === 'get_ubersicht_info')              config.gameData.overviewInfo     = xhr.responseJSON;
+                    if (page === 'get_production_info')             config.getGameData.setProductionInfos(xhr.responseJSON);
                     if (page === 'get_aktuelle_production_info')    addOns.calendar.storeProd(xhr.responseJSON);
                     if (page === 'get_flottenbewegungen_info') {
                                                                     config.gameData.fleetInfo        = xhr.responseJSON;
