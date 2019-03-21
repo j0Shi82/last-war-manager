@@ -432,7 +432,7 @@ function siteManager() {
         promises: {
             interval: {
                 ms: 200,
-                count: 50
+                count: 75
             },
             submenu: null,
             content: null,
@@ -520,7 +520,7 @@ function siteManager() {
                 ).then(function () { config.loadStates.gameData = false; },function () { helper.throwError(); });
 
                 // spionage is not needed initially and can be loaded later
-                requests.get_spionage_info();
+                getLoadStatePromise('gdrive').then(function () { requests.get_spionage_info(); });
             },
             setProductionInfos: function (data) {
                 lwm_jQuery.each(data, function (i, cat) {
@@ -1056,7 +1056,7 @@ function siteManager() {
                     var $hypButton = lwm_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterHyp" data-filter="hyp"><a class="formButton" href="javascript:void(0)">Engine: Hyp</a></div>').appendTo($div.find('.tableFilters_content'));
                     var $gtyButton = lwm_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterGty" data-filter="gty"><a class="formButton" href="javascript:void(0)">Engine: Gty</a></div>').appendTo($div.find('.tableFilters_content'));
 
-                    $div.find('.buttonRowInbox').click(function () { lwm_jQuery(this).find('.formButton').toggleClass('activeBox'); process(lwm_jQuery(this)); });
+                    $div.find('.buttonRowInbox').click(function () { lwm_jQuery(this).find('.formButton').toggleClass('activeBox'); process(); });
                     lwm_jQuery('#productionDiv').prepend($div);
 
                     return {process: process};
@@ -1445,7 +1445,7 @@ function siteManager() {
                     '</div>');
 
                 lwm_jQuery.each(config.lwm.calendar, function (i, entry) {
-                    $tableBase.find('tbody').append('<tr data-ts="'+entry.ts+'"><td>'+entry.playerName+'</td><td>'+entry.coords+'</td><td>'+entry.type+'</td><td>'+entry.text+'</td><td>'+moment(entry.ts).format("YYYY-MM-DD hh:mm:ss")+'</td><td id="clock_calendar_'+i+'">'+moment.duration(entry.ts-moment().valueOf(), "milliseconds").format("HH:mm:ss", { trim: false, forceLength: true })+'</td></tr>')
+                    $tableBase.find('tbody').append('<tr data-username="'+entry.playerName+'" data-coord="'+entry.coords+'" data-type="'+entry.type+'" data-ts="'+entry.ts+'"><td>'+entry.playerName+'</td><td>'+entry.coords+'</td><td>'+entry.type+'</td><td>'+entry.text+'</td><td>'+moment(entry.ts).format("YYYY-MM-DD HH:mm:ss")+'</td><td id="clock_calendar_'+i+'">'+moment.duration(entry.ts-moment().valueOf(), "milliseconds").format("HH:mm:ss", { trim: false, forceLength: true })+'</td></tr>')
                 });
 
                 //sort calendar
@@ -1463,49 +1463,41 @@ function siteManager() {
 
                 //set up filters
                 var calendarFilters = function () {
-                    /*
                     var process = function () {
+                        $tableBase.find('tr').data('hide', false);
                         var filterFunctions = {
-                            all: function() {
-                                return lwm_jQuery.map(config.gameData.productionInfos,function (el, k) { return el.id; });
-                            },
-                            freight: function () { return lwm_jQuery.map(lwm_jQuery.grep(config.gameData.productionInfos, function (el, k) { return parseInt(el.cargo) > 0; }),function (el, k) { return el.id; }); },
-                            kolo: function () { return lwm_jQuery.map(lwm_jQuery.grep(config.gameData.productionInfos, function (el, k) { return parseInt(el.kolonisationsmodul) > 0; }),function (el, k) { return el.id; }); },
-                            traeger: function () { return lwm_jQuery.map(lwm_jQuery.grep(config.gameData.productionInfos, function (el, k) { return parseInt(el.tragerdeck) > 0; }),function (el, k) { return el.id; }); },
-                            tarn: function () { return lwm_jQuery.map(lwm_jQuery.grep(config.gameData.productionInfos, function (el, k) { return parseInt(el.tarnvorrichtung) > 0; }),function (el, k) { return el.id; }); },
-                            nuk: function () { return lwm_jQuery.map(lwm_jQuery.grep(config.gameData.productionInfos, function (el, k) { return el.engineShortCode === 'NUK'; }),function (el, k) { return el.id; }); },
-                            hyp: function () { return lwm_jQuery.map(lwm_jQuery.grep(config.gameData.productionInfos, function (el, k) { return el.engineShortCode === 'Hyp'; }),function (el, k) { return el.id; }); },
-                            gty: function () { return lwm_jQuery.map(lwm_jQuery.grep(config.gameData.productionInfos, function (el, k) { return el.engineShortCode === 'Gty'; }),function (el, k) { return el.id; }); }
+                            username: function(v) { $tableBase.find('tr:gt(0)[data-username!=\''+v+'\']').data('hide', true); },
+                            coord: function(v) { $tableBase.find('tr:gt(0)[data-coord!=\''+v+'\']').data('hide', true); },
+                            type: function(v) { $tableBase.find('tr:gt(0)[data-type!=\''+v+'\']').data('hide', true); }
                         };
 
-                        lwm_jQuery('#productionDiv tr').each(function () {
-                            if (lwm_jQuery(this).data('hide')) return true;
-                            //get first class name and strip s_ from it => then test for null in case regexp turns out empty
-                            var shipClass = getShipClassFromElement(lwm_jQuery(this));
-                            if (shipClass !== '' && lwm_jQuery.inArray(shipClass, shipClasses) === -1) lwm_jQuery(this).hide();
-                            else                                                              lwm_jQuery(this).show();
+                        lwm_jQuery.each(lwm_jQuery('.tableFilters_content > div > .activeBox'), function () {
+                            var filterFunction = lwm_jQuery(this).parent().data('filter');
+                            var filterValue    = lwm_jQuery(this).parent().data('value');
+                            filterFunctions[filterFunction](filterValue);
+                        });
+
+                        lwm_jQuery.each($tableBase.find('tr'), function (i, el) {
+                            if (lwm_jQuery(el).data('hide')) lwm_jQuery(el).hide();
+                            else                             lwm_jQuery(el).show();
                         });
                     };
-                    */
 
                     var usernames = lwm_jQuery.map(config.lwm.calendar, function (el, i) { return el.playerName; }).filter(function (value, index, self) { return self.indexOf(value) === index; });
+                    var coords = lwm_jQuery.map(config.lwm.calendar, function (el, i) { return el.coords; }).filter(function (value, index, self) { return self.indexOf(value) === index; });
+                    var types = lwm_jQuery.map(config.lwm.calendar, function (el, i) { return el.type; }).filter(function (value, index, self) { return self.indexOf(value) === index; });
 
-                    /*
                     var $div = lwm_jQuery('<div class="tableFilters"><div class="tableFilters_header">Filter</div><div class="tableFilters_content"></div></div>');
-                    var $freightButton = lwm_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterFreight" data-filter="freight"><a class="formButton" href="javascript:void(0)">Fracht > 0</a></div>').appendTo($div.find('.tableFilters_content'));
-                    var $koloButton = lwm_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterKolo" data-filter="kolo"><a class="formButton" href="javascript:void(0)">Module: Kolo</a></div>').appendTo($div.find('.tableFilters_content'));
-                    var $tragerButton = lwm_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterTraeger" data-filter="traeger"><a class="formButton" href="javascript:void(0)">Module: Trägerdeck</a></div>').appendTo($div.find('.tableFilters_content'));
-                    var $tarnButton = lwm_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterTarn" data-filter="tarn"><a class="formButton" href="javascript:void(0)">Module: Tarn</a></div>').appendTo($div.find('.tableFilters_content'));
-                    var $nukButton = lwm_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterNuk" data-filter="nuk"><a class="formButton" href="javascript:void(0)">Engine: Nuk</a></div>').appendTo($div.find('.tableFilters_content'));
-                    var $hypButton = lwm_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterHyp" data-filter="hyp"><a class="formButton" href="javascript:void(0)">Engine: Hyp</a></div>').appendTo($div.find('.tableFilters_content'));
-                    var $gtyButton = lwm_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterGty" data-filter="gty"><a class="formButton" href="javascript:void(0)">Engine: Gty</a></div>').appendTo($div.find('.tableFilters_content'));
+                    lwm_jQuery.each(usernames, function (i, username) { var $button = lwm_jQuery('<div class="buttonRowInbox" data-filter="username" data-value="'+username+'"><a class="formButton" href="javascript:void(0)">'+username+'</a></div>').appendTo($div.find('.tableFilters_content')); });
+                    lwm_jQuery.each(coords, function (i, coord) { var $button = lwm_jQuery('<div class="buttonRowInbox" data-filter="coord" data-value="'+coord+'"><a class="formButton" href="javascript:void(0)">'+coord+'</a></div>').appendTo($div.find('.tableFilters_content')); });
+                    lwm_jQuery.each(types, function (i, type) { var $button = lwm_jQuery('<div class="buttonRowInbox" data-filter="type" data-value="'+type+'"><a class="formButton" href="javascript:void(0)">'+type+'</a></div>').appendTo($div.find('.tableFilters_content')); });
 
                     $div.find('.buttonRowInbox').click(function () { lwm_jQuery(this).find('.formButton').toggleClass('activeBox'); process(lwm_jQuery(this)); });
-                    lwm_jQuery('#productionDiv').prepend($div);
-
-                    return {process: process};
-                    */
+                    lwm_jQuery('#calendarDiv').prepend($div);
                 }();
+
+                //clear fleet interval manually on this page, because add on is deactivated by default
+                clearInterval(unsafeWindow.timeinterval_flottenbewegungen);
 
                 config.loadStates.content = false;
             }).catch(function (e) {
@@ -2313,7 +2305,7 @@ function siteManager() {
                             playerName: config.gameData.playerName,
                             coords: config.gameData.planetCoords.string,
                             type: 'fleet',
-                            text: 'Flotte Typ '+fleetData.Type+' mit Status '+fleetData.Status+' und Coords ' + fleetData.Galaxy_send + "x" + fleetData.System_send + "x" + fleetData.Planet_send,
+                            text: 'Flotte Typ '+(fleetData.Type || fleetData.name)+' mit Status '+(fleetData.Status || 1)+' und Coords ' + (fleetData.Galaxy_send || fleetData.galaxy) + "x" + (fleetData.System_send || fleetData.system) + "x" + (fleetData.Planet_send || fleetData.planet),
                             ts: moment(time).valueOf()
                         });
                     });

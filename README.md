@@ -42,6 +42,7 @@ A German feedback thread can be found on the [official message board](http://for
 - **UPGRADE & RECYCLE**
   - Buttons to bulk add ships to fleets
 - **FLEETS**
+  - The fleet movement page turned into a calendar page that lists all running tasks
   - Callback button added to the fleet pages
   - Buttons to bulk add ships to fleets
   - Ability to store last used coords
