@@ -183,7 +183,7 @@ function siteManager() {
             };
 
             if (Object.keys(config.lwm.lastTradeCoords[config.gameData.playerID]).length < 5) {
-                alert( 'save might have been reset!');
+                //alert( 'save might have been reset!');
                 return;
             }
 
@@ -371,20 +371,7 @@ function siteManager() {
             messageData: {},
             fleetInfo: {},
             observationInfo: {},
-            tradeInfo: {},
-
-            checkDataReloads: function () {
-                lwm_jQuery.each(config.gameData.reloads, function (type, state) {
-                    if (state) {
-                        config.getGameData[type]();
-                        config.gameData.reloads[type] = false;
-                    }
-                });
-            },
-
-            reloads: {
-                productionInfos: false
-            }
+            tradeInfo: {}
         },
         lwm: {
             lastTradeCoords: {},
@@ -521,6 +508,9 @@ function siteManager() {
 
                 // spionage is not needed initially and can be loaded later
                 getLoadStatePromise('gdrive').then(function () { requests.get_spionage_info(); });
+            },
+            spionageInfos: function () {
+                requests.get_spionage_info();
             },
             setProductionInfos: function (data) {
                 lwm_jQuery.each(data, function (i, cat) {
@@ -674,9 +664,6 @@ function siteManager() {
 
         //figure out whether or not to process submenu and reject ongoing load in case
         if (preserveSubmenu && config.promises.submenu !== null) config.promises.submenu.reject();
-
-        //check whether any gameData is marked as refresh
-        config.gameData.checkDataReloads();
 
         getPageLoadPromise().then(function () {
             lwm_jQuery('.loader').hide();
@@ -1187,8 +1174,8 @@ function siteManager() {
             config.promises.content.then(function () {
                 config.loadStates.content = false;
 
-                // workaround to bring the submenu in if you come to message from anywhere else than the message manu button
-                if (lwm_jQuery('#veticalLink a.navButton').length !== 0) submenu.move();
+                // workaround to bring the submenu in if you come to message from anywhere else than the message menu button
+                if (lwm_jQuery('#veticalLink a.navButton').length !== 0 && lwm_jQuery('.secound_line a.navButton').length === 0) submenu.move();
 
                 // go through messages and add direct link to fight and spy reports
                 // we do this after updating loadstate to not slow down page load
@@ -1250,12 +1237,20 @@ function siteManager() {
                             var tradeRunning = offer.accept === "1";
                             var $tradeDiv = lwm_jQuery('#div_'+offer.trade_id);
                             $.each(currentRes, function (i, amount) {
-                                if ((incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+6]) : 0)) > capacities[i]) {
+                                if (offer.my === 1 && (incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+6]) : 0)) > capacities[i]) {
                                     $tradeDiv.find('tr:eq('+(i+5)+') td').last().addClass('redBackground');
                                     $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
                                 }
-                                if ((incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+12]) : 0)) > capacities[i] && offer.galaxy == config.gameData.planetCoords.galaxy && offer.system == config.gameData.planetCoords.system && offer.planet == config.gameData.planetCoords.planet) {
+                                if (offer.my === 1 && (incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+12]) : 0)) > capacities[i]) {
                                     $tradeDiv.find('tr:eq('+(i+5)+') td').first().addClass('redBackground');
+                                    $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
+                                }
+                                if (offer.my === 0  && (incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+12]) : 0)) > capacities[i]) {
+                                    $tradeDiv.find('tr:eq('+(i+5)+') td').first().addClass('redBackground');
+                                    $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
+                                }
+                                if (offer.my === 0  && (incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+6]) : 0)) > capacities[i]) {
+                                    $tradeDiv.find('tr:eq('+(i+5)+') td').last().addClass('redBackground');
                                     $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
                                 }
                             });
@@ -1446,6 +1441,8 @@ function siteManager() {
                         '</tbody></table>'+
                     '</div>');
 
+                if (!addOns.calendar.truncateData()) driveManager.save();
+
                 lwm_jQuery.each(config.lwm.calendar, function (i, entry) {
                     $tableBase.find('tbody').append('<tr data-username="'+entry.playerName+'" data-coord="'+entry.coords+'" data-type="'+entry.type+'" data-ts="'+entry.ts+'"><td>'+entry.playerName+'</td><td>'+entry.coords+'</td><td>'+entry.type+'</td><td>'+entry.text+'</td><td>'+moment(entry.ts).format("YYYY-MM-DD HH:mm:ss")+'</td><td id="clock_calendar_'+i+'">'+moment.duration(entry.ts-moment().valueOf(), "milliseconds").format("HH:mm:ss", { trim: false, forceLength: true })+'</td></tr>')
                 });
@@ -1554,16 +1551,41 @@ function siteManager() {
             config.promises.content = getPromise('#flottenInformationPage');
             config.promises.content.then(function () {
                 var maxSpeed = data.max_speed_transport;
-                var minTime  = moment.duration(data.send_time, "seconds");
-                var minHour = moment().add(minTime.asSeconds()*2, "seconds");
+                var minTimeInSeconds  = moment.duration(data.send_time, "seconds").asSeconds();
+                var minHour = moment().add(minTimeInSeconds*2, "seconds");
                 //round up to the next full hour
                 minHour = minHour.minute() || minHour.second() || minHour.millisecond() ? minHour.add(1, 'hour').startOf('hour') : minHour.startOf('hour');
 
                 //build time choose select
-                var $select = lwm_jQuery('<select></select>');
-                for (var i = 0; i < 10; i++) {
-                    //$select
+                var $select = lwm_jQuery('<select id="lwm_fleet_selecttime"><option value="" selected>Pick Return Time</option></select>');
+                for (var i = 0; i < 16; i++) {
+                    $select.append('<option>'+minHour.format("YYYY-MM-DD HH:mm:ss")+'</option>');
+                    minHour.add(1,'hour');
                 }
+
+                var calcFleetTime = function () {
+                    var $val = lwm_jQuery('#lwm_fleet_selecttime').val();
+                    var $oneway = lwm_jQuery('#lwm_fleet_oneway').is(':checked');
+                    if (!$val) {
+                        lwm_jQuery('.changeTime').val(maxSpeed);
+                        site_jQuery('.changeTime').change();
+                    } else {
+                        //calculate speed for given return time
+                        var timeDiffInSeconds = moment($val).diff(moment(), "seconds") / ($oneway ? 1 : 2);
+                        var newSpeed = Math.round((1-((((timeDiffInSeconds-(minTimeInSeconds/(2-(parseInt(maxSpeed)/100))))/((minTimeInSeconds/(2-(parseInt(maxSpeed)/100)))*0.01)))/100))*100);
+                        lwm_jQuery('.changeTime').val(newSpeed);
+                        site_jQuery('.changeTime').change();
+                    }
+                }
+
+                var $wrapper = lwm_jQuery('<div>');
+                $wrapper.append($select);
+                $wrapper.append('<label><input type="checkbox" id="lwm_fleet_oneway">Oneway</label>')
+
+                $select.change(function () { calcFleetTime(); });
+                $wrapper.find('#lwm_fleet_oneway').change(function () { calcFleetTime(); });
+
+                lwm_jQuery('#timeFlote').after($wrapper);
 
                 config.loadStates.content = false;
             }).catch(function (e) {
@@ -1666,7 +1688,7 @@ function siteManager() {
         designShips: function () {
             config.promises.content = getPromise('#schiffskomponentenDiv');
             config.promises.content.then(function () {
-                lwm_jQuery('#create').click(function () { config.gameData.reloads.productionInfos = 'production'; });
+                //lwm_jQuery('#create').click(function () { config.gameData.reloads.productionInfos = 'production'; });
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
@@ -2306,15 +2328,8 @@ function siteManager() {
                 });
                 var dataResearchAfter = JSON.stringify(addOns.calendar.getData('research',config.gameData.playerID));
 
-                //we're also using this function to truncate old stuff
-                var dataBefore = JSON.stringify(addOns.calendar.getData());
-                config.lwm.calendar = config.lwm.calendar.filter(function (entry) {
-                    return entry.ts > moment().valueOf();
-                });
-                var dataAfter = JSON.stringify(addOns.calendar.getData());
-
                 GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
-                if (GM_config.get('confirm_drive_sync') && (dataBefore !== dataAfter || dataResearchBefore !== dataResearchAfter || dataBuildingBefore !== dataBuildingAfter)) driveManager.save();
+                if (GM_config.get('confirm_drive_sync') && (!addOns.calendar.truncateData() || dataResearchBefore !== dataResearchAfter || dataBuildingBefore !== dataBuildingAfter)) driveManager.save();
             },
             storeFleets: function (data) {
                 var dataTypes = ['all_informations','buy_ships_array','dron_observationens','dron_planetenscanners','fleet_informations','send_infos'];
@@ -2379,6 +2394,15 @@ function siteManager() {
                     //not found, add!
                     config.lwm.calendar.push(data);
                 }
+            },
+            truncateData: function () {
+                var dataBefore = JSON.stringify(addOns.calendar.getData());
+                config.lwm.calendar = config.lwm.calendar.filter(function (entry) {
+                    return entry.ts > moment().valueOf();
+                });
+                var dataAfter = JSON.stringify(addOns.calendar.getData());
+
+                return dataBefore === dataAfter;
             },
             deleteCat: function (cat, playerID, coords) {
                 var coords = coords || null;
