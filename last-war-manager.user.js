@@ -182,8 +182,8 @@ function siteManager() {
                 coords_trades: GM_config.get('coords_trades')
             };
 
-            if (Object.keys(config.lwm.lastTradeCoords[config.gameData.playerID]).length < 5) {
-                //alert( 'save might have been reset!');
+            if (config.gameData.playerID == 186 && Object.keys(config.lwm.lastTradeCoords[config.gameData.playerID]).length < 5) {
+                alert( 'save might have been reset!');
                 return;
             }
 
@@ -2433,11 +2433,17 @@ function siteManager() {
     var operations = {
         performSpionage: function (coords) {
             var data = config.gameData.spionageInfos;
-            if (data.planetenscanner_drons.length === 0) alert('Unable to find drones to use');
+            if (data.planetenscanner_drons.length === 0) {
+                alert('Unable to find drones to use');
+                return;
+            }
 
             //grab the first eligable drone with IOB and roll with it
             var drone = lwm_jQuery.grep(data.planetenscanner_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
-            if (drone.length === 0) alert('Unable to find drones to use');
+            if (drone.length === 0) {
+                alert('Unable to find drones to use');
+                return;
+            }
 
             var droneID = drone[0].id;
 
