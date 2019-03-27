@@ -46,6 +46,7 @@ A German feedback thread can be found on the [official message board](http://for
   - Callback button added to the fleet pages
   - Buttons to bulk add ships to fleets
   - Ability to store last used coords
+  - While sending fleets, you can choose a return time and the script automatically adjusts speeds
 - **TRADE**
    - Ability to store last used coords
    - Two-click save to own planets

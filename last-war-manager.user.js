@@ -12,7 +12,7 @@
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e07de5c0a13d416fda88134f999baccfee6f7059/assets/jquery.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js
-// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@33c29844f64a3266b081af30ac85bd399c5f1ed7/last-war-manager.css
+// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e14676f185645044cf240ee7f23d15c51a6700b1/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
 // @grant         GM.setValue
@@ -175,6 +175,8 @@ function siteManager() {
                 addon_clock: GM_config.get('addon_clock'),
                 addon_fleet: GM_config.get('addon_fleet'),
                 confirm_const: GM_config.get('confirm_const'),
+                overview_planetresources: GM_config.get('overview_planetresources'),
+                overview_planetstatus: GM_config.get('overview_planetstatus'),
                 confirm_drive_sync: GM_config.get('confirm_drive_sync'),
                 confirm_production: GM_config.get('confirm_production'),
                 confirm_research: GM_config.get('confirm_research'),
@@ -309,6 +311,21 @@ function siteManager() {
                 'max': 50,
                 'default': 10
             },
+            'overview_planetresources':
+            {
+                'section': [GM_config.create('Page Specific'), 'Turn page specific add-ons on and off.'],
+                'label': 'Show resources on overview page.',
+                'labelPos': 'right',
+                'type': 'checkbox',
+                'default': true
+            },
+            'overview_planetstatus':
+            {
+                'label': 'Show energy and building slots on overview page.',
+                'labelPos': 'right',
+                'type': 'checkbox',
+                'default': true
+            },
             'confirm_drive_sync':
             {
                 'section': [GM_config.create('Sync'), 'Options to sync settings across your different browsers.'],
@@ -379,6 +396,7 @@ function siteManager() {
             productionFilters: {},
             hiddenShips: {},
             resProd: {},
+            planetInfo: {},
             calendar: [],
 
             set: function (data) {
@@ -387,16 +405,19 @@ function siteManager() {
                 if (typeof data.productionFilters !== "undefined") config.lwm.productionFilters = data.productionFilters;
                 if (typeof data.hiddenShips !== "undefined") config.lwm.hiddenShips = data.hiddenShips;
                 if (typeof data.resProd !== "undefined") config.lwm.resProd = data.resProd;
+                if (typeof data.planetInfo !== "undefined") config.lwm.planetInfo = data.planetInfo;
                 if (typeof data.calendar !== "undefined") config.lwm.calendar = data.calendar;
                 if (typeof data.menu !== "undefined") {
-                    GM_config.set('addon_clock', data.menu.addon_clock);
-                    GM_config.set('addon_fleet', data.menu.addon_fleet);
-                    GM_config.set('confirm_const', data.menu.confirm_const);
-                    GM_config.set('confirm_drive_sync', data.menu.confirm_drive_sync);
-                    GM_config.set('confirm_production', data.menu.confirm_production);
-                    GM_config.set('confirm_research', data.menu.confirm_research);
-                    GM_config.set('coords_fleets', data.menu.coords_fleets);
-                    GM_config.set('coords_trades', data.menu.coords_trades);
+                    if (typeof data.menu.addon_clock !== "undefined") GM_config.set('addon_clock', data.menu.addon_clock);
+                    if (typeof data.menu.addon_fleet !== "undefined") GM_config.set('addon_fleet', data.menu.addon_fleet);
+                    if (typeof data.menu.confirm_const !== "undefined") GM_config.set('confirm_const', data.menu.confirm_const);
+                    if (typeof data.menu.overview_planetresources !== "undefined") GM_config.set('overview_planetresources', data.menu.overview_planetresources);
+                    if (typeof data.menu.overview_planetstatus !== "undefined") GM_config.set('overview_planetstatus', data.menu.overview_planetstatus);
+                    if (typeof data.menu.confirm_drive_sync !== "undefined") GM_config.set('confirm_drive_sync', data.menu.confirm_drive_sync);
+                    if (typeof data.menu.confirm_production !== "undefined") GM_config.set('confirm_production', data.menu.confirm_production);
+                    if (typeof data.menu.confirm_research !== "undefined") GM_config.set('confirm_research', data.menu.confirm_research);
+                    if (typeof data.menu.coords_fleets !== "undefined") GM_config.set('coords_fleets', data.menu.coords_fleets);
+                    if (typeof data.menu.coords_trades !== "undefined") GM_config.set('coords_trades', data.menu.coords_trades);
                 }
 
                 //set and get to sync
@@ -405,6 +426,7 @@ function siteManager() {
                 GM.setValue('lwm_productionFilters', JSON.stringify(config.lwm.productionFilters));
                 GM.setValue('lwm_hiddenShips', JSON.stringify(config.lwm.hiddenShips));
                 GM.setValue('lwm_resProd', JSON.stringify(config.lwm.resProd));
+                GM.setValue('lwm_planetInfo', JSON.stringify(config.lwm.planetInfo));
                 GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
 
                 // wait for gameData, then process
@@ -462,6 +484,13 @@ function siteManager() {
                 checkConfigPerCoordsSetup('resProd');
                 config.getGameData.setResProd(); //get res here so config is loaded before fetching current values
                 GM.setValue('lwm_resProd', JSON.stringify(config.lwm.resProd));
+            });
+
+            GM.getValue('lwm_planetInfo', '{}').then(function (data) {
+                try { config.lwm.planetInfo = JSON.parse(data); } catch (e) { config.lwm.planetInfo = {}; }
+                checkConfigPerCoordsSetup('planetInfo');
+                config.getGameData.setPlanetInfo();
+                GM.setValue('lwm_planetInfo', JSON.stringify(config.lwm.planetInfo));
             });
 
             GM.getValue('lwm_hiddenShips', '{}').then(function (data) {
@@ -522,7 +551,14 @@ function siteManager() {
             },
             setResProd: function () {
                 config.lwm.resProd[config.gameData.playerID][config.gameData.planetCoords.string] = unsafeWindow.getResourcePerHour()[0];
-                GM.setValue('lwm_resProd', JSON.stringify(config.lwm.resProd));
+                //GM.setValue('lwm_resProd', JSON.stringify(config.lwm.resProd)); <-- redundant, see setGMvalues()
+            },
+            setPlanetInfo: function () {
+                config.lwm.planetInfo[config.gameData.playerID][config.gameData.planetCoords.string] = {
+                    energy: parseInt(config.gameData.overviewInfo.energy),
+                    slots: config.gameData.overviewInfo.number_of_slots - config.gameData.overviewInfo.number_of_buildings
+                };
+                GM.setValue('lwm_planetInfo', JSON.stringify(config.lwm.planetInfo));
             },
             planetInformation: function(data) {
                 return site_jQuery.getJSON('/ajax_request/get_all_planets_information.php', function (data) {
@@ -866,17 +902,19 @@ function siteManager() {
                 });
 
                 //add resources
-                lwm_jQuery.each(config.gameData.planetInformation, function (i, d) {
-                    var $Posle = lwm_jQuery('.Posle[data-coords=\''+d.Galaxy+'x'+d.System+'x'+d.Planet+'\']');
-                    var $tr = lwm_jQuery('<tr></tr>');
-                    var $td = lwm_jQuery('<td colspan="3" style="padding:2px;"></td>'); $tr.append($td);
-                    var $table = lwm_jQuery('<table></table>'); $td.append($table);
-                    var $tbody = lwm_jQuery('<tbody></tbody>'); $table.append($tbody);
-                    var $tr1 = lwm_jQuery('<tr><td class="sameWith roheisenVariable">Roheisen</td><td class="sameWith kristallVariable">Kristall</td><td class="sameWith frubinVariable">Frubin</td><td class="sameWith orizinVariable">Orizin</td><td class="sameWith frurozinVariable">Frurozin</td><td class="sameWith goldVariable">Gold</td></tr>');
-                    var $tr2 = lwm_jQuery('<tr><td class="roheisenVariable">'+site_jQuery.number(Math.round(d.Planet_Roheisen), 0, ',', '.' )+'</td><td class="kristallVariable">'+site_jQuery.number(Math.round(d.Planet_Kristall), 0, ',', '.' )+'</td><td class="frubinVariable">'+site_jQuery.number(Math.round(d.Planet_Frubin), 0, ',', '.' )+'</td><td class="orizinVariable">'+site_jQuery.number(Math.round(d.Planet_Orizin), 0, ',', '.' )+'</td><td class="frurozinVariable">'+site_jQuery.number(Math.round(d.Planet_Frurozin), 0, ',', '.' )+'</td><td class="goldVariable">'+site_jQuery.number(Math.round(d.Planet_Gold), 0, ',', '.' )+'</td></tr>');
-                    $tbody.append($tr1).append($tr2);
-                    $Posle.find('tbody').append($tr);
-                });
+                if (GM_config.get('overview_planetresources')) {
+                    lwm_jQuery.each(config.gameData.planetInformation, function (i, d) {
+                        var $Posle = lwm_jQuery('.Posle[data-coords=\''+d.Galaxy+'x'+d.System+'x'+d.Planet+'\']');
+                        var $tr = lwm_jQuery('<tr></tr>');
+                        var $td = lwm_jQuery('<td colspan="3" style="padding:2px;"></td>'); $tr.append($td);
+                        var $table = lwm_jQuery('<table></table>'); $td.append($table);
+                        var $tbody = lwm_jQuery('<tbody></tbody>'); $table.append($tbody);
+                        var $tr1 = lwm_jQuery('<tr><td class="sameWith roheisenVariable">Roheisen</td><td class="sameWith kristallVariable">Kristall</td><td class="sameWith frubinVariable">Frubin</td><td class="sameWith orizinVariable">Orizin</td><td class="sameWith frurozinVariable">Frurozin</td><td class="sameWith goldVariable">Gold</td></tr>');
+                        var $tr2 = lwm_jQuery('<tr><td class="roheisenVariable">'+site_jQuery.number(Math.round(d.Planet_Roheisen), 0, ',', '.' )+'</td><td class="kristallVariable">'+site_jQuery.number(Math.round(d.Planet_Kristall), 0, ',', '.' )+'</td><td class="frubinVariable">'+site_jQuery.number(Math.round(d.Planet_Frubin), 0, ',', '.' )+'</td><td class="orizinVariable">'+site_jQuery.number(Math.round(d.Planet_Orizin), 0, ',', '.' )+'</td><td class="frurozinVariable">'+site_jQuery.number(Math.round(d.Planet_Frurozin), 0, ',', '.' )+'</td><td class="goldVariable">'+site_jQuery.number(Math.round(d.Planet_Gold), 0, ',', '.' )+'</td></tr>');
+                        $tbody.append($tr1).append($tr2);
+                        $Posle.find('tbody').append($tr);
+                    });
+                }
 
                 // save overview times to calendar
                 addOns.calendar.storeOverview(config.gameData.overviewInfo);
@@ -1491,8 +1529,13 @@ function siteManager() {
                     lwm_jQuery.each(coords, function (i, coord) { var $button = lwm_jQuery('<div class="buttonRowInbox" data-filter="coord" data-value="'+coord+'"><a class="formButton" href="javascript:void(0)">'+coord+'</a></div>').appendTo($div.find('.tableFilters_content')); });
                     lwm_jQuery.each(types, function (i, type) { var $button = lwm_jQuery('<div class="buttonRowInbox" data-filter="type" data-value="'+type+'"><a class="formButton" href="javascript:void(0)">'+type+'</a></div>').appendTo($div.find('.tableFilters_content')); });
 
-                    $div.find('.buttonRowInbox').click(function () { lwm_jQuery(this).find('.formButton').toggleClass('activeBox'); process(lwm_jQuery(this)); });
+                    $div.find('[data-value=\''+config.gameData.playerName+'\']').find('.formButton').toggleClass('activeBox');
+                    $div.find('[data-value=\'fleet\']').find('.formButton').toggleClass('activeBox');
+
+                    $div.find('.buttonRowInbox').click(function () { lwm_jQuery(this).find('.formButton').toggleClass('activeBox'); process(); });
                     lwm_jQuery('#calendarDiv').prepend($div);
+
+                    process();
                 }();
 
                 //clear fleet interval manually on this page, because add on is deactivated by default
