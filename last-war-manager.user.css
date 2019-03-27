@@ -382,6 +382,7 @@
   .pageContent {
     height: unset;
     overflow-y: initial;
+    overflow-x: auto;
     padding-right: 0;
   }
   ul.loadbarConstruction,
