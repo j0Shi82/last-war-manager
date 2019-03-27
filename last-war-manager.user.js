@@ -91,7 +91,7 @@ function siteManager() {
              *  listeners.
              */
         var initClient = function() {
-            console.log('gapi.client.init');
+            //console.log('gapi.client.init');
             gapi.client.init({
                 apiKey: API_KEY,
                 clientId: CLIENT_ID,
@@ -108,13 +108,13 @@ function siteManager() {
 
         var updateSigninStatus = function(isSignedIn) {
             if (isSignedIn) {
-                console.log('gapi.client.drive.files.list');
+                //console.log('gapi.client.drive.files.list');
                 gapi.client.drive.files.list({
                     q: 'name="lwm_config.json"',
                     spaces: 'appDataFolder',
                     fields: 'files(id)'
                 }).then(function(response) {
-                    console.log(response);
+                    //console.log(response);
                     if (response.status === 200) {
                         if (response.result.files.length === 0) {
                             createConfig();
@@ -143,12 +143,12 @@ function siteManager() {
                 mimeType: 'application/json',
                 uploadType: 'multipart'
             };
-            console.log('gapi.client.drive.files.create');
+            //console.log('gapi.client.drive.files.create');
             gapi.client.drive.files.create({
                 resource: fileMetadata,
                 fields: 'id,name'
             }).then(function(response) {
-                console.log(response);
+                //console.log(response);
                 if (response.status === 200) {
                     configFileID = response.result.id;
                     config.loadStates.gdrive = false;
@@ -184,12 +184,7 @@ function siteManager() {
                 coords_trades: GM_config.get('coords_trades')
             };
 
-            if (config.gameData.playerID == 186 && Object.keys(config.lwm.lastTradeCoords[config.gameData.playerID]).length < 5) {
-                alert( 'save might have been reset!');
-                return;
-            }
-
-            console.log('gapi.client.request',saveObj);
+            //console.log('gapi.client.request',saveObj);
             gapi.client.request({
                 path: '/upload/drive/v3/files/' + configFileID,
                 method: 'PATCH',
@@ -199,7 +194,7 @@ function siteManager() {
                 },
                 body: JSON.stringify(saveObj)
             }).then(function (response) {
-                console.log(response);
+                //console.log(response);
                 if (response.status !== 200) {
                     console.error('client.request: ' + response);
                 }
@@ -209,12 +204,12 @@ function siteManager() {
         }
 
         var getConfig = function () {
-            console.log('gapi.client.drive.files.get');
+            //console.log('gapi.client.drive.files.get');
             gapi.client.drive.files.get({
                 fileId: configFileID,
                 alt: 'media'
             }).then(function (response) {
-                console.log(response);
+                //console.log(response);
                 if (response.status === 200) {
                     config.lwm.set(response.result);
                     //config.loadStates.gdrive = false; <-- loadState is updated in config.lwm.set()
@@ -616,13 +611,13 @@ function siteManager() {
                 if (config.loadStates.content && config.loadStates.lastLoadedPage === page) return;
 
                 if (settings.url.search(/lwm_ignoreProcess/) !== -1) {
-                    console.log('lwm_ignoreProcess... skipping');
+                    //console.log('lwm_ignoreProcess... skipping');
                     return;
                 }
                 // first ubersicht load is usually not caught by our wrapper. But in case it is, return because we invoke this manually
                 if (firstLoad && page === 'ubersicht') return;
 
-                console.log(page);
+                //console.log(page);
 
                 if ((settings.url.match(/content/) || processPages.indexOf(page) !== -1) && ignorePages.indexOf(page) === -1) {
                     if (!preserveSubmenuPages.includes(page)) submenu.clear();
@@ -659,8 +654,8 @@ function siteManager() {
                 var listenPages = ['put_building'];
 
                 if (listenPages.indexOf(page) !== -1) {
-                    console.log(event, xhr, settings);
-                    console.log('ajaxComplete',page, xhr.responseJSON);
+                    //console.log(event, xhr, settings);
+                    //console.log('ajaxComplete',page, xhr.responseJSON);
                 }
             });
 
@@ -671,7 +666,7 @@ function siteManager() {
                 if (config.loadStates.content && config.loadStates.lastLoadedPage === page) return;
 
                 if (settings.url.search(/lwm_ignoreProcess/) !== -1) {
-                    console.log('lwm_ignoreProcess... skipping');
+                    //console.log('lwm_ignoreProcess... skipping');
                     return;
                 }
                 // first ubersicht load is usually not caught by our wrapper. But in case it is, return because we invoke this manually
