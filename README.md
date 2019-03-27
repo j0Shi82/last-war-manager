@@ -31,7 +31,7 @@ A German feedback thread can be found on the [official message board](http://for
 - Show planet fleet activity on all pages (optional)
 - Security confirmations for buildings, researches, and production pages (optional)
 - All arrow keys that add or remove ships or defense bulk add them when you hold the mouse button
-- Resources on the main page get highlighed when running trade would exceed their storage capacity
+- Resources on the main page get highlighted when running trade would exceed their storage capacity
 - Settings page that lets you control what the script should do
 - **OVERVIEW**
   - Resources get added to the planets on the overview
@@ -62,7 +62,7 @@ A German feedback thread can be found on the [official message board](http://for
   - Hide all achieved technologies
 - **MESSAGES**
   - Ability to browse through messages with arrow keys
-  - Direkt links to combat and spy reports from the message root folder
+  - Direct links to combat and spy reports from the message root folder
 - **GALAXY**
   - Sending spy and obs drones from the galaxy view
   - Ability to browse through the galaxy using the arrow keys

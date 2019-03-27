@@ -1,4 +1,10 @@
-#Changelog
+# Changelog
+
+## v0.8.0
+
+- Save trades are now recognized by the script and can no longer be canceled from another planet.
+- Fixed a bug that sometimes incorrectly found trades to exceed storage capacities.
+- Drone types without an amount do no longer show up in the spy listing.
 
 ## v0.7.0
 
@@ -7,32 +13,26 @@
   - Per default, the calendar only shows fleet activity, but it can list buildings, research, production, etc. as well
 - The fleet page was scratched from all submenus
 - Some improvements have been made to the script startup routine to speed up things and avoid errors
-
 - **FLEETS**
   - The icon to recall a fleet now only shows up in case the fleet is on its way to the target
   - While sending fleets, you can choose a return time and the script automatically adjusts speeds
-
 - **OVERVIEW**
   - Show energy and building slots on overview page for all planets
 
 ## v0.6.0
 
 - All arrow keys that add or remove ships or defense bulk add them when you hold the mouse button
-- Resources on the main page get highlighed when running trade would exceed their storage capacity
+- Resources on the main page get highlighted when running trade would exceed their storage capacity
 
 - **OBSERVATIONS**
   - Ability to sort obervations by coords
-
 - **MESSAGES**
-  - Direkt links to combat and spy reports from the message root folder
-
+  - Direct links to combat and spy reports from the message root folder
 - **GALAXY**
   - Add spy links to all planets
   - Sending obs drones from the galaxy view
-
 - **RESOURCES**
   - Page now shows the time until capacities are reached for all resources
-
 - **TRADE**
   - Trades that would exceed storage capacities when accepted/denied are highlighted
 

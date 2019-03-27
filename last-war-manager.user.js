@@ -19,7 +19,7 @@
 // @grant         GM_getResourceText
 // @grant         GM_addStyle
 // @run-at        document-start
-// @version       0.7
+// @version       0.8
 // ==/UserScript==
 
 var firstLoad = true;
@@ -177,6 +177,7 @@ function siteManager() {
                 confirm_const: GM_config.get('confirm_const'),
                 overview_planetresources: GM_config.get('overview_planetresources'),
                 overview_planetstatus: GM_config.get('overview_planetstatus'),
+                message_spylinks: GM_config.get('message_spylinks'),
                 confirm_drive_sync: GM_config.get('confirm_drive_sync'),
                 confirm_production: GM_config.get('confirm_production'),
                 confirm_research: GM_config.get('confirm_research'),
@@ -326,6 +327,13 @@ function siteManager() {
                 'type': 'checkbox',
                 'default': true
             },
+            'message_spylinks':
+            {
+                'label': 'Show direct links to spy and combat reports in message lists (WARNING: This marks all reports as read on first visit).',
+                'labelPos': 'right',
+                'type': 'checkbox',
+                'default': true
+            },
             'confirm_drive_sync':
             {
                 'section': [GM_config.create('Sync'), 'Options to sync settings across your different browsers.'],
@@ -413,6 +421,7 @@ function siteManager() {
                     if (typeof data.menu.confirm_const !== "undefined") GM_config.set('confirm_const', data.menu.confirm_const);
                     if (typeof data.menu.overview_planetresources !== "undefined") GM_config.set('overview_planetresources', data.menu.overview_planetresources);
                     if (typeof data.menu.overview_planetstatus !== "undefined") GM_config.set('overview_planetstatus', data.menu.overview_planetstatus);
+                    if (typeof data.menu.message_spylinks !== "undefined") GM_config.set('message_spylinks', data.menu.message_spylinks);
                     if (typeof data.menu.confirm_drive_sync !== "undefined") GM_config.set('confirm_drive_sync', data.menu.confirm_drive_sync);
                     if (typeof data.menu.confirm_production !== "undefined") GM_config.set('confirm_production', data.menu.confirm_production);
                     if (typeof data.menu.confirm_research !== "undefined") GM_config.set('confirm_research', data.menu.confirm_research);
@@ -604,8 +613,8 @@ function siteManager() {
 
             //we're hooking into ajax requests to figure out on which page we are and fire our own stuff
             var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
-                                'get_info_for_flotten_pages','get_change_flotten_info','get_trade_offers','get_flotten_informations_info'];
-            var ignorePages =  ['inbox','trade_offer','make_command','galaxy_view','change_flotten','flottenkommando',
+                                'get_info_for_flotten_pages','get_change_flotten_info','get_trade_offers','get_flotten_informations_info','get_spionage_info'];
+            var ignorePages =  ['spionage','inbox','trade_offer','make_command','galaxy_view','change_flotten','flottenkommando',
                                 'flottenbasen_all','fremde_flottenbasen','flottenbasen_planet','flotten_informations'];
             var preserveSubmenuPages = ['get_inbox_message','get_message_info'];
 
@@ -755,6 +764,7 @@ function siteManager() {
             case "get_change_flotten_info":  pageTweaks.changeFleet(); break;
             case "get_info_for_flotten_pages": pageTweaks.allFleets(xhr); break;
             case "get_flotten_informations_info": pageTweaks.fleetSend(xhr.responseJSON); break;
+            case "get_spionage_info":        pageTweaks.spyInfo(xhr.responseJSON); break;
             case "building_tree":            pageTweaks.buildingTree(); break;
             case "research_tree":            pageTweaks.buildingTree(); break;
             case "shiptree":                 pageTweaks.buildingTree(); break;
@@ -1244,8 +1254,7 @@ function siteManager() {
                     config.pages.inbox.reportHandler = true;
                 }
 
-                if ([2,4].includes(unsafeWindow.window.current_view_type)) {
-                    console.log('messageData', config.gameData.messageData);
+                if ([2,4].includes(unsafeWindow.window.current_view_type) && GM_config.get('message_spylinks')) {
                     lwm_jQuery.each(config.gameData.messageData[1], function (i, m) {
                         if (m.subject.search(/Kampfbericht|Spionagebericht/) !== -1 && m.user_nickname === 'Systemnachricht') {
                             site_jQuery.getJSON('/ajax_request/get_message_info.php?id_conversation='+m.id, { lwm_ignoreProcess: 1 }, function (data) {
@@ -1282,6 +1291,7 @@ function siteManager() {
                         $.each(tradeInfo.trade_offers, function (i, offer) {
                             var tradeRunning = offer.accept === "1";
                             var $tradeDiv = lwm_jQuery('#div_'+offer.trade_id);
+                            var isMyPlanet = offer.galaxy == config.gameData.planetCoords.galaxy && offer.system == config.gameData.planetCoords.system && offer.planet == config.gameData.planetCoords.planet;
                             $.each(currentRes, function (i, amount) {
                                 if (offer.my === 1 && (incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+6]) : 0)) > capacities[i]) {
                                     $tradeDiv.find('tr:eq('+(i+5)+') td').last().addClass('redBackground');
@@ -1291,7 +1301,7 @@ function siteManager() {
                                     $tradeDiv.find('tr:eq('+(i+5)+') td').first().addClass('redBackground');
                                     $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
                                 }
-                                if (offer.my === 0  && (incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+12]) : 0)) > capacities[i]) {
+                                if (isMyPlanet && offer.my === 0  && (incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+12]) : 0)) > capacities[i]) {
                                     $tradeDiv.find('tr:eq('+(i+5)+') td').first().addClass('redBackground');
                                     $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
                                 }
@@ -1300,6 +1310,9 @@ function siteManager() {
                                     $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
                                 }
                             });
+                            //remove deny button from save trades of other planets
+                            if (offer.comment === '###LWM::SAVE###' && !isMyPlanet) $tradeDiv.find('tr').last().remove();
+                            if (offer.comment === '###LWM::SAVE###' && isMyPlanet) $tradeDiv.find('.buttonRow').first().remove();
                         });
 
                         //attach events to delete trades
@@ -1364,6 +1377,7 @@ function siteManager() {
                         lwm_jQuery('#planetTrade').val(config.gameData.planets[lwm_jQuery(this).data('index')].planet);
                         inputFullResource();
                         lwm_jQuery('#his_gold').val('999999');
+                        lwm_jQuery('#tradeOfferComment').val('###LWM::SAVE###');
                     });
                     linksOwn.push($link);
                     saveLinksOwn.push($saveLink);
@@ -1373,6 +1387,11 @@ function siteManager() {
                     if (i !== linksOwn.length - 1) $divOwn.append(' - ');
                 });
                 $divOwn.appendTo($lastTR.find('td:eq(1)'));
+
+                //put 1 Eisen when saving all res
+                lwm_jQuery('[onclick*=\'inputFullResource\']').click(function () {
+                    if (lwm_jQuery('#his_eisen').val() === "0") lwm_jQuery('#his_eisen').val("1");
+                });
 
                 //add div with saved coords
                 var $divSave = lwm_jQuery('<div style=\'width:100%\'></div>');
@@ -1657,7 +1676,6 @@ function siteManager() {
                             case "0":
                                 var newSpeed = Math.round((1-((((timeDiffInSeconds-(minTimeInSeconds/(2-(parseInt(maxSpeed)/100))))/((minTimeInSeconds/(2-(parseInt(maxSpeed)/100)))*0.01)))/100))*100);
                                 lwm_jQuery('.changeTime').val(newSpeed);
-                                site_jQuery('.changeTime').change();
                                 break;
                             case "1":
                                 //ignore one way
@@ -1676,7 +1694,6 @@ function siteManager() {
                                 } while (returnSpeed < 20 || returnSpeed > maxSpeed)
                                 lwm_jQuery('#send').val(returnSpeed);
                                 lwm_jQuery('#back').val(sendSpeed);
-                                site_jQuery('.changeTime').change();
                                 break;
                             case "2":
                                 //ignore one way
@@ -1695,9 +1712,10 @@ function siteManager() {
                                 } while (returnSpeed < 20 || returnSpeed > maxSpeed)
                                 lwm_jQuery('#send').val(sendSpeed);
                                 lwm_jQuery('#back').val(returnSpeed);
-                                site_jQuery('.changeTime').change();
                                 break;
                         }
+                        site_jQuery('.changeTime').change();
+                        lwm_jQuery('.changeTime').change();
                     }
                 }
 
@@ -1718,6 +1736,23 @@ function siteManager() {
                 helper.throwError();
                 config.loadStates.content = false;
             });
+        },
+        spyInfo: function (data) {
+            if (Object.keys(data.observations_drons).length === 0 && Object.keys(data.planetenscanner_drons).length === 0 && Object.keys(data.system_drons).length === 0) config.loadStates.content = false;
+            else {
+                config.promises.content = getPromise('#spionageDiv');
+                config.promises.content.then(function () {
+                    lwm_jQuery('#spionageDiv tr').each(function () {
+                        if (lwm_jQuery(this).find('td:eq(4)').text() === '0') lwm_jQuery(this).hide();
+                    });
+
+                    config.loadStates.content = false;
+                }).catch(function (e) {
+                    console.log(e);
+                    helper.throwError();
+                    config.loadStates.content = false;
+                });
+            }
         },
         galaxyView: function () {
             //lwm_jQuery('#galaxyViewInfoTable').html('');
@@ -2016,6 +2051,16 @@ function siteManager() {
                 var divs = lwm_jQuery('.secound_line').find('div');
                 lwm_jQuery.each(divs, function () {
                     lwm_jQuery(this).appendTo('.first_line');
+                });
+
+                //add events to highlight current menus
+                lwm_jQuery(document).on('click', '.menu_box', function (e) {
+                    lwm_jQuery('.menu_box').removeClass('activeBox');
+                    lwm_jQuery(e.target).closest('.menu_box').addClass('activeBox');
+                });
+                lwm_jQuery(document).on('click', '.secound_line .navButton', function (e) {
+                    lwm_jQuery('.secound_line .navButton').removeClass('activeBox');
+                    lwm_jQuery(e.target).closest('.navButton').addClass('activeBox');
                 });
 
                 //rewrite clock functions so we can kill timers
@@ -2551,7 +2596,7 @@ function siteManager() {
             return site_jQuery.getJSON('/ajax_request/get_flottenbewegungen_info.php?galaxy='+config.gameData.planetCoords.galaxy+'&system='+config.gameData.planetCoords.system+'&planet='+config.gameData.planetCoords.planet);
         },
         get_spionage_info: function () {
-            return site_jQuery.getJSON('/ajax_request/get_spionage_info.php?galaxy_check='+config.gameData.planetCoords.galaxy+'&system_check='+config.gameData.planetCoords.system+'&planet_check='+config.gameData.planetCoords.planet);
+            return site_jQuery.getJSON('/ajax_request/get_spionage_info.php?galaxy_check='+config.gameData.planetCoords.galaxy+'&system_check='+config.gameData.planetCoords.system+'&planet_check='+config.gameData.planetCoords.planet, { lwm_ignoreProcess: 1 });
         }
     };
 
