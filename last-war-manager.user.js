@@ -916,6 +916,14 @@ function siteManager() {
                     });
                 }
 
+                //add resources
+                if (GM_config.get('overview_planetstatus')) {
+                    lwm_jQuery.each(config.lwm.planetInfo[config.gameData.playerID], function (coords, data) {
+                        var $Posle = lwm_jQuery('.Posle[data-coords=\''+coords+'\']');
+                        $Posle.find('td:first input').val($Posle.find('td:first input').val()+' '+data.energy + ' TW - ' + data.slots + ' Free Slot(s)');
+                    });
+                }
+
                 // save overview times to calendar
                 addOns.calendar.storeOverview(config.gameData.overviewInfo);
 

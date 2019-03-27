@@ -12,6 +12,9 @@
   - The icon to recall a fleet now only shows up in case the fleet is on its way to the target
   - While sending fleets, you can choose a return time and the script automatically adjusts speeds
 
+- **OVERVIEW**
+  - Show energy and building slots on overview page for all planets
+
 ## v0.6.0
 
 - All arrow keys that add or remove ships or defense bulk add them when you hold the mouse button
