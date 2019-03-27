@@ -1552,38 +1552,112 @@ function siteManager() {
             config.promises.content.then(function () {
                 var maxSpeed = data.max_speed_transport;
                 var minTimeInSeconds  = moment.duration(data.send_time, "seconds").asSeconds();
-                var minHour = moment().add(minTimeInSeconds*2, "seconds");
+                var minHour = moment().add(minTimeInSeconds, "seconds");
                 //round up to the next full hour
                 minHour = minHour.minute() || minHour.second() || minHour.millisecond() ? minHour.add(1, 'hour').startOf('hour') : minHour.startOf('hour');
 
                 //build time choose select
                 var $select = lwm_jQuery('<select id="lwm_fleet_selecttime"><option value="" selected>Pick Return Time</option></select>');
-                for (var i = 0; i < 16; i++) {
+                for (var i = 0; i < 21; i++) {
                     $select.append('<option>'+minHour.format("YYYY-MM-DD HH:mm:ss")+'</option>');
+                    //increment hour for next option
                     minHour.add(1,'hour');
                 }
 
+                var disableOptions = function () {
+                    var $oneway = lwm_jQuery('#lwm_fleet_oneway').is(':checked');
+                    /* disable options that don't fit speed of fleet */
+                    $select.find('option:gt(0)').each(function () {
+                        var timeDiffInSeconds = moment(lwm_jQuery(this).val()).diff(moment(), "seconds") /  ($oneway ? 1 : 2);;
+                        var minSpeedInSeconds = (minTimeInSeconds / (2-(maxSpeed/100)) * (2-(20/100)));
+                        lwm_jQuery(this).prop('disabled', minSpeedInSeconds < timeDiffInSeconds || minTimeInSeconds > timeDiffInSeconds);
+                    });
+                }
+
+                disableOptions();
+
                 var calcFleetTime = function () {
+                    disableOptions();
                     var $val = lwm_jQuery('#lwm_fleet_selecttime').val();
                     var $oneway = lwm_jQuery('#lwm_fleet_oneway').is(':checked');
                     if (!$val) {
                         lwm_jQuery('.changeTime').val(maxSpeed);
                         site_jQuery('.changeTime').change();
+                        if ($val === null) {
+                            //val === null means options disabled
+                            alert('WARNING: Choice is not possible due to fleet speed');
+                            lwm_jQuery('.changeTime').val('20');
+                            site_jQuery('.changeTime').change();
+                            return;
+                        }
                     } else {
                         //calculate speed for given return time
                         var timeDiffInSeconds = moment($val).diff(moment(), "seconds") / ($oneway ? 1 : 2);
-                        var newSpeed = Math.round((1-((((timeDiffInSeconds-(minTimeInSeconds/(2-(parseInt(maxSpeed)/100))))/((minTimeInSeconds/(2-(parseInt(maxSpeed)/100)))*0.01)))/100))*100);
-                        lwm_jQuery('.changeTime').val(newSpeed);
-                        site_jQuery('.changeTime').change();
+                        var minSpeedInSeconds = (minTimeInSeconds / (2-(maxSpeed/100)) * (2-(20/100)));
+                        if (minSpeedInSeconds < timeDiffInSeconds || minTimeInSeconds > timeDiffInSeconds) {
+                            alert('WARNING: Choice is not possible due to fleet speed');
+                            lwm_jQuery('.changeTime').val('20');
+                            site_jQuery('.changeTime').change();
+                            return;
+                        }
+                        var type = $oneway ? "0" : lwm_jQuery('#lwm_fleet_type').val();
+                        var sendSpeed,returnSpeed,curSpeed,sendSpeedInSeconds,returnSpeedInSeconds;
+                        switch (type) {
+                            case "0":
+                                var newSpeed = Math.round((1-((((timeDiffInSeconds-(minTimeInSeconds/(2-(parseInt(maxSpeed)/100))))/((minTimeInSeconds/(2-(parseInt(maxSpeed)/100)))*0.01)))/100))*100);
+                                lwm_jQuery('.changeTime').val(newSpeed);
+                                site_jQuery('.changeTime').change();
+                                break;
+                            case "1":
+                                //ignore one way
+                                timeDiffInSeconds = moment($val).diff(moment(), "seconds");
+                                sendSpeed = 0;
+                                returnSpeed = 0;
+                                curSpeed = 20;
+                                do {
+                                    //calculate 20% speed in seconds
+                                    sendSpeed = curSpeed;
+                                    sendSpeedInSeconds = minTimeInSeconds / (2-(maxSpeed/100)) * (2-(curSpeed/100));
+                                    //subtract and see whether return is still possible
+                                    returnSpeedInSeconds = timeDiffInSeconds - sendSpeedInSeconds;
+                                    returnSpeed = Math.round((1-((((returnSpeedInSeconds-(minTimeInSeconds/(2-(parseInt(maxSpeed)/100))))/((minTimeInSeconds/(2-(parseInt(maxSpeed)/100)))*0.01)))/100))*100);
+                                    curSpeed++;
+                                } while (returnSpeed < 20 || returnSpeed > maxSpeed)
+                                lwm_jQuery('#send').val(returnSpeed);
+                                lwm_jQuery('#back').val(sendSpeed);
+                                site_jQuery('.changeTime').change();
+                                break;
+                            case "2":
+                                //ignore one way
+                                timeDiffInSeconds = moment($val).diff(moment(), "seconds");
+                                sendSpeed = 0;
+                                returnSpeed = 0;
+                                curSpeed = 20;
+                                do {
+                                    //calculate 20% speed in seconds
+                                    sendSpeed = curSpeed;
+                                    sendSpeedInSeconds = minTimeInSeconds / (2-(maxSpeed/100)) * (2-(curSpeed/100));
+                                    //subtract and see whether return is still possible
+                                    returnSpeedInSeconds = timeDiffInSeconds - sendSpeedInSeconds;
+                                    returnSpeed = Math.round((1-((((returnSpeedInSeconds-(minTimeInSeconds/(2-(parseInt(maxSpeed)/100))))/((minTimeInSeconds/(2-(parseInt(maxSpeed)/100)))*0.01)))/100))*100);
+                                    curSpeed++;
+                                } while (returnSpeed < 20 || returnSpeed > maxSpeed)
+                                lwm_jQuery('#send').val(sendSpeed);
+                                lwm_jQuery('#back').val(returnSpeed);
+                                site_jQuery('.changeTime').change();
+                                break;
+                        }
                     }
                 }
 
                 var $wrapper = lwm_jQuery('<div>');
                 $wrapper.append($select);
-                $wrapper.append('<label><input type="checkbox" id="lwm_fleet_oneway">Oneway</label>')
+                $wrapper.append('<label><input type="checkbox" id="lwm_fleet_oneway">Oneway</label>');
+                $wrapper.append('<select id="lwm_fleet_type"><option value="0">Send / Return Balanced</option><option value="1">Send Fast/ Return Slow</option><option value="2">Send Slow/Return Fast</option></select>');
 
                 $select.change(function () { calcFleetTime(); });
-                $wrapper.find('#lwm_fleet_oneway').change(function () { calcFleetTime(); });
+                $wrapper.find('#lwm_fleet_oneway').change(function () { calcFleetTime(); lwm_jQuery('#lwm_fleet_type').prop('disabled', lwm_jQuery(this).is(':checked')); });
+                $wrapper.find('#lwm_fleet_type').change(function () { calcFleetTime(); });
 
                 lwm_jQuery('#timeFlote').after($wrapper);
 
@@ -1848,7 +1922,7 @@ function siteManager() {
                 $menuToggle.find('.fa-database').click(function () { unsafeWindow.changeContent('research', 'first', 'Forschung'); });
                 $menuToggle.find('.fa-shield-alt').click(function () { unsafeWindow.changeContent('verteidigung', 'first', 'Verteidigung'); });
                 $menuToggle.find('.fa-fighter-jet').click(function () { unsafeWindow.changeContent('produktion', 'first', 'Produktion'); });
-                $menuToggle.find('.fa-plane-departure').click(function () { unsafeWindow.changeContent('flottenbasen_all', 'second', 'Flotten-Kommando'); });
+                $menuToggle.find('.fa-plane-departure').click(function () { unsafeWindow.changeContent('flottenkommando', 'second', 'Flotten-Kommando'); });
                 $menuToggle.find('.fa-handshake').click(function () { unsafeWindow.changeContent('new_trade_offer', 'second', 'Handelsangebot'); });
                 $menuToggle.find('.fa-envelope').click(function () { unsafeWindow.changeContent('inbox', 'first', 'Nachrichten', 'notifiscationMessageList'); });
                 $menuToggle.find('.icon-galaxy').click(function () { unsafeWindow.changeContent('galaxy_view', 'first', 'Galaxieansicht'); });
@@ -1928,7 +2002,7 @@ function siteManager() {
                 lwm_jQuery('#produktion').prepend('<i class="fas fa-fighter-jet"></i>');
                 lwm_jQuery('#flottenbewegungen').after(lwm_jQuery('#flottenbewegungen').clone().prepend('<i class="far fa-calendar"></i>').attr('id','calendar'));
                 lwm_jQuery('#calendar span').text('Kalender');
-                lwm_jQuery('#flottenbewegungen').prepend('<i class="fas fa-plane-departure"></i>').attr('id','raumdock').attr('onclick', 'changeContent(\'flottenbasen_all\', \'second\', \'Flotten-Kommando\');');
+                lwm_jQuery('#flottenbewegungen').prepend('<i class="fas fa-plane-departure"></i>').attr('id','raumdock').attr('onclick', 'changeContent(\'flottenkommando\', \'second\', \'Flotten-Kommando\');');
                 lwm_jQuery('#trade_offer').prepend('<i class="fas fa-handshake"></i>');
                 lwm_jQuery('#rohstoffe').prepend('<i class="fas fa-gem"></i>');
                 lwm_jQuery('#planeten').prepend('<i class="fas fa-globe"></i>');
@@ -1968,7 +2042,7 @@ function siteManager() {
                 switch(handler.key){
                     case "ctrl+shift+c":event.preventDefault();unsafeWindow.changeContent('construction', 'first', 'Konstruktion');break;
                     case "ctrl+shift+r":event.preventDefault();unsafeWindow.changeContent('research', 'first', 'Forschung');break;
-                    case "ctrl+shift+f":event.preventDefault();unsafeWindow.changeContent('flottenbasen_all', 'second', 'Flotten-Kommando');break;
+                    case "ctrl+shift+f":event.preventDefault();unsafeWindow.changeContent('flottenkommando', 'second', 'Flotten-Kommando');break;
                     case "ctrl+shift+p":event.preventDefault();unsafeWindow.changeContent('produktion', 'first', 'Produktion');break;
                     case "ctrl+shift+o":event.preventDefault();unsafeWindow.changeContent('ubersicht', 'first', 'Übersicht');break;
                 }
@@ -2538,11 +2612,17 @@ function siteManager() {
         },
         performObservation: function (coords) {
             var data = config.gameData.spionageInfos;
-            if (data.observations_drons.length === 0) alert('Unable to find drones to use');
+            if (data.observations_drons.length === 0) {
+                alert('Unable to find drones to use');
+                return;
+            }
 
             //grab the first eligable drone with IOB and roll with it
             var drone = lwm_jQuery.grep(data.observations_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
-            if (drone.length === 0) alert('Unable to find drones to use');
+            if (drone.length === 0) {
+                alert('Unable to find drones to use');
+                return;
+            }
 
             var droneID = drone[0].id;
 
@@ -2709,7 +2789,7 @@ function siteManager() {
         },
         throwError: function (m) {
             if (lwm_jQuery('#all .lwm-loaderror').length) return;
-            var m = m || 'Something went wrong while loading the page. Not all functions might be fully functional!';
+            var m = m || 'Something went wrong while loading the page. Not all features might be fully functional!';
             lwm_jQuery('#all').prepend('<div class="pageContent lwm-loaderror" style="margin-bottom: 20px;><i class="fas fa-exclamation-triangle" style="font-color: rgba(255, 0, 0, 0.75);"></i>'+m+'</div>');
         }
     }
