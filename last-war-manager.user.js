@@ -334,6 +334,13 @@ function siteManager() {
                 'type': 'checkbox',
                 'default': true
             },
+            'fleet_saveprios':
+            {
+                'label': 'Save the last resource raid priorities.',
+                'labelPos': 'right',
+                'type': 'checkbox',
+                'default': true
+            },
             'confirm_drive_sync':
             {
                 'section': [GM_config.create('Sync'), 'Options to sync settings across your different browsers.'],
@@ -404,6 +411,7 @@ function siteManager() {
             productionFilters: {},
             hiddenShips: {},
             resProd: {},
+            raidPrios: [],
             planetInfo: {},
             calendar: [],
 
@@ -413,6 +421,7 @@ function siteManager() {
                 if (typeof data.productionFilters !== "undefined") config.lwm.productionFilters = data.productionFilters;
                 if (typeof data.hiddenShips !== "undefined") config.lwm.hiddenShips = data.hiddenShips;
                 if (typeof data.resProd !== "undefined") config.lwm.resProd = data.resProd;
+                if (typeof data.raidPrios !== "undefined") config.lwm.raidPrios = data.raidPrios;
                 if (typeof data.planetInfo !== "undefined") config.lwm.planetInfo = data.planetInfo;
                 if (typeof data.calendar !== "undefined") config.lwm.calendar = data.calendar;
                 if (typeof data.menu !== "undefined") {
@@ -435,6 +444,7 @@ function siteManager() {
                 GM.setValue('lwm_productionFilters', JSON.stringify(config.lwm.productionFilters));
                 GM.setValue('lwm_hiddenShips', JSON.stringify(config.lwm.hiddenShips));
                 GM.setValue('lwm_resProd', JSON.stringify(config.lwm.resProd));
+                GM.setValue('lwm_raidPrios', JSON.stringify(config.lwm.raidPrios));
                 GM.setValue('lwm_planetInfo', JSON.stringify(config.lwm.planetInfo));
                 GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
 
@@ -493,6 +503,11 @@ function siteManager() {
                 checkConfigPerCoordsSetup('resProd');
                 config.getGameData.setResProd(); //get res here so config is loaded before fetching current values
                 GM.setValue('lwm_resProd', JSON.stringify(config.lwm.resProd));
+            });
+
+            GM.getValue('lwm_raidPrios', '{}').then(function (data) {
+                try { config.lwm.raidPrios = JSON.parse(data); } catch (e) { config.lwm.raidPrios = []; }
+                GM.setValue('lwm_raidPrios', JSON.stringify(config.lwm.raidPrios));
             });
 
             GM.getValue('lwm_planetInfo', '{}').then(function (data) {
@@ -1609,6 +1624,39 @@ function siteManager() {
                     if (i !== linksSave.length - 1) $divSave.append(' - ');
                 });
                 $divSave.appendTo($lastTR.find('td').first());
+
+                //save raid prio on submit
+                if (GM_config.get('fleet_saveprios')) {
+                    if (config.lwm.raidPrios.length === 6) {
+                        //fill fields if we have a saved prio
+                        lwm_jQuery('#roheisen_priority').val(config.lwm.raidPrios[0]);
+                        lwm_jQuery('#kristall_priority').val(config.lwm.raidPrios[1]);
+                        lwm_jQuery('#frubin_priority').val(config.lwm.raidPrios[2]);
+                        lwm_jQuery('#orizin_priority').val(config.lwm.raidPrios[3]);
+                        lwm_jQuery('#frurozin_priority').val(config.lwm.raidPrios[4]);
+                        lwm_jQuery('#gold_priority').val(config.lwm.raidPrios[5]);
+                    }
+
+                    lwm_jQuery('[onclick*=\'makeCommand\']').click(function () {
+                        //save prios
+                        if (lwm_jQuery('[name=\'type_kommand\']:checked').val() === "1") {
+                            var prios = [
+                                lwm_jQuery('#roheisen_priority').val(),
+                                lwm_jQuery('#kristall_priority').val(),
+                                lwm_jQuery('#frubin_priority').val(),
+                                lwm_jQuery('#orizin_priority').val(),
+                                lwm_jQuery('#frurozin_priority').val(),
+                                lwm_jQuery('#gold_priority').val()
+                            ];
+
+                            if (JSON.stringify(prios) !== JSON.stringify(config.lwm.raidPrios)) {
+                                config.lwm.raidPrios = prios;
+                                GM.setValue('lwm_raidPrios', JSON.stringify(config.lwm.raidPrios));
+                                if (GM_config.get('confirm_drive_sync')) driveManager.save();
+                            }
+                        }
+                    });
+                }
 
                 config.loadStates.content = false;
             }).catch(function (e) {
