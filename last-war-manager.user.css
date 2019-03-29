@@ -1009,6 +1009,20 @@
     color: #fff;
     background-color: #242d6f8f;
   }
+  #lwm_fleet_timer_wrapper {
+    margin-top: 20px;
+    border: 1px solid rgba(124, 243, 241, 0.5);
+    padding: 5px;
+  }
+  #lwm_fleet_timer_wrapper .float-right {
+    float: right;
+  }
+  #lwm_fleet_timer_wrapper div,
+  #lwm_fleet_timer_wrapper select {
+    height: 20px;
+    width: 45%;
+    margin-left: 5%;
+  }
   /* FLEET END */
   /* SETTINGS */
   iframe#lwmSettings {
