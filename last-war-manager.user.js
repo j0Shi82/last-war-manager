@@ -627,14 +627,22 @@ function siteManager() {
                 GM.getValue('fleetInfo', '{}').then(function (saveData) {
                     config.gameData.fleetInfo = JSON.parse(saveData);
                     var types = ['all_informations','buy_ships_array','dron_observationens','dron_planetenscanners','fleet_informations','send_infos'];
-                    var checkForFleet = function (type, id) {
-                        return lwm_jQuery.grep(config.gameData.fleetInfo[type], function (fleet, i) { return fleet.id === id; }).length !== 0;
+                    var checkForFleet = function (type, data) {
+                        if (data.id) {
+                            //fleet
+                            config.gameData.fleetInfo[type] = lwm_jQuery.grep(config.gameData.fleetInfo[type], function (f, i) { return f.id !== data.id; });
+                            return lwm_jQuery.grep(config.gameData.fleetInfo[type], function (fleet, i) { return fleet.id === data.id; }).length !== 0;
+                        } else {
+                            //drone
+                            config.gameData.fleetInfo[type] = lwm_jQuery.grep(config.gameData.fleetInfo[type], function (f, i) { return f.galaxy !== data.galaxy || f.system !== data.system || f.planet !== data.planet; });
+                            return lwm_jQuery.grep(config.gameData.fleetInfo[type], function (fleet, i) { return fleet.galaxy === data.galaxy && fleet.system === data.system && fleet.planet === data.planet; }).length !== 0;
+                        }
                     };
                     types.forEach(function (type) {
                         if (typeof config.gameData.fleetInfo[type] === "undefined") config.gameData.fleetInfo[type] = [];
                         lwm_jQuery.each(fleetData[type], function (i, fleet) {
                             //if fleet is present, delete and add to update seconds and time
-                            if (checkForFleet(type, fleet.id)) config.gameData.fleetInfo[type] = lwm_jQuery.grep(config.gameData.fleetInfo[type], function (f, i) { return f.id !== fleet.id; });
+                            checkForFleet(type, fleet);
                             config.gameData.fleetInfo[type].push(fleet);
                         });
                         config.gameData.fleetInfo[type] = lwm_jQuery.grep(config.gameData.fleetInfo[type], function (fleet, i) { return fleet.Status === "3" || moment(fleet.ComeTime || fleet.DefendingTime || fleet.time).valueOf() > moment().valueOf(); });
