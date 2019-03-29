@@ -3,7 +3,7 @@
 ## v0.8.0
 
 - Save trades are now recognized by the script and can no longer be canceled from another planet.
-- Fixed a bug that sometimes incorrectly found trades to exceed storage capacities.
+- Fixed multiple bugs that sometimes incorrectly found trades to exceed storage capacities.
 - Drone types without an amount do no longer show up in the spy listing.
 - Added the ability to auto save raid priorities.
 

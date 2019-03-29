@@ -12,7 +12,10 @@
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e07de5c0a13d416fda88134f999baccfee6f7059/assets/jquery.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js
-// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e14676f185645044cf240ee7f23d15c51a6700b1/last-war-manager.css
+// @require       https://cdn.jsdelivr.net/npm/pouchdb@7.0.0/dist/pouchdb.min.js
+// @require       https://cdn.jsdelivr.net/npm/pouchdb-replication-stream@1.2.9/dist/pouchdb.replication-stream.min.js
+// @require       https://cdn.jsdelivr.net/npm/pouchdb-load@1.4.6/dist/pouchdb.load.min.js
+// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@76c508949637394e861a2efe945749aa6f6f2f3a/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
 // @grant         GM.setValue
@@ -51,6 +54,10 @@ var lwm_jQuery = window.jQuery;
 
 function siteManager() {
     var site_jQuery = null;
+
+    var pouchManager = (function () {
+        //to do...
+    })();
 
     var driveManager = (function() {
         var gapi = null;
@@ -178,6 +185,7 @@ function siteManager() {
                 overview_planetresources: GM_config.get('overview_planetresources'),
                 overview_planetstatus: GM_config.get('overview_planetstatus'),
                 message_spylinks: GM_config.get('message_spylinks'),
+                trade_highlights: GM_config.get('trade_highlights'),
                 confirm_drive_sync: GM_config.get('confirm_drive_sync'),
                 confirm_production: GM_config.get('confirm_production'),
                 confirm_research: GM_config.get('confirm_research'),
@@ -334,6 +342,13 @@ function siteManager() {
                 'type': 'checkbox',
                 'default': true
             },
+            'trade_highlights':
+            {
+                'label': 'Highlight trades and resources that would exceed storage capacities.',
+                'labelPos': 'right',
+                'type': 'checkbox',
+                'default': true
+            },
             'fleet_saveprios':
             {
                 'label': 'Save the last resource raid priorities.',
@@ -431,6 +446,7 @@ function siteManager() {
                     if (typeof data.menu.overview_planetresources !== "undefined") GM_config.set('overview_planetresources', data.menu.overview_planetresources);
                     if (typeof data.menu.overview_planetstatus !== "undefined") GM_config.set('overview_planetstatus', data.menu.overview_planetstatus);
                     if (typeof data.menu.message_spylinks !== "undefined") GM_config.set('message_spylinks', data.menu.message_spylinks);
+                    if (typeof data.menu.trade_highlights !== "undefined") GM_config.set('trade_highlights', data.menu.trade_highlights);
                     if (typeof data.menu.confirm_drive_sync !== "undefined") GM_config.set('confirm_drive_sync', data.menu.confirm_drive_sync);
                     if (typeof data.menu.confirm_production !== "undefined") GM_config.set('confirm_production', data.menu.confirm_production);
                     if (typeof data.menu.confirm_research !== "undefined") GM_config.set('confirm_research', data.menu.confirm_research);
@@ -1308,25 +1324,27 @@ function siteManager() {
                             var $tradeDiv = lwm_jQuery('#div_'+offer.trade_id);
                             var isMyPlanet = offer.galaxy == config.gameData.planetCoords.galaxy && offer.system == config.gameData.planetCoords.system && offer.planet == config.gameData.planetCoords.planet;
                             $.each(currentRes, function (i, amount) {
-                                if (offer.my === 1 && (incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+6]) : 0)) > capacities[i]) {
-                                    $tradeDiv.find('tr:eq('+(i+5)+') td').last().addClass('redBackground');
-                                    $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
-                                }
-                                if (offer.my === 1 && (incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+12]) : 0)) > capacities[i]) {
-                                    $tradeDiv.find('tr:eq('+(i+5)+') td').first().addClass('redBackground');
-                                    $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
-                                }
-                                if (isMyPlanet && offer.my === 0  && (incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+12]) : 0)) > capacities[i]) {
-                                    $tradeDiv.find('tr:eq('+(i+5)+') td').first().addClass('redBackground');
-                                    $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
-                                }
-                                if (offer.my === 0  && (incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+6]) : 0)) > capacities[i]) {
-                                    $tradeDiv.find('tr:eq('+(i+5)+') td').last().addClass('redBackground');
-                                    $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
+                                if (GM_config.get('trade_highlights')) {
+                                    if (offer.my === 1 && (incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+6]) : 0)) > capacities[i]) {
+                                        $tradeDiv.find('tr:eq('+(i+5)+') td').last().addClass('redBackground');
+                                        $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
+                                    }
+                                    if (offer.my === 1 && (incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+12]) : 0)) > capacities[i]) {
+                                        $tradeDiv.find('tr:eq('+(i+5)+') td').first().addClass('redBackground');
+                                        $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
+                                    }
+                                    if (isMyPlanet && offer.my === 0  && (incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+12]) : 0)) > capacities[i]) {
+                                        $tradeDiv.find('tr:eq('+(i+5)+') td').first().addClass('redBackground');
+                                        $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
+                                    }
+                                    if (offer.my === 0  && (incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+6]) : 0)) > capacities[i]) {
+                                        $tradeDiv.find('tr:eq('+(i+5)+') td').last().addClass('redBackground');
+                                        $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
+                                    }
                                 }
                             });
                             //remove deny button from save trades of other planets
-                            if (offer.comment === '###LWM::SAVE###' && !isMyPlanet) $tradeDiv.find('tr').last().remove();
+                            if (offer.comment === '###LWM::SAVE###' && !isMyPlanet && !offer.my) $tradeDiv.find('tr').last().remove();
                             if (offer.comment === '###LWM::SAVE###' && isMyPlanet) $tradeDiv.find('.buttonRow').first().remove();
                         });
 
@@ -1675,7 +1693,7 @@ function siteManager() {
                 minHour = minHour.minute() || minHour.second() || minHour.millisecond() ? minHour.add(1, 'hour').startOf('hour') : minHour.startOf('hour');
 
                 //build time choose select
-                var $select = lwm_jQuery('<select id="lwm_fleet_selecttime"><option value="" selected>Pick Return Time</option></select>');
+                var $select = lwm_jQuery('<select id="lwm_fleet_selecttime"><option value="" selected>Pick Return Hour</option></select>');
                 for (var i = 0; i < 21; i++) {
                     $select.append('<option>'+minHour.format("YYYY-MM-DD HH:mm:ss")+'</option>');
                     //increment hour for next option
@@ -1697,6 +1715,7 @@ function siteManager() {
                 var calcFleetTime = function () {
                     disableOptions();
                     var $val = lwm_jQuery('#lwm_fleet_selecttime').val();
+                    var $momentVal = moment($val).add(lwm_jQuery('#lwm_fleet_min').val(), 'minute');
                     var $oneway = lwm_jQuery('#lwm_fleet_oneway').is(':checked');
                     if (!$val) {
                         lwm_jQuery('.changeTime').val(maxSpeed);
@@ -1710,7 +1729,7 @@ function siteManager() {
                         }
                     } else {
                         //calculate speed for given return time
-                        var timeDiffInSeconds = moment($val).diff(moment(), "seconds") / ($oneway ? 1 : 2);
+                        var timeDiffInSeconds = $momentVal.diff(moment(), "seconds") / ($oneway ? 1 : 2);
                         var minSpeedInSeconds = (minTimeInSeconds / (2-(maxSpeed/100)) * (2-(20/100)));
                         if (minSpeedInSeconds < timeDiffInSeconds || minTimeInSeconds > timeDiffInSeconds) {
                             alert('WARNING: Choice is not possible due to fleet speed');
@@ -1727,7 +1746,7 @@ function siteManager() {
                                 break;
                             case "1":
                                 //ignore one way
-                                timeDiffInSeconds = moment($val).diff(moment(), "seconds");
+                                timeDiffInSeconds = $momentVal.diff(moment(), "seconds");
                                 sendSpeed = 0;
                                 returnSpeed = 0;
                                 curSpeed = 20;
@@ -1745,7 +1764,7 @@ function siteManager() {
                                 break;
                             case "2":
                                 //ignore one way
-                                timeDiffInSeconds = moment($val).diff(moment(), "seconds");
+                                timeDiffInSeconds = $momentVal.diff(moment(), "seconds");
                                 sendSpeed = 0;
                                 returnSpeed = 0;
                                 curSpeed = 20;
@@ -1767,14 +1786,19 @@ function siteManager() {
                     }
                 }
 
+                var $selectWrap = lwm_jQuery('<div></div>');
+                $selectWrap.append($select);
                 var $wrapper = lwm_jQuery('<div>');
-                $wrapper.append($select);
-                $wrapper.append('<label><input type="checkbox" id="lwm_fleet_oneway">Oneway</label>');
-                $wrapper.append('<select id="lwm_fleet_type"><option value="0">Send / Return Balanced</option><option value="1">Send Fast/ Return Slow</option><option value="2">Send Slow/Return Fast</option></select>');
+                $wrapper.attr('id', 'lwm_fleet_timer_wrapper');
+                $wrapper.append($selectWrap);
+                $wrapper.append('<div><span>Pick Return Minute: </span><input id="lwm_fleet_min" type="number" value="0" min="0" max="59" /></div>');
+                $wrapper.append('<div><select id="lwm_fleet_type"><option value="0">Send / Return Balanced</option><option value="1">Send Fast/ Return Slow</option><option value="2">Send Slow/Return Fast</option></select></div>');
+                $wrapper.append('<div><label style="display:flex;align-items:center;"><input type="checkbox" id="lwm_fleet_oneway">Oneway</label></div>');
 
                 $select.change(function () { calcFleetTime(); });
                 $wrapper.find('#lwm_fleet_oneway').change(function () { calcFleetTime(); lwm_jQuery('#lwm_fleet_type').prop('disabled', lwm_jQuery(this).is(':checked')); });
                 $wrapper.find('#lwm_fleet_type').change(function () { calcFleetTime(); });
+                $wrapper.find('#lwm_fleet_min').change(function () { calcFleetTime(); });
 
                 lwm_jQuery('#timeFlote').after($wrapper);
 
@@ -2299,6 +2323,7 @@ function siteManager() {
         },
         //checks whether trades would surpass resource capacities and highlights a warning
         checkCapacities: function () {
+            if (!GM_config.get('trade_highlights')) return;
             var tradeInfo = config.gameData.tradeInfo;
             var capacities = unsafeWindow.resourceCapacityArray;
             var resSpans = [lwm_jQuery('#roheisenAmount'),lwm_jQuery('#kristallAmount'),lwm_jQuery('#frubinAmount'),lwm_jQuery('#orizinAmount'),lwm_jQuery('#frurozinAmount'),lwm_jQuery('#goldAmount')];
