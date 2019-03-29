@@ -1005,11 +1005,14 @@ td.constructionName,
 #lwm_fleet_timer_wrapper .float-right {
   float: right;
 }
-#lwm_fleet_timer_wrapper div,
-#lwm_fleet_timer_wrapper select {
-  height: 20px;
+#lwm_fleet_timer_wrapper div {
   width: 45%;
   margin-left: 5%;
+}
+#lwm_fleet_timer_wrapper div,
+#lwm_fleet_timer_wrapper select,
+#lwm_fleet_timer_wrapper input {
+  height: 20px;
 }
 /* FLEET END */
 /* SETTINGS */
