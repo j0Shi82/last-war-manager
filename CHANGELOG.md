@@ -7,6 +7,7 @@
 - Drone types without an amount do no longer show up in the spy listing.
 - Added the ability to auto save raid priorities.
 - The fleet addon now shows fleet activity for all planets, not just the current one.
+- Added an option to exclude drones from fleet activity.
 
 ## v0.7.0
 

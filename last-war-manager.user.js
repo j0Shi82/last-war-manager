@@ -181,6 +181,7 @@ function siteManager() {
             saveObj.menu = {
                 addon_clock: GM_config.get('addon_clock'),
                 addon_fleet: GM_config.get('addon_fleet'),
+                addon_fleet_exclude_drones: GM_config.get('addon_fleet_exclude_drones'),
                 confirm_const: GM_config.get('confirm_const'),
                 overview_planetresources: GM_config.get('overview_planetresources'),
                 overview_planetstatus: GM_config.get('overview_planetstatus'),
@@ -273,6 +274,13 @@ function siteManager() {
                 'type': 'checkbox',
                 'default': true
             },
+            'addon_fleet_exclude_drones':
+            {
+                'label': 'Exclude drone actitivy',
+                'labelPos': 'right',
+                'type': 'checkbox',
+                'default': false
+            },
             'addon_clock':
             {
                 'label': 'Make clock intervals not auto-refresh pages',
@@ -324,42 +332,42 @@ function siteManager() {
             'overview_planetresources':
             {
                 'section': [GM_config.create('Page Specific'), 'Turn page specific add-ons on and off.'],
-                'label': 'Show resources on overview page.',
+                'label': 'OVERVIEW: Show resources on overview page.',
                 'labelPos': 'right',
                 'type': 'checkbox',
                 'default': true
             },
             'overview_planetstatus':
             {
-                'label': 'Show energy and building slots on overview page.',
+                'label': 'OVERVIEW: Show energy and building slots on overview page.',
                 'labelPos': 'right',
                 'type': 'checkbox',
                 'default': true
             },
             'overview_planetnames':
             {
-                'label': 'Show planet names on overview page.',
+                'label': 'OVERVIEW: Show planet names on overview page.',
                 'labelPos': 'right',
                 'type': 'checkbox',
                 'default': true
             },
             'message_spylinks':
             {
-                'label': 'Show direct links to spy and combat reports in message lists (WARNING: This marks all reports as read on first visit).',
+                'label': 'MESSAGES: Show direct links to spy and combat reports in message lists (WARNING: This marks all reports as read on first visit).',
                 'labelPos': 'right',
                 'type': 'checkbox',
                 'default': true
             },
             'trade_highlights':
             {
-                'label': 'Highlight trades and resources that would exceed storage capacities.',
+                'label': 'TRADES: Highlight trades and resources that would exceed storage capacities.',
                 'labelPos': 'right',
                 'type': 'checkbox',
                 'default': true
             },
             'fleet_saveprios':
             {
-                'label': 'Save the last resource raid priorities.',
+                'label': 'FLEET: Save the last resource raid priorities.',
                 'labelPos': 'right',
                 'type': 'checkbox',
                 'default': true
@@ -384,7 +392,8 @@ function siteManager() {
                     if (driveManager.isSignedIn()) driveManager.signOut();
                 }
             }
-        }
+        },
+        'css': '#lwmSettings_addon_fleet_exclude_drones_var { margin-left: 20px !important; }',
     });
 
     var config = {
@@ -449,7 +458,7 @@ function siteManager() {
                 if (typeof data.calendar !== "undefined") config.lwm.calendar = data.calendar;
                 if (typeof data.menu !== "undefined") {
                     Object.keys(data.menu).forEach(function(key) {
-                        GM_config.set(key, data.menu[key]);
+                        if (typeof GM_config.fields[key] !== "undefined") GM_config.set(key, data.menu[key]);
                     });
                 }
 
@@ -2463,17 +2472,19 @@ function siteManager() {
                     lwm_jQuery('#folottenbewegungenPageDiv table tbody').append('<tr style='+trStyle+'><td>'+fleetInfoString+'</td><td>'+fleetTimeString+'</td><td id=\''+fleetClock+'\'>'+moment.duration(moment(fleetTimeString).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+'</td></tr>');
                 });
 
-                lwm_jQuery.each(config.gameData.fleetInfo.all_informations, function(i, fleetData) {
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + " )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
-                });
+                if (!GM_config.get('addon_fleet_exclude_drones')) {
+                    lwm_jQuery.each(config.gameData.fleetInfo.all_informations, function(i, fleetData) {
+                        lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + " )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
+                    });
 
-                lwm_jQuery.each(config.gameData.fleetInfo.dron_observationens, function(i, fleetData) {
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.planet + " )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
-                });
+                    lwm_jQuery.each(config.gameData.fleetInfo.dron_observationens, function(i, fleetData) {
+                        lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.planet + " )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
+                    });
 
-                lwm_jQuery.each(config.gameData.fleetInfo.dron_planetenscanners, function(i, fleetData) {
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.planet + " )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
-                });
+                    lwm_jQuery.each(config.gameData.fleetInfo.dron_planetenscanners, function(i, fleetData) {
+                        lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.planet + " )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
+                    });
+                }
 
                 lwm_jQuery.each(config.gameData.fleetInfo.buy_ships_array, function(i, fleetData) {
                     lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Flotte vom Handelsposten wird überstellt nach " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + ".</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
