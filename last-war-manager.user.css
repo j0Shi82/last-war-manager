@@ -427,6 +427,7 @@
     background-color: #4290a157;
     font-size: 18px;
     font-weight: bold;
+    white-space: normal;
   }
   .wordBreak {
     word-break: normal;
