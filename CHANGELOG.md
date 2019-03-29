@@ -6,6 +6,7 @@
 - Fixed multiple bugs that sometimes incorrectly found trades to exceed storage capacities.
 - Drone types without an amount do no longer show up in the spy listing.
 - Added the ability to auto save raid priorities.
+- The fleet addon now shows fleet activity for all planets, not just the current one.
 
 ## v0.7.0
 
