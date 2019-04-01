@@ -11,7 +11,7 @@
 
 ## v0.7.0
 
-- The production page no longer has the shipdock in its submenu
+- The production page no longer has the ship dock in its submenu
 - The fleet page now turned to a calendar page that lists all running tasks
   - Per default, the calendar only shows fleet activity, but it can list buildings, research, production, etc. as well
 - The fleet page was scratched from all submenus
@@ -28,7 +28,7 @@
 - Resources on the main page get highlighted when running trade would exceed their storage capacity
 
 - **OBSERVATIONS**
-  - Ability to sort obervations by coords
+  - Ability to sort observations by coords
 - **MESSAGES**
   - Direct links to combat and spy reports from the message root folder
 - **GALAXY**

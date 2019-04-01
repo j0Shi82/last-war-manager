@@ -198,7 +198,7 @@ function siteManager() {
             if (config.gameData.playerID == 186 && Object.keys(config.lwm.lastTradeCoords[config.gameData.playerID]).length < 5) {
                 alert( 'save might have been reset!');
                 return;
-            }
+            };
 
             console.log('gapi.client.request',saveObj);
             gapi.client.request({
@@ -407,6 +407,10 @@ function siteManager() {
             fleetaddon: false,
             lastLoadedPage: null
         },
+        unsafeWindow: {
+            changeContent: function () {},
+            changeInboxContent: function () {}
+        },
         currentSavedProject: {
             fe: 0,
             kris: 0,
@@ -434,6 +438,7 @@ function siteManager() {
             overviewInfo: {},
             messageData: {},
             fleetInfo: {},
+            fleetSendData: {},
             observationInfo: {},
             tradeInfo: {}
         },
@@ -643,6 +648,7 @@ function siteManager() {
                         lwm_jQuery.each(fleetData[type], function (i, fleet) {
                             //if fleet is present, delete and add to update seconds and time
                             checkForFleet(type, fleet);
+                            fleet.homePlanet = config.gameData.planetCoords.string;
                             config.gameData.fleetInfo[type].push(fleet);
                         });
                         config.gameData.fleetInfo[type] = lwm_jQuery.grep(config.gameData.fleetInfo[type], function (fleet, i) { return fleet.Status === "3" || moment(fleet.ComeTime || fleet.DefendingTime || fleet.time).valueOf() > moment().valueOf(); });
@@ -659,6 +665,8 @@ function siteManager() {
         // load site jQuery as well, need this to make API calls
         lwm_jQuery(window).load(function () {
             site_jQuery = unsafeWindow.jQuery;
+            config.unsafeWindow.changeContent = unsafeWindow.changeContent;
+            config.unsafeWindow.changeInboxContent = unsafeWindow.changeInboxContent;
             site_jQuery.ajaxSetup({ cache: true });
 
             global.uiChanges();
@@ -688,9 +696,6 @@ function siteManager() {
             site_jQuery(document).ajaxSend(function( event, xhr, settings ) {
                 var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
-                //prevent the same page to get processed twice
-                if (config.loadStates.content && config.loadStates.lastLoadedPage === page) return;
-
                 if (settings.url.search(/lwm_ignoreProcess/) !== -1) {
                     console.log('lwm_ignoreProcess... skipping');
                     return;
@@ -698,12 +703,14 @@ function siteManager() {
                 // first ubersicht load is usually not caught by our wrapper. But in case it is, return because we invoke this manually
                 if (firstLoad && page === 'ubersicht') return;
 
-                console.log(page);
-
                 if ((settings.url.match(/content/) || processPages.indexOf(page) !== -1) && ignorePages.indexOf(page) === -1) {
-                    if (!preserveSubmenuPages.includes(page)) submenu.clear();
-                    lwm_jQuery('#all').hide();
-                    lwm_jQuery('.loader').show();
+                    //prevent the same page to get processed twice
+                    if (!config.loadStates.content || config.loadStates.lastLoadedPage !== page) {
+                        console.log(page);
+                        if (!preserveSubmenuPages.includes(page)) submenu.clear();
+                        lwm_jQuery('#all').hide();
+                        lwm_jQuery('.loader').show();
+                    }
                 }
             });
 
@@ -743,9 +750,6 @@ function siteManager() {
             site_jQuery(document).ajaxComplete(function( event, xhr, settings ) {
                 var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
-                //prevent the same page to get processed twice
-                if (config.loadStates.content && config.loadStates.lastLoadedPage === page) return;
-
                 if (settings.url.search(/lwm_ignoreProcess/) !== -1) {
                     console.log('lwm_ignoreProcess... skipping');
                     return;
@@ -755,7 +759,10 @@ function siteManager() {
 
                 var preserveSubmenu = preserveSubmenuPages.includes(page);
 
-                if ((settings.url.match(/content/) || processPages.indexOf(page) !== -1) && ignorePages.indexOf(page) === -1) process(page, xhr, preserveSubmenu);
+                if ((settings.url.match(/content/) || processPages.indexOf(page) !== -1) && ignorePages.indexOf(page) === -1) {
+                    //prevent the same page to get processed twice
+                    if (!config.loadStates.content || config.loadStates.lastLoadedPage !== page) process(page, xhr, preserveSubmenu);
+                }
             });
 
             site_jQuery(window).focus(function () { addOns.load(); });
@@ -770,6 +777,9 @@ function siteManager() {
         config.loadStates.content = true;
         config.loadStates.lastLoadedPage = page;
         config.loadStates.addons = true;
+        //override changeContent to avoid multiple page calls
+        unsafeWindow.changeContent = function () {};
+        unsafeWindow.changeInboxContent = function () {};
         //reject current promises to cancel pending loads
         if (config.promises.content !== null) config.promises.content.reject();
         if (config.promises.addons !== null) config.promises.addons.reject();
@@ -785,7 +795,9 @@ function siteManager() {
                 lwm_jQuery('.loader.lwm-firstload').remove();
                 firstLoad = false;
             }
-            lwm_jQuery(unsafeWindow).focus();
+            lwm_jQuery('#all').focus();
+            unsafeWindow.changeContent = config.unsafeWindow.changeContent;
+            unsafeWindow.changeInboxContent = config.unsafeWindow.changeInboxContent;
 
             if (page === 'get_galaxy_view_info') {
                 lwm_jQuery("html, body").animate({ scrollTop: lwm_jQuery(document).height() }, 250);
@@ -800,7 +812,9 @@ function siteManager() {
                 lwm_jQuery('.loader.lwm-firstload').remove();
                 firstLoad = false;
             }
-            lwm_jQuery(unsafeWindow).focus();
+            lwm_jQuery('#all').focus();
+            unsafeWindow.changeContent = config.unsafeWindow.changeContent;
+            unsafeWindow.changeInboxContent = config.unsafeWindow.changeInboxContent;
         });
 
         if (!preserveSubmenu) {
@@ -1401,6 +1415,60 @@ function siteManager() {
                             config.gameData.tradeInfo.trade_offers = config.gameData.tradeInfo.trade_offers.filter(function (offer) { return offer.trade_id != id; });
                         });
 
+                        //add accept and deny all button
+                        $html = $('<div class="tableFilters">'+
+                                  '    <div class="tableFilters_header">Optionen</div>'+
+                                  '    <div class="tableFilters_content">'+
+                                  '        <div class="buttonRowInbox" id="lwm_trades_accept_all"><a class="formButton" href="javascript:void(0)">Accept All Trades</a></div>'+
+                                  '        <div class="buttonRowInbox" id="lwm_trades_deny_all"><a class="formButton" href="javascript:void(0)">Deny All Trades</a></div>'+
+                                  '    </div>'+
+                                  '</div>');
+                        $html.find('#lwm_trades_accept_all').click(function () {
+                            if (confirm('WARNING: This will accept ALL trades!')) {
+                                var acceptPromises = [];
+                                lwm_jQuery.each(lwm_jQuery('[onclick*=acceptTradeOffer]'), function () {
+                                    var trade_offer_id = lwm_jQuery(this).attr('onclick').match(/\d+/)[0];
+                                    var call = site_jQuery.ajax({
+                                        type: "POST",
+                                        dataType: "json",
+                                        url: "./ajax_request/accept_trade_offer.php",
+                                        data: {"trade_offer_id": trade_offer_id}
+                                    });
+                                    acceptPromises.push(call);
+                                });
+                                lwm_jQuery.when.apply(lwm_jQuery, acceptPromises).then(function () { changeContent('trade_offer', 'first', 'Handel'); });
+                            }
+                        });
+
+                        $html.find('#lwm_trades_deny_all').click(function () {
+                            if (confirm('WARNING: This will cancel/deny ALL trades!')) {
+                                var declinePromises = [];
+                                lwm_jQuery.each(lwm_jQuery('[onclick*=declineTradeOffer]'), function () {
+                                    var trade_offer_id = lwm_jQuery(this).attr('onclick').match(/\d+/)[0];
+                                    var call = site_jQuery.ajax({
+                                        type: "POST",
+                                        dataType: "json",
+                                        url: "./ajax_request/decline_trade_offer.php",
+                                        data: {"trade_offer_id": trade_offer_id}
+                                    });
+                                    declinePromises.push(call);
+                                });
+                                lwm_jQuery.each(lwm_jQuery('[onclick*=cancelTradeOffer]'), function () {
+                                    var trade_offer_id = lwm_jQuery(this).attr('onclick').match(/\d+/)[0];
+                                    var call = site_jQuery.ajax({
+                                        type: "POST",
+                                        dataType: "json",
+                                        url: "./ajax_request/delete_trade_offer.php",
+                                        data: {"trade_offer_id": trade_offer_id}
+                                    });
+                                    declinePromises.push(call);
+                                });
+                                lwm_jQuery.when.apply(lwm_jQuery, declinePromises).then(function () { changeContent('trade_offer', 'first', 'Handel'); });
+                            }
+                        });
+
+                        lwm_jQuery('#tradeOfferDiv').before($html);
+
                         config.loadStates.content = false;
                     }).catch(function (e) {
                         console.log(e);
@@ -1731,6 +1799,9 @@ function siteManager() {
             });
         },
         fleetSend: function (data) {
+            //save data so we have it available when browsing back and forth
+            var data = data || config.gameData.fleetSendData;
+            config.gameData.fleetSendData = data;
             config.promises.content = getPromise('#flottenInformationPage');
             config.promises.content.then(function () {
                 var maxSpeed = data.max_speed_transport;
@@ -1848,6 +1919,53 @@ function siteManager() {
                 $wrapper.find('#lwm_fleet_min').change(function () { calcFleetTime(); });
 
                 lwm_jQuery('#timeFlote').after($wrapper);
+
+                //when next is clicked, remove wrapper
+                lwm_jQuery('#nextSite').on('click', function () {
+                    $wrapper.remove();
+                    lwm_jQuery('#nextSite').off('click');
+                    lwm_jQuery('#backSite').on('click', function () {
+                        pageTweaks.fleetSend();
+                        //has to be triggered, otherwise some stuff doesn't work => flotten_information.js
+                        var fii = unsafeWindow.flotten_informations_infos;
+                        site_jQuery( "#send" ).change(function() {
+                            fii.speed_send = parseInt(site_jQuery("#send").val());
+                            if(fii.speed_send > fii.sped_transport)
+                            {
+                                fii.speed_send = fii.sped_transport;
+                            }
+                            else if(fii.speed_send < 20)
+                            {
+                                fii.speed_send = 20;
+                            }
+                            site_jQuery("#send").val(fii.speed_send);
+                            site_jQuery.post('./ajax_request/count_time.php', {id_broda: fii.id_broda, tip_broda: fii.tip_broda,Units: fii.Units, id_flote: fii.id_flote, speed: fii.speed_send},function (data) {
+                                site_jQuery( "#sendTime" ).empty();
+                                fii.send_time = data;
+                                site_jQuery( "#sendTime" ).text("Flugzeit: "+data+" Stunden");
+                            });
+                        });
+
+                        site_jQuery( "#back" ).change(function() {
+                            fii.speed_back = parseInt(site_jQuery("#back").val());
+                            if(fii.speed_back > fii.sped_transport)
+                            {
+                                fii.speed_back = fii.sped_transport;
+                            }
+                            else if(fii.speed_back < 20)
+                            {
+                                fii.speed_back = 20;
+                            }
+                            site_jQuery("#back").val(fii.speed_back);
+                            site_jQuery.post('./ajax_request/count_time.php', {id_broda: fii.id_broda, tip_broda: fii.tip_broda,Units: fii.Units, id_flote: fii.id_flote, speed: fii.speed_back},function (data) {
+                                site_jQuery( "#backTime" ).empty();
+                                fii.back_time = data;
+                                site_jQuery( "#backTime" ).text("Flugzeit: "+data+" Stunden");
+                            });
+                        });
+                        lwm_jQuery('#backSite').off('click');
+                    });
+                });
 
                 config.loadStates.content = false;
             }).catch(function (e) {
@@ -2482,20 +2600,20 @@ function siteManager() {
 
                 if (!GM_config.get('addon_fleet_exclude_drones')) {
                     lwm_jQuery.each(config.gameData.fleetInfo.all_informations, function(i, fleetData) {
-                        lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + " )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
+                        lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + fleetData.homePlanet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + " )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
                     });
 
                     lwm_jQuery.each(config.gameData.fleetInfo.dron_observationens, function(i, fleetData) {
-                        lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.planet + " )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
+                        lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + fleetData.homePlanet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.planet + " )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
                     });
 
                     lwm_jQuery.each(config.gameData.fleetInfo.dron_planetenscanners, function(i, fleetData) {
-                        lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.planet + " )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
+                        lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + fleetData.homePlanet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.planet + " )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
                     });
                 }
 
                 lwm_jQuery.each(config.gameData.fleetInfo.buy_ships_array, function(i, fleetData) {
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Flotte vom Handelsposten wird überstellt nach " + config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet + ".</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Flotte vom Handelsposten wird überstellt nach " + fleetData.homePlanet + ".</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
                 });
 
                 lwm_jQuery.each(config.gameData.fleetInfo.fleet_informations, function(i, fleetData) {
@@ -2504,7 +2622,7 @@ function siteManager() {
                     var fleetClock      = '';
                     var oppCoords       = fleetData.Galaxy_send + "x" + fleetData.System_send + "x" + fleetData.Planet_send;
                     var oppNick         = fleetData.Nickname_send
-                    var ownCoords       = config.gameData.planetCoords.galaxy + "x" + config.gameData.planetCoords.system + "x" + config.gameData.planetCoords.planet;
+                    var ownCoords       = fleetData.homePlanet;
                     var lkomLink        = '<i class="fas fa-wifi faa-flash animated" onclick="changeContent(\'flotten_view\', \'third\', \'Flotten-Kommando\', \'' + fleetData.id + '\')" style="cursor:hand;margin-right:5px;color:#66f398"></i>';
                     switch (fleetData.Type) {
                         case '1':
@@ -3021,7 +3139,7 @@ function siteManager() {
         throwError: function (m) {
             if (lwm_jQuery('#all .lwm-loaderror').length) return;
             var m = m || 'Something went wrong while loading the page. Not all features might be fully functional!';
-            lwm_jQuery('#all').prepend('<div class="pageContent lwm-loaderror" style="margin-bottom: 20px;><i class="fas fa-exclamation-triangle" style="font-color: rgba(255, 0, 0, 0.75);"></i>'+m+'</div>');
+            lwm_jQuery('#all').prepend('<div class="lwm-loaderror" style="margin-bottom: 20px;background-color: #792121;border: 1px solid rgba(124, 243, 241, 0.5);padding: 2px;"><i class="fas fa-exclamation-triangle" style="margin-right: 5px;"></i>'+m+'</div>');
         }
     }
 
