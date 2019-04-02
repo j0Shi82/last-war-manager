@@ -1202,3 +1202,8 @@ body#lwmSettings .section_desc {
   }
 }
 /* CALENDAR END*/
+/* UEBERSICHT */
+#uberPageDiv table {
+  overflow: hidden;
+}
+/* UEBERSICHT END */
