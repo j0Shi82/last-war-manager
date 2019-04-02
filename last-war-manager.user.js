@@ -15,7 +15,7 @@
 // @require       https://cdn.jsdelivr.net/npm/pouchdb@7.0.0/dist/pouchdb.min.js
 // @require       https://cdn.jsdelivr.net/npm/pouchdb-replication-stream@1.2.9/dist/pouchdb.replication-stream.min.js
 // @require       https://cdn.jsdelivr.net/npm/pouchdb-load@1.4.6/dist/pouchdb.load.min.js
-// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@76c508949637394e861a2efe945749aa6f6f2f3a/last-war-manager.css
+// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@6b37f350355c564088acb8200db6647641a7f03a/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
 // @grant         GM.setValue
@@ -889,6 +889,7 @@ function siteManager() {
                         lwm_jQuery(this).remove();
                         return true;
                     }
+                    lwm_jQuery(this).find('i').remove(); //remove icons to avoid situations in which buttons could have more than one icon
                     switch (lwm_jQuery(this).attr('data-page')) {
                         case 'trade_offer': lwm_jQuery(this).prepend('<i class="fas fa-handshake"></i>'); break;
                         case 'handelsposten': lwm_jQuery(this).prepend('<i class="fas fa-dollar-sign"></i>'); break;
@@ -2297,6 +2298,10 @@ function siteManager() {
                 });
                 lwm_jQuery(document).on('click', '.secound_line .navButton', function (e) {
                     lwm_jQuery('.secound_line .navButton').removeClass('activeBox');
+                    lwm_jQuery(e.target).closest('.navButton').addClass('activeBox');
+                });
+                lwm_jQuery(document).on('click', '#veticalLink .navButton', function (e) {
+                    lwm_jQuery('#veticalLink .navButton').removeClass('activeBox');
                     lwm_jQuery(e.target).closest('.navButton').addClass('activeBox');
                 });
 
