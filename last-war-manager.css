@@ -173,6 +173,10 @@ div[data-role="page"] {
     margin-top: 5px !important;
   }
 }
+select {
+  color: #7cf3fd;
+  background-color: rgb(12, 48, 70);
+}
 #Main {
   display: none;
   justify-content: center;
@@ -725,6 +729,7 @@ th.resursiUnos {
 #constructionPageDiv th,
 td.constructionName,
 #researchPageDiv th,
+#tradeOfferDiv th,
 #newTradeOfferDiv th,
 #raumdockDiv th,
 #changeFlottenDiv th,
@@ -759,6 +764,19 @@ td.constructionName,
   tr
   > td:not(:nth-last-child(1)):not(:nth-last-child(2)):not(:first-child) {
   display: none;
+}
+#folottenbewegungenPageDiv select {
+  width: 30%;
+  margin-left: 1.5%;
+  margin-right: 1.5%;
+}
+#folottenbewegungenPageDiv b {
+  text-decoration: underline;
+}
+#folottenbewegungenPageDiv i {
+  float: left;
+  margin-top: 2px;
+  width: 1.5em;
 }
 #planetTable > tbody > tr:nth-child(1) > td:nth-child(4),
 #planetTable > tbody > tr:nth-child(1) > td:nth-child(5),
@@ -917,7 +935,7 @@ td.constructionName,
   margin-top: 3%;
   margin-right: 0;
 }
-#upgradeDefenceDiv [onclick*="upgradeDefenceFunction"] {
+#upgradeDefenceDiv button[onclick*="upgradeDefenceFunction"] {
   display: flex;
   justify-content: center;
   align-items: center;
