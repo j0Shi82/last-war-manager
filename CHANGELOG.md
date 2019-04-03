@@ -8,6 +8,8 @@
 - Added the ability to auto save raid priorities.
 - The fleet addon now shows fleet activity for all planets, not just the current one.
 - Added an option to exclude drones from fleet activity.
+- Added an option to bulk accept / deny trades.
+- Fleets on their way back now have an info icon that leads to the fleet info.
 
 ## v0.7.0
 
