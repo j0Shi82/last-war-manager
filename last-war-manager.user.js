@@ -2556,40 +2556,56 @@ function siteManager() {
                     return;
                 }
 
-                if (lwm_jQuery('#folottenbewegungenPageDiv').length === 0) {
-                    var $div = lwm_jQuery('<div class="pageContent" style="margin-bottom:20px;"><div id="folottenbewegungenPageDiv"><table><tbody><tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>Ankunft</td><td>Restflugzeit</td></tr></tbody></table></div></div>');
-                    $div.hide();
-                    $div.prependTo('#all');
-                    //filter.output();
-                    $div.show();
-                }
-
-                lwm_jQuery('#folottenbewegungenPageDiv table tr:gt(0)').remove();
-
+                //filter function
                 var filter = (function () {
-                    var coords = [];
-                    var types = [];
-                    var status = [];
-
                     var add = function (fleetData) {
-                        if (typeof fleetData.Type !== "undefined" && !types.includes(fleetData.Type)) types.push(fleetData.Type);
-                        if (typeof fleetData.homePlanet !== "undefined" && !coords.includes(fleetData.homePlanet)) coords.push(fleetData.homePlanet);
-                        if (typeof fleetData.Status !== "undefined" && !status.includes(fleetData.Status)) status.push(fleetData.Status);
+                        if (typeof fleetData.Type !== "undefined" &&
+                            !lwm_jQuery.map(lwm_jQuery('#lwm_fleetFilter_coords option'), function (option, i) { return lwm_jQuery(option).val(); }).includes(fleetData.Type))
+                        {
+                            lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_coords').append('<option value="'+fleetData.Type+'">'+fleetData.Type+'</option>');
+                        }
+                        if (typeof fleetData.homePlanet !== "undefined" &&
+                            !lwm_jQuery.map(lwm_jQuery('#lwm_fleetFilter_types option'), function (option, i) { return lwm_jQuery(option).val(); }).includes(fleetData.homePlanet))
+                        {
+                            lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_types').append('<option value="'+fleetData.homePlanet+'">'+fleetData.homePlanet+'</option>');
+                        }
+                        if (typeof fleetData.Status !== "undefined" &&
+                            !lwm_jQuery.map(lwm_jQuery('#lwm_fleetFilter_status option'), function (option, i) { return lwm_jQuery(option).val(); }).includes(fleetData.Status))
+                        {
+                            lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_status').append('<option value="'+fleetData.Status+'">'+fleetData.Status+'</option>');
+                        }
                     }
 
-                    var output = function () {
-                        var $selectCoords = lwm_jQuery('<select id="lwm_fleetFilter_coords><option val="">Pick Coords</option></select>');
-                        var $selectTypes = lwm_jQuery('<select id="lwm_fleetFilter_coords><option val="">Pick Type</option></select>');
-                        var $selectStatus = lwm_jQuery('<select id="lwm_fleetFilter_coords><option val="">Pick Status</option></select>');
-                        coords.forEach(function (coord) { $selectCoords.append('<option val="'+coord+'">'+coord+'</option>'); });
-                        lwm_jQuery('#folottenbewegungenPageDiv table td').first().append($selectCoords).append($selectTypes).append($selectStatus);
+                    var attachSelects = function () {
+                        if (lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_coords').length === 0) {
+                            var $selectCoords = lwm_jQuery('<select id="lwm_fleetFilter_coords"><option val="">Pick Coords</option></select>');
+                            lwm_jQuery('#folottenbewegungenPageDiv table td').first().append($selectCoords);
+                        }
+                        if (lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_types').length === 0) {
+                            var $selectTypes = lwm_jQuery('<select id="lwm_fleetFilter_types"><option val="">Pick Type</option></select>');
+                            lwm_jQuery('#folottenbewegungenPageDiv table td').first().append($selectTypes);
+                        }
+                        if (lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_status').length === 0) {
+                            var $selectStatus = lwm_jQuery('<select id="lwm_fleetFilter_status"><option val="">Pick Status</option></select>');
+                            lwm_jQuery('#folottenbewegungenPageDiv table td').first().append($selectStatus);
+                        }
                     }
 
                     return {
                         add: add,
-                        output: output
+                        attachSelects: attachSelects
                     }
                 })();
+
+                if (lwm_jQuery('#folottenbewegungenPageDiv').length === 0) {
+                    var $div = lwm_jQuery('<div class="pageContent" style="margin-bottom:20px;"><div id="folottenbewegungenPageDiv"><table><tbody><tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>Ankunft</td><td>Restflugzeit</td></tr></tbody></table></div></div>');
+                    $div.hide();
+                    $div.prependTo('#all');
+                    filter.attachSelects();
+                    $div.show();
+                }
+
+                lwm_jQuery('#folottenbewegungenPageDiv table tr:gt(0)').remove();
 
                 lwm_jQuery.each(config.gameData.fleetInfo.send_infos, function(i, fleetData) {
                     filter.add(fleetData);
