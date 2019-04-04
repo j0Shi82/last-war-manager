@@ -11,6 +11,7 @@
 - Added an option to bulk accept / deny trades.
 - Fleets on their way back now have an info icon that leads to the fleet info.
 - Fleet warning distance shows on the overview page.
+- Fleets received a visual upgrade and can be filtered by coords, type, and status.
 
 ## v0.7.0
 
