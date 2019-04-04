@@ -15,7 +15,7 @@
 // @require       https://cdn.jsdelivr.net/npm/pouchdb@7.0.0/dist/pouchdb.min.js
 // @require       https://cdn.jsdelivr.net/npm/pouchdb-replication-stream@1.2.9/dist/pouchdb.replication-stream.min.js
 // @require       https://cdn.jsdelivr.net/npm/pouchdb-load@1.4.6/dist/pouchdb.load.min.js
-// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@6b37f350355c564088acb8200db6647641a7f03a/last-war-manager.css
+// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@98b18fa1cf3c8f44d9723b3e1a5eabbb92f5e9ec/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
 // @grant         GM.setValue
@@ -632,18 +632,6 @@ function siteManager() {
                 GM.getValue('fleetInfo', '{}').then(function (saveData) {
                     config.gameData.fleetInfo = JSON.parse(saveData);
                     var types = ['all_informations','buy_ships_array','dron_observationens','dron_planetenscanners','fleet_informations','send_infos'];
-                    /*var checkForFleet = function (type, data) {
-                        if (data.id) {
-                            //fleet
-                            config.gameData.fleetInfo[type] = lwm_jQuery.grep(config.gameData.fleetInfo[type], function (f, i) { return f.id !== data.id; });
-                            return lwm_jQuery.grep(config.gameData.fleetInfo[type], function (fleet, i) { return fleet.id === data.id; }).length !== 0;
-                        } else {
-                            //drone
-                            config.gameData.fleetInfo[type] = lwm_jQuery.grep(config.gameData.fleetInfo[type], function (f, i) { return f.galaxy !== data.galaxy || f.system !== data.system || f.planet !== data.planet; });
-                            return lwm_jQuery.grep(config.gameData.fleetInfo[type], function (fleet, i) { return fleet.galaxy === data.galaxy && fleet.system === data.system && fleet.planet === data.planet; }).length !== 0;
-                        }
-                    };
-                    */
                     types.forEach(function (type) {
                         if (typeof config.gameData.fleetInfo[type] === "undefined") config.gameData.fleetInfo[type] = [];
                         //delete fleets for planet and re-insert
@@ -659,6 +647,11 @@ function siteManager() {
                     });
                     GM.setValue('fleetInfo', JSON.stringify(config.gameData.fleetInfo));
                     addOns.showFleetActivityGlobally();
+
+                    //add fleet warning to uebersicht
+                    if (unsafeWindow.active_page === 'ubersicht') {
+                        lwm_jQuery('.lwm_fleetwarning').text(fleetData.View_Units + ' SU');
+                    }
                 });
             }
         },
@@ -721,6 +714,8 @@ function siteManager() {
             site_jQuery(document).ajaxComplete(function( event, xhr, settings ) {
                 var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
+                if (xhr.responseJSON == '500') return;
+
                 // save specific responses for later use
                 var saveRequest = ['get_production_info', 'get_aktuelle_production_info', 'get_ubersicht_info',
                                    'get_flottenbewegungen_info','get_inbox_message','get_info_for_observationen_page',
@@ -753,6 +748,8 @@ function siteManager() {
 
             site_jQuery(document).ajaxComplete(function( event, xhr, settings ) {
                 var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
+
+                if (xhr.responseJSON == '500') return;
 
                 if (settings.url.search(/lwm_ignoreProcess/) !== -1) {
                     console.log('lwm_ignoreProcess... skipping');
@@ -1039,6 +1036,9 @@ function siteManager() {
                 if (GM_config.get('addon_clock')) {
                     clearInterval(unsafeWindow.timeinterval_uber);
                 }
+
+                //add fleet warning distance
+                lwm_jQuery('.Posle').last().next().find('tr').last().after('<tr><td class="Pola">Frühwarnung:</td><td class="Pola lwm_fleetwarning"></td></tr>');
 
                 config.loadStates.content = false;
             }).catch(function (e) {
@@ -2476,6 +2476,7 @@ function siteManager() {
                     url: '/ajax_request/get_trade_offers.php?'+uriData,
                     data: { lwm_ignoreProcess: 1 },
                     success: function(data) {
+                        if (data == '500') return;
                         unsafeWindow.Roheisen = parseInt(data.resource['Roheisen']);
                         unsafeWindow.Kristall = parseInt(data.resource['Kristall']);
                         unsafeWindow.Frubin = parseInt(data.resource['Frubin']);
@@ -2558,42 +2559,83 @@ function siteManager() {
 
                 //filter function
                 var filter = (function () {
+                    var lang = {
+                        types: {
+                            1: 'Att',
+                            2: 'Transport',
+                            3: 'Def',
+                            4: 'n/a',
+                            5: 'Transfer'
+                        },
+                        status: {
+                            1: 'Incoming',
+                            2: 'Return',
+                            3: 'Stationary',
+                            4: 'n/a',
+                            5: 'n/a'
+                        }
+                    }
+
+                    var process = function () {
+                        var $tableBase = lwm_jQuery('#folottenbewegungenPageDiv table');
+                        $tableBase.find('tr:gt(0)').data('show', false);
+                        var $coords = lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_coords').val();
+                        var $type = lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_types').val();
+                        var $status = lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_status').val();
+
+                        lwm_jQuery.each($tableBase.find('tr:gt(0)'), function () {
+                            lwm_jQuery(this).data('show',
+                                (lwm_jQuery(this).data('coords') === $coords || $coords === '') &&
+                                (lwm_jQuery(this).data('type') === $type || $type === '') &&
+                                (lwm_jQuery(this).data('status') === $status || $status === ''));
+                        });
+
+                        lwm_jQuery.each($tableBase.find('tr:gt(0)'), function (i, el) {
+                            if (lwm_jQuery(el).data('show')) lwm_jQuery(el).show();
+                            else                             lwm_jQuery(el).hide();
+                        });
+                    }
+
                     var add = function (fleetData) {
                         if (typeof fleetData.Type !== "undefined" &&
-                            !lwm_jQuery.map(lwm_jQuery('#lwm_fleetFilter_coords option'), function (option, i) { return lwm_jQuery(option).val(); }).includes(fleetData.Type))
+                            !lwm_jQuery.map(lwm_jQuery('#lwm_fleetFilter_coords option'), function (option, i) { return lwm_jQuery(option).val(); }).includes(fleetData.homePlanet))
                         {
-                            lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_coords').append('<option value="'+fleetData.Type+'">'+fleetData.Type+'</option>');
+                            lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_coords').append('<option value="'+fleetData.homePlanet+'">'+fleetData.homePlanet+'</option>');
                         }
                         if (typeof fleetData.homePlanet !== "undefined" &&
-                            !lwm_jQuery.map(lwm_jQuery('#lwm_fleetFilter_types option'), function (option, i) { return lwm_jQuery(option).val(); }).includes(fleetData.homePlanet))
+                            !lwm_jQuery.map(lwm_jQuery('#lwm_fleetFilter_types option'), function (option, i) { return lwm_jQuery(option).val(); }).includes(fleetData.Type))
                         {
-                            lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_types').append('<option value="'+fleetData.homePlanet+'">'+fleetData.homePlanet+'</option>');
+                            lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_types').append('<option value="'+fleetData.Type+'">'+lang.types[fleetData.Type]+'</option>');
                         }
                         if (typeof fleetData.Status !== "undefined" &&
                             !lwm_jQuery.map(lwm_jQuery('#lwm_fleetFilter_status option'), function (option, i) { return lwm_jQuery(option).val(); }).includes(fleetData.Status))
                         {
-                            lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_status').append('<option value="'+fleetData.Status+'">'+fleetData.Status+'</option>');
+                            lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_status').append('<option value="'+fleetData.Status+'">'+lang.status[fleetData.Status]+'</option>');
                         }
                     }
 
                     var attachSelects = function () {
                         if (lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_coords').length === 0) {
-                            var $selectCoords = lwm_jQuery('<select id="lwm_fleetFilter_coords"><option val="">Pick Coords</option></select>');
+                            var $selectCoords = lwm_jQuery('<select id="lwm_fleetFilter_coords"><option value="">Pick Coords</option></select>');
+                            $selectCoords.change(function () { process(); })
                             lwm_jQuery('#folottenbewegungenPageDiv table td').first().append($selectCoords);
                         }
                         if (lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_types').length === 0) {
-                            var $selectTypes = lwm_jQuery('<select id="lwm_fleetFilter_types"><option val="">Pick Type</option></select>');
+                            var $selectTypes = lwm_jQuery('<select id="lwm_fleetFilter_types"><option value="">Pick Type</option></select>');
+                            $selectTypes.change(function () { process(); })
                             lwm_jQuery('#folottenbewegungenPageDiv table td').first().append($selectTypes);
                         }
                         if (lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_status').length === 0) {
-                            var $selectStatus = lwm_jQuery('<select id="lwm_fleetFilter_status"><option val="">Pick Status</option></select>');
+                            var $selectStatus = lwm_jQuery('<select id="lwm_fleetFilter_status"><option value="">Pick Status</option></select>');
+                            $selectStatus.change(function () { process(); })
                             lwm_jQuery('#folottenbewegungenPageDiv table td').first().append($selectStatus);
                         }
                     }
 
                     return {
                         add: add,
-                        attachSelects: attachSelects
+                        attachSelects: attachSelects,
+                        process: process
                     }
                 })();
 
@@ -2607,34 +2649,42 @@ function siteManager() {
 
                 lwm_jQuery('#folottenbewegungenPageDiv table tr:gt(0)').remove();
 
+                var iconAtt         = '<i class="fas fa-fighter-jet"></i>';
+                var iconBack        = '<i class="fas fa-long-arrow-alt-left"></i>';
+                var iconSend        = '<i class="fas fa-long-arrow-alt-right"></i>';
+                var iconDef         = '<i class="fas fa-shield-alt"></i>';
+                var iconTrans       = '<i class="fas fa-exchange-alt"></i>';
+                var iconPlanet      = '<i class="fas fa-globe"></i>';
+                var iconDrone       = '<i class="fas fa-search"></i>';
+
                 lwm_jQuery.each(config.gameData.fleetInfo.send_infos, function(i, fleetData) {
                     filter.add(fleetData);
                     var trStyle         = '';
                     var fleetInfoString = '';
                     var fleetTimeString = '';
                     var fleetClock      = '';
-                    var oppCoords       = fleetData.Galaxy + "x" + fleetData.System + "x" + fleetData.Planet;
+                    var oppCoords       = "<b>"+fleetData.Galaxy + "x" + fleetData.System + "x" + fleetData.Planet+"</b>";
                     var oppNick         = fleetData.Nickname_send
-                    var ownCoords       = fleetData.Galaxy_send + "x" + fleetData.System_send + "x" + fleetData.Planet_send;
+                    var ownCoords       = "<b>"+fleetData.Galaxy_send + "x" + fleetData.System_send + "x" + fleetData.Planet_send+"</b>";
                     switch (parseInt(fleetData.Type)) {
                         case 1:
                             trStyle = 'background-color:red;';
-                            fleetInfoString = "Eine Flotte vom Planet "+ oppCoords +" greift deinen Planeten " + ownCoords + " an.";
+                            fleetInfoString = iconAtt+"Eine Flotte vom Planet "+ oppCoords +" greift deinen Planeten " + ownCoords + " an.";
                             fleetTimeString = fleetData.ComeTime;
                             fleetClock =      'clock_' + fleetData.clock_id;
                             break;
                         case 2:
-                            fleetInfoString = "Fremde Flotte vom "+ oppCoords +" ("+oppNick+") transportiert Rohstoffe nach "+ ownCoords +".";
+                            fleetInfoString = iconTrans+"Fremde Flotte vom "+ oppCoords +" ("+oppNick+") transportiert Rohstoffe nach "+ ownCoords +".";
                             fleetTimeString = fleetData.ComeTime;
                             fleetClock =      'clock_' + fleetData.clock_id;
                             break;
                         case 3:
                             if(fleetData.Status == 1) {
-                                fleetInfoString = "Eine Flotte vom Planet "+ oppCoords +" verteidigt deinen Planeten "+ ownCoords +".";
+                                fleetInfoString = iconDef+"Eine Flotte vom Planet "+ oppCoords +" verteidigt deinen Planeten "+ ownCoords +".";
                                 fleetTimeString = fleetData.ComeTime;
                                 fleetClock =      'clock_' + fleetData.clock_id;
                             } else if(fleetData.Status == 3) {
-                                fleetInfoString = "Eine Flotte von Planet "+ oppCoords +" verteidigt deinen Planeten "+ ownCoords +".";
+                                fleetInfoString = iconDef+"Eine Flotte von Planet "+ oppCoords +" verteidigt deinen Planeten "+ ownCoords +".";
                                 fleetTimeString = fleetData.DefendingTime;
                                 if(send_info.DefendingTime == null) fleetClock = "unbefristet";
                                 else
@@ -2644,34 +2694,39 @@ function siteManager() {
                             }
                             break;
                         case 5:
-                            fleetInfoString = "Fremde Flotte von "+ oppCoords +" wird überstellt nach "+ ownCoords +".";
+                            fleetInfoString = iconSend+"Fremde Flotte von "+ oppCoords +" wird überstellt nach "+ ownCoords +".";
                             fleetTimeString = fleetData.ComeTime;
                             fleetClock =      'clock_' + fleetData.clock_id;
                             break;
                     }
                     lwm_jQuery('#folottenbewegungenPageDiv table tbody').append('<tr style='+trStyle+'><td>'+fleetInfoString+'</td><td>'+fleetTimeString+'</td><td id=\''+fleetClock+'\'>'+moment.duration(moment(fleetTimeString).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+'</td></tr>');
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody tr').last().data('type', fleetData.Type || '').data('status', fleetData.Status || '').data('coords', fleetData.Galaxy_send + "x" + fleetData.System_send + "x" + fleetData.Planet_send);
                 });
 
                 if (!GM_config.get('addon_fleet_exclude_drones')) {
                     lwm_jQuery.each(config.gameData.fleetInfo.all_informations, function(i, fleetData) {
                         filter.add(fleetData);
-                        lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + fleetData.homePlanet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + " )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
+                        lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>"+iconDrone+"Eigene " + fleetData.name + " von Planet <b>" + fleetData.homePlanet + "</b> ist unterwegs nach ( <b>" + fleetData.galaxy + "x" + fleetData.system + "</b> )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
+                        lwm_jQuery('#folottenbewegungenPageDiv table tbody tr').last().data('type', fleetData.Type || '').data('status', fleetData.Status || '').data('coords', fleetData.homePlanet);
                     });
 
                     lwm_jQuery.each(config.gameData.fleetInfo.dron_observationens, function(i, fleetData) {
                         filter.add(fleetData);
-                        lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + fleetData.homePlanet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.planet + " )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
+                        lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>"+iconDrone+"Eigene " + fleetData.name + " von Planet <b>" + fleetData.homePlanet + "</b> ist unterwegs nach ( <b>" + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.planet + "</b> )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
+                        lwm_jQuery('#folottenbewegungenPageDiv table tbody tr').last().data('type', fleetData.Type || '').data('status', fleetData.Status || '').data('coords', fleetData.homePlanet);
                     });
 
                     lwm_jQuery.each(config.gameData.fleetInfo.dron_planetenscanners, function(i, fleetData) {
                         filter.add(fleetData);
-                        lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Eigene " + fleetData.name + " von Planet " + fleetData.homePlanet + " ist unterwegs nach ( " + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.planet + " )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
+                        lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>"+iconDrone+"Eigene " + fleetData.name + " von Planet <b>" + fleetData.homePlanet + "</b> ist unterwegs nach ( <b>" + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.planet + "</b> )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
+                        lwm_jQuery('#folottenbewegungenPageDiv table tbody tr').last().data('type', fleetData.Type || '').data('status', fleetData.Status || '').data('coords', fleetData.homePlanet);
                     });
                 }
 
                 lwm_jQuery.each(config.gameData.fleetInfo.buy_ships_array, function(i, fleetData) {
                     filter.add(fleetData);
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>Flotte vom Handelsposten wird überstellt nach " + fleetData.homePlanet + ".</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>"+iconSend+"Flotte vom Handelsposten wird überstellt nach <b>" + fleetData.homePlanet + "</b>.</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody tr').last().data('type', fleetData.Type || '').data('status', fleetData.Status || '').data('coords', fleetData.homePlanet);
                 });
 
                 lwm_jQuery.each(config.gameData.fleetInfo.fleet_informations, function(i, fleetData) {
@@ -2679,16 +2734,16 @@ function siteManager() {
                     var fleetInfoString = '';
                     var fleetTimeString = '';
                     var fleetClock      = '';
-                    var oppCoords       = fleetData.Galaxy_send + "x" + fleetData.System_send + "x" + fleetData.Planet_send;
+                    var oppCoords       = "<b>"+fleetData.Galaxy_send + "x" + fleetData.System_send + "x" + fleetData.Planet_send+"</b>";
                     var oppNick         = fleetData.Nickname_send
-                    var ownCoords       = fleetData.homePlanet;
+                    var ownCoords       = "<b>"+fleetData.homePlanet+"</b>";
                     var lkomSendLink    = '<i class="fas fa-wifi faa-flash animated" onclick="changeContent(\'flotten_view\', \'third\', \'Flotten-Kommando\', \'' + fleetData.id + '\')" style="cursor:hand;margin-right:5px;color:#66f398"></i>';
                     var lkomBackLink    = '<i class="fas fa-info-circle" onclick="changeContent(\'flotten_view\', \'third\', \'Flotten-Kommando\', \'' + fleetData.id + '\')" style="cursor:hand;margin-right:5px;color:#3c3ff5"></i>';
                     switch (fleetData.Type) {
                         case '1':
                             fleetInfoString = 'Eigene Flotte vom Planet '+ ownCoords;
-                            if (fleetData.Status == 1) fleetInfoString = lkomSendLink+fleetInfoString+" greift Planet ";
-                            else                       fleetInfoString = lkomBackLink+fleetInfoString+" kehrt von ";
+                            if (fleetData.Status == 1) fleetInfoString = iconAtt+lkomSendLink+fleetInfoString+" greift Planet ";
+                            else                       fleetInfoString = iconBack+lkomBackLink+fleetInfoString+" kehrt von ";
                             fleetInfoString += oppCoords + ' ('+oppNick+')';
                             if (fleetData.Status == 1) fleetInfoString += " an.";
                             else                       fleetInfoString += " zurück.";
@@ -2697,17 +2752,17 @@ function siteManager() {
                             break;
                         case '2':
                             fleetInfoString = 'Eigene Flotte vom Planet '+ ownCoords;
-                            if (fleetData.Status == 1) fleetInfoString = lkomSendLink+fleetInfoString+" transportiert Rohstoffe nach ";
-                            else                       fleetInfoString = lkomBackLink+fleetInfoString+" kehrt zurück von ";
+                            if (fleetData.Status == 1) fleetInfoString = iconTrans+lkomSendLink+fleetInfoString+" transportiert Rohstoffe nach ";
+                            else                       fleetInfoString = iconBack+lkomBackLink+fleetInfoString+" kehrt zurück von ";
                             fleetInfoString += oppCoords + ' ('+oppNick+').';
                             fleetTimeString = fleetData.ComeTime;
                             fleetClock =      'clock_' + fleetData.clock_id;
                             break;
                         case '3':
                             fleetInfoString = 'Eigene Flotte vom Planet '+ ownCoords;
-                            if (fleetData.Status == 1)     fleetInfoString = lkomBackLink+fleetInfoString+" verteidigt Planet ";
-                            else if(fleetData.Status == 2) fleetInfoString = lkomSendLink+fleetInfoString+" kehrt zurück vom ";
-                            else if(fleetData.Status == 3) fleetInfoString = lkomBackLink+fleetInfoString+" verteidigt den Planeten ";
+                            if (fleetData.Status == 1)     fleetInfoString = iconDef+lkomBackLink+fleetInfoString+" verteidigt Planet ";
+                            else if(fleetData.Status == 2) fleetInfoString = iconBack+lkomSendLink+fleetInfoString+" kehrt zurück vom ";
+                            else if(fleetData.Status == 3) fleetInfoString = iconDef+lkomBackLink+fleetInfoString+" verteidigt den Planeten ";
                             fleetInfoString += oppCoords + '( '+oppNick+' )';
                             if(fleetData.Status != 3) {
                                 fleetTimeString = fleetData.ComeTime;
@@ -2722,17 +2777,18 @@ function siteManager() {
                             }
                             break;
                         case '4':
-                            fleetInfoString = lkomSendLink+'Eigene Flotte von Planet '+ ownCoords +' kolonisiert Planeten '+ oppCoords +'.';
+                            fleetInfoString = iconPlanet+lkomSendLink+'Eigene Flotte von Planet '+ ownCoords +' kolonisiert Planeten '+ oppCoords +'.';
                             fleetTimeString = fleetData.ComeTime;
                             fleetClock =      'clock_' + fleetData.clock_id;
                             break;
                         case '5':
-                            fleetInfoString = lkomSendLink+'Eigene Flotte von Planet '+ ownCoords +' wird überstellt nach '+ oppCoords +' ( '+oppNick+' ).';
+                            fleetInfoString = iconSend+lkomSendLink+'Eigene Flotte von Planet '+ ownCoords +' wird überstellt nach '+ oppCoords +' ( '+oppNick+' ).';
                             fleetTimeString = fleetData.ComeTime;
                             fleetClock =      'clock_' + fleetData.clock_id;
                             break;
                     }
                     lwm_jQuery('#folottenbewegungenPageDiv table tbody').append('<tr><td>'+fleetInfoString+'</td><td>'+fleetTimeString+'</td><td id=\''+fleetClock+'\'>'+moment.duration(moment(fleetTimeString).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+'</td></tr>');
+                    lwm_jQuery('#folottenbewegungenPageDiv table tbody tr').last().data('type', fleetData.Type || '').data('status', fleetData.Status || '').data('coords', fleetData.homePlanet);
                 });
 
                 //sort table by time
@@ -2744,6 +2800,8 @@ function siteManager() {
                     var $elem = lwm_jQuery(this).detach();
                     lwm_jQuery($elem).appendTo(lwm_jQuery('#folottenbewegungenPageDiv table tbody'));
                 });
+
+                filter.process();
 
                 if (GM_config.get('addon_clock')) {
                     clearInterval(unsafeWindow.timeinterval_flottenbewegungen);
@@ -2757,6 +2815,8 @@ function siteManager() {
             if (!addOns.config.fleetCompleteHandlerAdded) {
                 site_jQuery(document).ajaxComplete(function( event, xhr, settings ) {
                     var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
+
+                    if (xhr.responseJSON == '500') return;
 
                     if (page === 'get_flottenbewegungen_info') {
                         addFleetDiv();

@@ -10,6 +10,7 @@
 - Added an option to exclude drones from fleet activity.
 - Added an option to bulk accept / deny trades.
 - Fleets on their way back now have an info icon that leads to the fleet info.
+- Fleet warning distance shows on the overview page.
 
 ## v0.7.0
 
