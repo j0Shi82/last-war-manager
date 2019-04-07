@@ -2082,6 +2082,15 @@ function siteManager() {
                         lwm_jQuery($elem).appendTo($table);
                     });
                 });
+
+                //attach re-send obs button
+                lwm_jQuery.each(lwm_jQuery('#observationenDiv table').first().find('tr:gt(0)'), function () {
+                    var $td = lwm_jQuery(this).find('td').eq(0);
+                    var coords = lwm_jQuery(this).find('td').eq(1).text().split('x');
+                    $td.append('<a href="#" style="font-size: 0.75em;float: right;" class="fa-stack"><i class="far fa-circle fa-stack-2x"></i><i class="fas fa-search-plus fa-stack-1x"></i></a>');
+                    $td.find('a').click(function () { operations.performObservation(coords); });
+                });
+
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
