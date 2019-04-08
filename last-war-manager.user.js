@@ -663,7 +663,7 @@ function siteManager() {
                         config.gameData.fleetInfo[type] = lwm_jQuery.grep(config.gameData.fleetInfo[type], function (fleet, i) { return fleet.Status === "3" || moment(fleet.ComeTime || fleet.DefendingTime || fleet.time).valueOf() > moment().valueOf(); });
                     });
                     GM.setValue('fleetInfo', JSON.stringify(config.gameData.fleetInfo));
-                    addOns.showFleetActivityGlobally();
+                    addOns.showFleetActivityGlobally(unsafeWindow.active_page);
 
                     //add fleet warning to uebersicht
                     if (unsafeWindow.active_page === 'ubersicht') {
@@ -792,7 +792,7 @@ function siteManager() {
                 }
             });
 
-            site_jQuery(window).focus(function () { addOns.load(); });
+            site_jQuery(window).focus(function () { addOns.load(unsafeWindow.active_page); });
         });
     }
 
@@ -1669,7 +1669,7 @@ function siteManager() {
         calendar: function() {
             config.promises.content = getPromise('#folottenbewegungenPageDiv');
             config.promises.content.then(function () {
-                //remove fleet div
+                //remove fleet div, we're using our own
                 lwm_jQuery('#folottenbewegungenPageDiv').remove();
 
                 //add our calendar table
@@ -2505,12 +2505,8 @@ function siteManager() {
             config.promises.addons = getLoadStatePromise('submenu');
             config.promises.addons.then(function () {
                 config.loadStates.fleetaddon = true;
-                if (GM_config.get('addon_fleet') && page !== 'flottenbewegungen') {
-                    addOns.showFleetActivityGlobally();
-                    requests.get_flottenbewegungen_info();
-                } else {
-                    config.loadStates.fleetaddon = false;
-                }
+                addOns.showFleetActivityGlobally(page);
+                if (GM_config.get('addon_fleet')) requests.get_flottenbewegungen_info();
                 addOns.refreshTrades();
                 if (GM_config.get('addon_clock')) addOns.addClockInterval();
 
@@ -2609,14 +2605,18 @@ function siteManager() {
                 });
             }, 1000);
         },
-        showFleetActivityGlobally: function() {
+        showFleetActivityGlobally: function(page) {
             //no fleet config set, return
-            if (!GM_config.get('addon_fleet')) {
+            if (
+                (GM_config.get('addon_fleet') && page === 'flottenbewegungen')
+                    ||
+                (!GM_config.get('addon_fleet') && page !== 'flottenbewegungen')
+            ) {
                 config.loadStates.fleetaddon = false;
                 return;
             }
 
-            var addFleetDiv = function () {
+            var addFleetDiv = function (page) {
                 var $fleetRows = [];
                 var $selectOptions = {
                     coords: [],
@@ -2625,7 +2625,11 @@ function siteManager() {
                 };
 
                 //exclude flottenbewegungen here as the only page that should not show fleets even with setting set
-                if (unsafeWindow.active_page === 'flottenbewegungen') {
+                if (
+                    (GM_config.get('addon_fleet') && page === 'flottenbewegungen')
+                        ||
+                    (!GM_config.get('addon_fleet') && page !== 'flottenbewegungen')
+                ) {
                     config.loadStates.fleetaddon = false;
                     return;
                 }
@@ -2912,13 +2916,13 @@ function siteManager() {
                     if (xhr.responseJSON == '500') return;
 
                     if (page === 'get_flottenbewegungen_info') {
-                        addFleetDiv();
+                        addFleetDiv(unsafeWindow.active_page);
                     }
                 });
                 addOns.config.fleetCompleteHandlerAdded = true;
             }
             //add fleets to page
-            addFleetDiv();
+            addFleetDiv(page);
 
             //add refresh interval
             if (addOns.config.fleetRefreshInterval !== null) return;
