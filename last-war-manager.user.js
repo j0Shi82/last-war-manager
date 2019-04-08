@@ -2082,7 +2082,7 @@ function siteManager() {
                     if (value !== '' && value !== 'false' && value !== '0' && lwm_jQuery(this).next().find('.spionagePlanetenscannerAction,.spionageObservationsAction').length === 0) {
                         var spydrones = lwm_jQuery.grep(config.gameData.spionageInfos.planetenscanner_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
                         var obsdrones = lwm_jQuery.grep(config.gameData.spionageInfos.observations_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
-                        var existingObs = lwm_jQuery.grep(config.gameData.observationInfo.observationen_informations, function (obsData, i) { return obsData.galaxy == coords[0] && obsData.system == coords[1] && obsData.planet == coords[2]; });
+                        var existingObs = helper.getActiveObs(coords);
                         if (obsdrones.length > 0 || existingObs.length !== 0) lwm_jQuery(this).next().append('<a href="#" class="actionClass spionageObservationsAction fa-stack" onclick="javascript:void(0)"><i class="far fa-circle fa-stack-2x"></i><i class="fas fa-search-plus fa-stack-1x"></i></a>');
                         if (spydrones.length > 0) lwm_jQuery(this).next().append('<a href="#" class="actionClass spionagePlanetenscannerAction fa-stack" onclick="javascript:void(0)"><i class="far fa-circle fa-stack-2x"></i><i class="fas fa-search fa-stack-1x"></i></a>');
                     }
@@ -2105,7 +2105,7 @@ function siteManager() {
                     var coords = parseCoords(lwm_jQuery(this).parents('tr').find('td').first().text());
 
                     //check for obs
-                    var existingObs = lwm_jQuery.grep(config.gameData.observationInfo.observationen_informations, function (obsData, i) { return obsData.galaxy == coords[0] && obsData.system == coords[1] && obsData.planet == coords[2]; });
+                    var existingObs = helper.getActiveObs(coords);
                     if (existingObs.length !== 0) {
                         //obs found... open!
                         lwm_jQuery(this).click(function () { unsafeWindow.openObservationWindow(existingObs[0].id); })
@@ -2647,6 +2647,11 @@ function siteManager() {
                     types: [],
                     status: []
                 };
+                var existingValues = {
+                    coords: lwm_jQuery.map(lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_coords option'), function (option, i) { return lwm_jQuery(option).val(); }),
+                    types: lwm_jQuery.map(lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_types option'), function (option, i) { return lwm_jQuery(option).val(); }),
+                    status: lwm_jQuery.map(lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_status option'), function (option, i) { return lwm_jQuery(option).val(); })
+                };
 
                 //exclude flottenbewegungen here as the only page that should not show fleets even with setting set
                 if (
@@ -2684,17 +2689,20 @@ function siteManager() {
 
                     var add = function (fleetData) {
                         if (typeof fleetData.homePlanet !== "undefined" &&
-                            !lwm_jQuery.map($selectOptions.coords, function (option, i) { return lwm_jQuery(option).val(); }).includes(fleetData.homePlanet))
+                            !lwm_jQuery.map($selectOptions.coords, function (option, i) { return lwm_jQuery(option).val(); }).includes(fleetData.homePlanet) &&
+                            !existingValues.coords.includes(fleetData.homePlanet))
                         {
                             $selectOptions.coords.push(lwm_jQuery('<option value="'+fleetData.homePlanet+'">'+fleetData.homePlanet+'</option>'));
                         }
                         if (typeof fleetData.Type !== "undefined" &&
-                            !lwm_jQuery.map($selectOptions.types, function (option, i) { return lwm_jQuery(option).val(); }).includes(fleetData.Type))
+                            !lwm_jQuery.map($selectOptions.types, function (option, i) { return lwm_jQuery(option).val(); }).includes(fleetData.Type) &&
+                            !existingValues.types.includes(fleetData.homePlanet))
                         {
                             $selectOptions.types.push(lwm_jQuery('<option value="'+fleetData.Type+'">'+lang.types[fleetData.Type]+'</option>'));
                         }
                         if (typeof fleetData.Status !== "undefined" &&
-                            !lwm_jQuery.map($selectOptions.status, function (option, i) { return lwm_jQuery(option).val(); }).includes(fleetData.Status))
+                            !lwm_jQuery.map($selectOptions.status, function (option, i) { return lwm_jQuery(option).val(); }).includes(fleetData.Status) &&
+                            !existingValues.status.includes(fleetData.homePlanet))
                         {
                             $selectOptions.status.push(lwm_jQuery('<option value="'+fleetData.Status+'">'+lang.status[fleetData.Status]+'</option>'));
                         }
@@ -2841,8 +2849,11 @@ function siteManager() {
                     var lkomBackLink    = '<i class="fas fa-info-circle" onclick="changeContent(\'flotten_view\', \'third\', \'Flotten-Kommando\', \'' + fleetData.id + '\')" style="cursor:hand;margin-right:5px;color:#3c3ff5"></i>';
                     switch (fleetData.Type) {
                         case '1':
+                            var existingObs = helper.getActiveObs([fleetData.Galaxy_send,fleetData.System_send,fleetData.Planet_send]);
+                            var obsLink = existingObs.length ? '<i onclick="openObservationWindow('+existingObs[0].id+')" style="cursor:hand;" class="fas fa-search-plus fa2x"></i>' : '';
+
                             fleetInfoString = 'Eigene Flotte vom Planet '+ ownCoords;
-                            if (fleetData.Status == 1) fleetInfoString = iconAtt+lkomSendLink+fleetInfoString+" greift Planet ";
+                            if (fleetData.Status == 1) fleetInfoString = iconAtt+lkomSendLink+obsLink+fleetInfoString+" greift Planet ";
                             else                       fleetInfoString = iconBack+lkomBackLink+fleetInfoString+" kehrt von ";
                             fleetInfoString += oppCoords + ' ('+oppNick+')';
                             if (fleetData.Status == 1) fleetInfoString += " an.";
@@ -3073,8 +3084,8 @@ function siteManager() {
                         playerName: config.gameData.playerName,
                         coords: config.gameData.planetCoords.string,
                         type: 'trades',
-                        text: 'Trade with ' + tradeData.galaxy + 'x' + tradeData.system + 'x' + tradeData.planet + ' (Running: '+tradeData.accept+') ' + tradeData.comment,
-                        ts: moment(tradeData.accept == '0' ? tradeData.time : tradeData.time_acc).valueOf()
+                        text: 'Trade ' + (tradeData.own === '1' ? 'with ' : 'from ') + tradeData.galaxy + 'x' + tradeData.system + 'x' + tradeData.planet + ' (Running: '+tradeData.accept+') ' + tradeData.comment,
+                        ts: moment(tradeData.accept == '0' ? tradeData.time.replace(/\//g, '-') : tradeData.time_acc.replace(/\//g, '-')).valueOf()
                     });
                 });
                 var dataTradesAfter =  JSON.stringify(addOns.calendar.getData('trades',config.gameData.playerID, config.gameData.planetCoords.string));
@@ -3437,6 +3448,10 @@ function siteManager() {
             if (lwm_jQuery('#all .lwm-loaderror').length) return;
             var m = m || 'Something went wrong while loading the page. Not all features might be fully functional!';
             lwm_jQuery('#all').prepend('<div class="lwm-loaderror" style="margin-bottom: 20px;background-color: #792121;border: 1px solid rgba(124, 243, 241, 0.5);padding: 2px;"><i class="fas fa-exclamation-triangle" style="margin-right: 5px;"></i>'+m+'</div>');
+        },
+        getActiveObs: function (coords) {
+            if (!Array.isArray(coords)) coords = coords.split('x');
+            return lwm_jQuery.grep(config.gameData.observationInfo.observationen_informations, function (obsData, i) { return obsData.galaxy == coords[0] && obsData.system == coords[1] && obsData.planet == coords[2]; });
         }
     }
 

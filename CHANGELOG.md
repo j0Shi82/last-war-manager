@@ -17,7 +17,8 @@
 - Planets with existing observation drones are now marked in the galaxy view and instead of sending an obs drone open the existing obs report.
 - The level of camouflage technology now shows in the galaxy view for known planets.
 - The level of camouflage technology now shows on the obs page for known planets.
-- In case the fleet addon is deactivated, fleets show up again on the old fleet / now calendar page
+- In case the fleet addon is deactivated, fleets show up again on the old fleet / now calendar page.
+- Active obs for planets that fleets are currently attacking can now be opened from the fleet menu.
 
 ## v0.7.0
 
