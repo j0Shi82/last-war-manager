@@ -12,6 +12,12 @@
 - Fleets on their way back now have an info icon that leads to the fleet info.
 - Fleet warning distance shows on the overview page.
 - Fleets received a visual upgrade and can be filtered by coords, type, and status.
+- The calendar now groups similar entries to avoid too many rows.
+- You can now re-send drones from the obs page.
+- Planets with existing observation drones are now marked in the galaxy view and instead of sending an obs drone open the existing obs report.
+- The level of camouflage technology now shows in the galaxy view for known planets.
+- The level of camouflage technology now shows on the obs page for known planets.
+- In case the fleet addon is deactivated, fleets show up again on the old fleet / now calendar page
 
 ## v0.7.0
 

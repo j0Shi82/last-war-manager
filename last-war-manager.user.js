@@ -9,12 +9,11 @@
 // @downloadURL   https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/last-war-manager.user.js
 // @supportURL    https://github.com/j0Shi82/last-war-manager/issues
 // @match         https://*.last-war.de/main.php*
+// @match         https://*.last-war.de/planetenscanner_view.php*
+// @match         https://*.last-war.de/view/content/new_window/observationen_view.php*
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e07de5c0a13d416fda88134f999baccfee6f7059/assets/jquery.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js
-// @require       https://cdn.jsdelivr.net/npm/pouchdb@7.0.0/dist/pouchdb.min.js
-// @require       https://cdn.jsdelivr.net/npm/pouchdb-replication-stream@1.2.9/dist/pouchdb.replication-stream.min.js
-// @require       https://cdn.jsdelivr.net/npm/pouchdb-load@1.4.6/dist/pouchdb.load.min.js
 // @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@98b18fa1cf3c8f44d9723b3e1a5eabbb92f5e9ec/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
@@ -30,6 +29,9 @@ var lwm_jQuery = window.jQuery;
 
 // add style
 (function() {
+    if (location.href.match(/planetenscanner_view/) !== null) return;
+    if (location.href.match(/observationen_view/) !== null) return;
+
     var css = GM_getResourceText('css');
     if (typeof GM_addStyle != "undefined") {
         GM_addStyle(css);
@@ -54,10 +56,6 @@ var lwm_jQuery = window.jQuery;
 
 function siteManager() {
     var site_jQuery = null;
-
-    var pouchManager = (function () {
-        //to do...
-    })();
 
     var driveManager = (function() {
         var gapi = null;
@@ -445,6 +443,9 @@ function siteManager() {
         gameData: {
             playerID: null,
             playerName: null,
+            playerData: {
+                tarntechnologie: 0
+            },
             planetCoords: {
                 string: null,
                 galaxy: null,
@@ -471,6 +472,7 @@ function siteManager() {
             raidPrios: [],
             planetInfo: {},
             calendar: [],
+            planetData: {},
 
             set: function (data) {
                 if (typeof data.lastTradeCoords !== "undefined") config.lwm.lastTradeCoords = data.lastTradeCoords;
@@ -481,6 +483,7 @@ function siteManager() {
                 if (typeof data.raidPrios !== "undefined") config.lwm.raidPrios = data.raidPrios;
                 if (typeof data.planetInfo !== "undefined") config.lwm.planetInfo = data.planetInfo;
                 if (typeof data.calendar !== "undefined") config.lwm.calendar = data.calendar;
+                if (typeof data.planetData !== "undefined") config.lwm.planetData = data.planetData;
                 if (typeof data.menu !== "undefined") {
                     Object.keys(data.menu).forEach(function(key) {
                         if (typeof GM_config.fields[key] !== "undefined") GM_config.set(key, data.menu[key]);
@@ -496,6 +499,7 @@ function siteManager() {
                 GM.setValue('lwm_raidPrios', JSON.stringify(config.lwm.raidPrios));
                 GM.setValue('lwm_planetInfo', JSON.stringify(config.lwm.planetInfo));
                 GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
+                GM.setValue('lwm_planetData', JSON.stringify(config.lwm.planetData));
 
                 // wait for gameData, then process
                 getLoadStatePromise('gameData').then(function () { config.setGMValues() },function () { helper.throwError(); });
@@ -536,55 +540,67 @@ function siteManager() {
                     config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string].length = GM_config.get('coords_trades');
                 }
                 GM.setValue('lwm_lastTradeCoords', JSON.stringify(config.lwm.lastTradeCoords));
-            });
 
-            GM.getValue('lwm_lastFleetCoords', '{}').then(function (data) {
+                return GM.getValue('lwm_lastFleetCoords', '{}');
+            }).then(function (data) {
                 try { config.lwm.lastFleetCoords = JSON.parse(data); } catch (e) { config.lwm.lastFleetCoords = {}; }
                 checkConfigPerCoordsSetup('lastFleetCoords');
                 if (config.lwm.lastFleetCoords[config.gameData.playerID][config.gameData.planetCoords.string].length > GM_config.get('coords_fleets')) {
                     config.lwm.lastFleetCoords[config.gameData.playerID][config.gameData.planetCoords.string].length = GM_config.get('coords_fleets');
                 }
                 GM.setValue('lwm_lastFleetCoords', JSON.stringify(config.lwm.lastFleetCoords));
-            });
 
-            GM.getValue('lwm_resProd', '{}').then(function (data) {
+                return GM.getValue('lwm_resProd', '{}');
+            }).then(function (data) {
                 try { config.lwm.resProd = JSON.parse(data); } catch (e) { config.lwm.resProd = {}; }
                 checkConfigPerCoordsSetup('resProd');
                 config.getGameData.setResProd(); //get res here so config is loaded before fetching current values
                 GM.setValue('lwm_resProd', JSON.stringify(config.lwm.resProd));
-            });
 
-            GM.getValue('lwm_raidPrios', '{}').then(function (data) {
+                return GM.getValue('lwm_raidPrios', '{}');
+            }).then(function (data) {
                 try { config.lwm.raidPrios = JSON.parse(data); } catch (e) { config.lwm.raidPrios = []; }
                 GM.setValue('lwm_raidPrios', JSON.stringify(config.lwm.raidPrios));
-            });
 
-            GM.getValue('lwm_planetInfo', '{}').then(function (data) {
+                return GM.getValue('lwm_planetInfo', '{}');
+            }).then(function (data) {
                 try { config.lwm.planetInfo = JSON.parse(data); } catch (e) { config.lwm.planetInfo = {}; }
                 checkConfigPerCoordsSetup('planetInfo');
                 config.getGameData.setPlanetInfo();
                 GM.setValue('lwm_planetInfo', JSON.stringify(config.lwm.planetInfo));
-            });
 
-            GM.getValue('lwm_hiddenShips', '{}').then(function (data) {
+                return GM.getValue('lwm_hiddenShips', '{}');
+            }).then(function (data) {
                 try { config.lwm.hiddenShips = JSON.parse(data); } catch (e) { config.lwm.hiddenShips = {}; }
                 checkConfigPerCoordsSetup('hiddenShips');
                 GM.setValue('lwm_hiddenShips', JSON.stringify(config.lwm.hiddenShips));
-            });
 
-            GM.getValue('lwm_productionFilters', '{}').then(function (data) {
+                return GM.getValue('lwm_productionFilters', '{}');
+            }).then(function (data) {
                 try { config.lwm.productionFilters = JSON.parse(data); } catch (e) { config.lwm.productionFilters = {}; }
                 checkConfigPerCoordsSetup('productionFilters');
                 GM.setValue('lwm_productionFilters', JSON.stringify(config.lwm.productionFilters));
-            });
 
-            GM.getValue('lwm_calendar', '[]').then(function (data) {
+                return GM.getValue('lwm_calendar', '[]');
+            }).then(function (data) {
                 try { config.lwm.calendar = JSON.parse(data); } catch (e) { config.lwm.calendar = []; }
                 GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
-            });
 
-            //need another promise here to make sure save fires after settings were loaded
-            GM.getValue('lwm_productionFilters', '{}').then(function () {
+                return GM.getValue('lwm_planetData', '[]');
+            }).then(function (data) {
+                try { config.lwm.planetData = JSON.parse(data); } catch (e) { config.lwm.planetData = []; }
+
+                return GM.getValue('lwm_planetData_temp', '{}');
+            }).then(function (data) {
+                /* pick up temp saved values from obs and spy */
+                data = JSON.parse(data);
+                lwm_jQuery.each(data, function (i, d) {
+                    config.lwm.planetData[i] = d;
+                });
+
+                GM.setValue('lwm_planetData_temp', '{}'); //clear temp
+                GM.setValue('lwm_planetData', JSON.stringify(config.lwm.planetData));
+
                 config.loadStates.gdrive = false; // <-- this ends gdrive setup on first load
                 if (GM_config.get('confirm_drive_sync')) driveManager.save();
             }).finally(function () {
@@ -601,6 +617,7 @@ function siteManager() {
                 };
                 config.gameData.playerID = unsafeWindow.my_id;
                 config.gameData.playerName = unsafeWindow.my_username;
+                config.gameData.playerData.tarntechnologie = unsafeWindow.lvlTarntechnologie;
 
                 // resolves loadState because other stuff has to wait for the data
                 lwm_jQuery.when(
@@ -609,10 +626,10 @@ function siteManager() {
                 ).then(function () { config.loadStates.gameData = false; },function () { helper.throwError(); });
 
                 // spionage is not needed initially and can be loaded later
-                getLoadStatePromise('gdrive').then(function () { requests.get_spionage_info(); });
-            },
-            spionageInfos: function () {
-                requests.get_spionage_info();
+                getLoadStatePromise('gdrive').then(function () {
+                    requests.get_spionage_info();
+                    requests.get_obs_info();
+                });
             },
             setProductionInfos: function (data) {
                 lwm_jQuery.each(data, function (i, cat) {
@@ -666,7 +683,7 @@ function siteManager() {
                         config.gameData.fleetInfo[type] = lwm_jQuery.grep(config.gameData.fleetInfo[type], function (fleet, i) { return fleet.Status === "3" || moment(fleet.ComeTime || fleet.DefendingTime || fleet.time).valueOf() > moment().valueOf(); });
                     });
                     GM.setValue('fleetInfo', JSON.stringify(config.gameData.fleetInfo));
-                    addOns.showFleetActivityGlobally();
+                    addOns.showFleetActivityGlobally(unsafeWindow.active_page);
 
                     //add fleet warning to uebersicht
                     if (unsafeWindow.active_page === 'ubersicht') {
@@ -678,7 +695,16 @@ function siteManager() {
 
     };
 
-    var install = function() {
+    var install = function () {
+        if (location.href.match(/planetenscanner_view/) !== null || location.href.match(/observationen_view/) !== null) {
+            lwm_jQuery(window).load(function () {
+                addOns.planetData.storeDataFromSpio();
+            });
+        }
+        else installMain();
+    };
+
+    var installMain = function() {
         // load site jQuery as well, need this to make API calls
         lwm_jQuery(window).load(function () {
             site_jQuery = unsafeWindow.jQuery;
@@ -750,7 +776,7 @@ function siteManager() {
                                                                     if (!config.loadStates.gdrive) addOns.calendar.storeFleets(xhr.responseJSON);
                     }
                     if (page === 'get_inbox_message')               config.gameData.messageData      = xhr.responseJSON;
-                    if (page === 'get_info_for_observationen_page') config.gameData.obsvervationInfo = xhr.responseJSON;
+                    if (page === 'get_info_for_observationen_page') config.gameData.observationInfo = xhr.responseJSON;
                     if (page === 'get_spionage_info')               config.gameData.spionageInfos    = xhr.responseJSON;
                     if (page === 'get_trade_offers') {
                                                                     config.gameData.tradeInfo        = xhr.responseJSON;
@@ -787,7 +813,7 @@ function siteManager() {
                 }
             });
 
-            site_jQuery(window).focus(function () { addOns.load(); });
+            site_jQuery(window).focus(function () { addOns.load(unsafeWindow.active_page); });
         });
     }
 
@@ -1541,7 +1567,7 @@ function siteManager() {
                 lwm_jQuery(config.gameData.planets).each(function (i, coords) {
                     if (coords.galaxy == my_galaxy && coords.system == my_system && coords.planet == my_planet) return true;
                     var $link = lwm_jQuery('<a href=\'javascript:void(0)\' data-index=\''+i+'\'>'+coords.galaxy+'x'+coords.system+'x'+coords.planet+'</a>');
-                    var $saveLink = lwm_jQuery('<a href=\'javascript:void(0)\' data-index=\''+i+'\'>SAVE</a>');
+                    var $saveLink = lwm_jQuery('<a href=\'javascript:void(0)\' data-index=\''+i+'\'> (SAVE)</a>');
                     $link.click(function () {
                         lwm_jQuery('#galaxyTrade').val(config.gameData.planets[lwm_jQuery(this).data('index')].galaxy);
                         lwm_jQuery('#systemTrade').val(config.gameData.planets[lwm_jQuery(this).data('index')].system);
@@ -1559,8 +1585,7 @@ function siteManager() {
                     saveLinksOwn.push($saveLink);
                 });
                 lwm_jQuery(linksOwn).each(function (i, l) {
-                    $divOwn.append(l).append(' (').append(saveLinksOwn[i]).append(') ');
-                    if (i !== linksOwn.length - 1) $divOwn.append(' - ');
+                    $divOwn.append([l, saveLinksOwn[i], i !== linksOwn.length - 1 ? ' - ' : '']);
                 });
                 $divOwn.appendTo($lastTR.find('td:eq(1)'));
 
@@ -1582,8 +1607,7 @@ function siteManager() {
                     linksSave.push($link);
                 });
                 lwm_jQuery(linksSave).each(function (i, l) {
-                    $divSave.append(l);
-                    if (i !== linksSave.length - 1) $divSave.append(' - ');
+                    $divSave.append([l, i !== linksOwn.length - 1 ? ' - ' : '']);
                 });
                 $divSave.appendTo($lastTR.find('td:eq(1)'));
 
@@ -1666,7 +1690,7 @@ function siteManager() {
         calendar: function() {
             config.promises.content = getPromise('#folottenbewegungenPageDiv');
             config.promises.content.then(function () {
-                //remove fleet div
+                //remove fleet div, we're using our own
                 lwm_jQuery('#folottenbewegungenPageDiv').remove();
 
                 //add our calendar table
@@ -1684,9 +1708,19 @@ function siteManager() {
 
                 if (!addOns.calendar.truncateData()) driveManager.save();
 
+                var entries = document.createDocumentFragment();
                 lwm_jQuery.each(config.lwm.calendar, function (i, entry) {
-                    $tableBase.find('tbody').append('<tr data-username="'+entry.playerName+'" data-coord="'+entry.coords+'" data-type="'+entry.type+'" data-ts="'+entry.ts+'"><td>'+entry.playerName+'</td><td>'+entry.coords+'</td><td>'+entry.type+'</td><td>'+entry.text+'</td><td>'+moment(entry.ts).format("YYYY-MM-DD HH:mm:ss")+'</td><td id="clock_calendar_'+i+'">'+moment.duration(entry.ts-moment().valueOf(), "milliseconds").format("HH:mm:ss", { trim: false, forceLength: true })+'</td></tr>')
+                    var tr = document.createElement('tr');tr.setAttribute('data-username', entry.playerName);tr.setAttribute('data-coord', entry.coords);tr.setAttribute('data-type', entry.type);tr.setAttribute('data-ts', entry.ts);
+                    var tdName = document.createElement('td');tdName.innerHTML=entry.playerName;
+                    var tdCoords = document.createElement('td');tdCoords.innerHTML=entry.coords;
+                    var tdType = document.createElement('td');tdType.innerHTML=entry.type;
+                    var tdText = document.createElement('td');tdText.innerHTML=entry.text;
+                    var tdTS = document.createElement('td');tdTS.innerHTML=moment(entry.ts).format("YYYY-MM-DD HH:mm:ss");
+                    var tdCountdown = document.createElement('td');tdCountdown.setAttribute('id', 'clock_calendar_'+i);tdCountdown.innerHTML=moment.duration(entry.ts-moment().valueOf(), "milliseconds").format("HH:mm:ss", { trim: false, forceLength: true });
+                    tr.appendChild(tdName);tr.appendChild(tdCoords);tr.appendChild(tdType);tr.appendChild(tdText);tr.appendChild(tdTS);tr.appendChild(tdCountdown);
+                    entries.appendChild(tr);
                 });
+                $tableBase.find('tbody')[0].appendChild(entries);
 
                 //sort calendar
                 $tableBase.find('table tbody tr:gt(0)').sort(function (a, b) {
@@ -2029,33 +2063,54 @@ function siteManager() {
                 lwm_jQuery('a.spionageObservationsAction').addClass('fa-stack').append('<i class="far fa-circle fa-stack-2x"></i>').append('<i class="fas fa-search-plus fa-stack-1x"></i>');
                 lwm_jQuery('a.changePlanetAction').addClass('fa-stack').append('<i class="far fa-circle fa-stack-2x"></i>').append('<i class="fas fa-exchange-alt fa-stack-1x"></i>');
 
-                //add spy buttons for planets that's missing it
+                var parseCoords = function (coordsText) {
+                    var coords = coordsText.split('x');
+                    coords[0] = coords[0].match(/\d+/)[0];
+                    coords[1] = coords[1].match(/\d+/)[0];
+                    coords[2] = coords[2].match(/\d+/)[0]; //filter planet type
+                    return coords;
+                }
+
                 lwm_jQuery('#galaxyViewInfoTable tr').find('td:eq(3)').each(function () {
                     var value = lwm_jQuery(this).text();
-                    if (value !== '' && value !== 'false' && value !== '0' && lwm_jQuery(this).next().html() === '') {
+                    var coords = parseCoords(lwm_jQuery(this).parents('tr').find('td').first().text());
+                    var coordData = config.lwm.planetData[coords[0]+'x'+coords[1]+'x'+coords[2]];
+                    //add spy buttons for planets that's missing it
+                    if (value !== '' && value !== 'false' && value !== '0' && lwm_jQuery(this).next().find('.spionagePlanetenscannerAction,.spionageObservationsAction').length === 0) {
                         var spydrones = lwm_jQuery.grep(config.gameData.spionageInfos.planetenscanner_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
                         var obsdrones = lwm_jQuery.grep(config.gameData.spionageInfos.observations_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
-                        if (obsdrones.length > 0) lwm_jQuery(this).next().append('<a href="#" class="actionClass spionageObservationsAction fa-stack" onclick="javascript:void(0)"><i class="far fa-circle fa-stack-2x"></i><i class="fas fa-search-plus fa-stack-1x"></i></a>');
+                        var existingObs = lwm_jQuery.grep(config.gameData.observationInfo.observationen_informations, function (obsData, i) { return obsData.galaxy == coords[0] && obsData.system == coords[1] && obsData.planet == coords[2]; });
+                        if (obsdrones.length > 0 || existingObs.length !== 0) lwm_jQuery(this).next().append('<a href="#" class="actionClass spionageObservationsAction fa-stack" onclick="javascript:void(0)"><i class="far fa-circle fa-stack-2x"></i><i class="fas fa-search-plus fa-stack-1x"></i></a>');
                         if (spydrones.length > 0) lwm_jQuery(this).next().append('<a href="#" class="actionClass spionagePlanetenscannerAction fa-stack" onclick="javascript:void(0)"><i class="far fa-circle fa-stack-2x"></i><i class="fas fa-search fa-stack-1x"></i></a>');
                     }
+
+                    //add stealth info
+                    if (value !== '' && value !== 'false' && value !== '0' && coordData) {
+                        lwm_jQuery(this).next().append('<div title="Tarntechnologie" class="actionClass fa-stack popover" style="color: #3c3ff5;"><i class="far fa-circle fa-stack-2x"></i><span>'+coordData.Tarntechnologie+'</span></div>');
+                    }
+
                 });
 
                 //add spionage actions
                 lwm_jQuery('a.spionagePlanetenscannerAction').each(function () {
                     lwm_jQuery(this).attr('onclick', 'javascript:void(0)');
-                    var coords = lwm_jQuery(this).parents('tr').find('td').first().text().split('x');
-                    coords[0] = coords[0].match(/\d+/)[0];
-                    coords[1] = coords[1].match(/\d+/)[0];
-                    coords[2] = coords[2].match(/\d+/)[0]; //filter planet type
+                    var coords = parseCoords(lwm_jQuery(this).parents('tr').find('td').first().text());
                     lwm_jQuery(this).click(function () { operations.performSpionage(coords) });
                 });
                 lwm_jQuery('a.spionageObservationsAction').each(function () {
                     lwm_jQuery(this).attr('onclick', 'javascript:void(0)');
-                    var coords = lwm_jQuery(this).parents('tr').find('td').first().text().split('x');
-                    coords[0] = coords[0].match(/\d+/)[0];
-                    coords[1] = coords[1].match(/\d+/)[0];
-                    coords[2] = coords[2].match(/\d+/)[0]; //filter planet type
-                    lwm_jQuery(this).click(function () { operations.performObservation(coords) });
+                    var coords = parseCoords(lwm_jQuery(this).parents('tr').find('td').first().text());
+
+                    //check for obs
+                    var existingObs = lwm_jQuery.grep(config.gameData.observationInfo.observationen_informations, function (obsData, i) { return obsData.galaxy == coords[0] && obsData.system == coords[1] && obsData.planet == coords[2]; });
+                    if (existingObs.length !== 0) {
+                        //obs found... open!
+                        lwm_jQuery(this).click(function () { unsafeWindow.openObservationWindow(existingObs[0].id); })
+                                        .css('color', '#66f398');
+                    } else {
+                        //otherwise offer sending one
+                        lwm_jQuery(this).click(function () { operations.performObservation(coords) });
+                    }
                 });
 
                 //move observation and search div
@@ -2103,6 +2158,17 @@ function siteManager() {
                         lwm_jQuery($elem).appendTo($table);
                     });
                 });
+
+                //attach re-send obs button and TT info
+                lwm_jQuery.each(lwm_jQuery('#observationenDiv table').first().find('tr:gt(0)'), function () {
+                    var $td = lwm_jQuery(this).find('td').eq(0);
+                    var coords = lwm_jQuery(this).find('td').eq(1).text().split('x');
+                    var coordData = config.lwm.planetData[coords[0]+'x'+coords[1]+'x'+coords[2]];
+                    $td.append(['<a href="#" style="font-size: 0.75em;float: right;" class="fa-stack"><i class="far fa-circle fa-stack-2x"></i><i class="fas fa-search-plus fa-stack-1x"></i></a>',
+                                '<div style="color: #3c3ff5;font-size: 0.75em;float: right;" class="fa-stack"><i class="far fa-circle fa-stack-2x"></i><span>'+(coordData ? coordData.Tarntechnologie : '?')+'</span></div>']);
+                    $td.find('a').click(function () { operations.performObservation(coords); });
+                });
+
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
@@ -2460,12 +2526,8 @@ function siteManager() {
             config.promises.addons = getLoadStatePromise('submenu');
             config.promises.addons.then(function () {
                 config.loadStates.fleetaddon = true;
-                if (GM_config.get('addon_fleet') && page !== 'flottenbewegungen') {
-                    addOns.showFleetActivityGlobally();
-                    requests.get_flottenbewegungen_info();
-                } else {
-                    config.loadStates.fleetaddon = false;
-                }
+                addOns.showFleetActivityGlobally(page);
+                if (GM_config.get('addon_fleet')) requests.get_flottenbewegungen_info();
                 addOns.refreshTrades();
                 if (GM_config.get('addon_clock')) addOns.addClockInterval();
 
@@ -2564,16 +2626,31 @@ function siteManager() {
                 });
             }, 1000);
         },
-        showFleetActivityGlobally: function() {
+        showFleetActivityGlobally: function(page) {
             //no fleet config set, return
-            if (!GM_config.get('addon_fleet')) {
+            if (
+                (GM_config.get('addon_fleet') && page === 'flottenbewegungen')
+                    ||
+                (!GM_config.get('addon_fleet') && page !== 'flottenbewegungen')
+            ) {
                 config.loadStates.fleetaddon = false;
                 return;
             }
 
-            var addFleetDiv = function () {
+            var addFleetDiv = function (page) {
+                var $fleetRows = [];
+                var $selectOptions = {
+                    coords: [],
+                    types: [],
+                    status: []
+                };
+
                 //exclude flottenbewegungen here as the only page that should not show fleets even with setting set
-                if (unsafeWindow.active_page === 'flottenbewegungen') {
+                if (
+                    (GM_config.get('addon_fleet') && page === 'flottenbewegungen')
+                        ||
+                    (!GM_config.get('addon_fleet') && page !== 'flottenbewegungen')
+                ) {
                     config.loadStates.fleetaddon = false;
                     return;
                 }
@@ -2605,17 +2682,17 @@ function siteManager() {
                         if (typeof fleetData.homePlanet !== "undefined" &&
                             !lwm_jQuery.map(lwm_jQuery('#lwm_fleetFilter_coords option'), function (option, i) { return lwm_jQuery(option).val(); }).includes(fleetData.homePlanet))
                         {
-                            lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_coords').append('<option value="'+fleetData.homePlanet+'">'+fleetData.homePlanet+'</option>');
+                            $selectOptions.coords.push(lwm_jQuery('<option value="'+fleetData.homePlanet+'">'+fleetData.homePlanet+'</option>'));
                         }
                         if (typeof fleetData.Type !== "undefined" &&
                             !lwm_jQuery.map(lwm_jQuery('#lwm_fleetFilter_types option'), function (option, i) { return lwm_jQuery(option).val(); }).includes(fleetData.Type))
                         {
-                            lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_types').append('<option value="'+fleetData.Type+'">'+lang.types[fleetData.Type]+'</option>');
+                            $selectOptions.types.push(lwm_jQuery('<option value="'+fleetData.Type+'">'+lang.types[fleetData.Type]+'</option>'));
                         }
                         if (typeof fleetData.Status !== "undefined" &&
-                            !lwm_jQuery.map(lwm_jQuery('#lwm_fleetFilter_status option'), function (option, i) { return lwm_jQuery(option).val(); }).includes(fleetData.Status))
+                            !lwm_jQuery.map($selectOptions.status, function (option, i) { return lwm_jQuery(option).val(); }).includes(fleetData.Status))
                         {
-                            lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_status').append('<option value="'+fleetData.Status+'">'+lang.status[fleetData.Status]+'</option>');
+                            $selectOptions.status.push(lwm_jQuery('<option value="'+fleetData.Status+'">'+lang.status[fleetData.Status]+'</option>'));
                         }
                     }
 
@@ -2691,7 +2768,7 @@ function siteManager() {
                             } else if(fleetData.Status == 3) {
                                 fleetInfoString = iconDef+"Eine Flotte von Planet "+ oppCoords +" verteidigt deinen Planeten "+ ownCoords +".";
                                 fleetTimeString = fleetData.DefendingTime;
-                                if(send_info.DefendingTime == null) fleetClock = "unbefristet";
+                                if(fleetData.DefendingTime == null) fleetClock = "unbefristet";
                                 else
                                 {
                                     fleetClock = 'clock_' + fleetData.clock_id;
@@ -2704,8 +2781,10 @@ function siteManager() {
                             fleetClock =      'clock_' + fleetData.clock_id;
                             break;
                     }
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append('<tr style='+trStyle+'><td>'+fleetInfoString+'</td><td>'+fleetTimeString+'</td><td id=\''+fleetClock+'\'>'+moment.duration(moment(fleetTimeString).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+'</td></tr>');
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody tr').last().data('type', fleetData.Type).data('status', fleetData.Status).data('coords', fleetData.Galaxy_send + "x" + fleetData.System_send + "x" + fleetData.Planet_send);
+                    $fleetRows.push(lwm_jQuery('<tr style='+trStyle+'><td>'+fleetInfoString+'</td><td>'+fleetTimeString+'</td><td id=\''+fleetClock+'\'>'+moment.duration(moment(fleetTimeString).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+'</td></tr>')
+                                              .data('type', fleetData.Type || '')
+                                              .data('status', fleetData.Status || '')
+                                              .data('coords', fleetData.Galaxy_send + "x" + fleetData.System_send + "x" + fleetData.Planet_send));
                 });
 
                 if (!GM_config.get('addon_fleet_exclude_drones')) {
@@ -2713,29 +2792,37 @@ function siteManager() {
                         //add missing info for drones
                         fleetData.Type = '4'; fleetData.Status = '1';
                         filter.add(fleetData);
-                        lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>"+iconDrone+"Eigene " + fleetData.name + " von Planet <b>" + fleetData.homePlanet + "</b> ist unterwegs nach ( <b>" + fleetData.galaxy + "x" + fleetData.system + "</b> )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
-                        lwm_jQuery('#folottenbewegungenPageDiv table tbody tr').last().data('type', '4').data('status', '1').data('coords', fleetData.homePlanet);
+                        $fleetRows.push(lwm_jQuery("<tr><td>"+iconDrone+"Eigene " + fleetData.name + " von Planet <b>" + fleetData.homePlanet + "</b> ist unterwegs nach ( <b>" + fleetData.galaxy + "x" + fleetData.system + "</b> )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>")
+                                                  .data('type', fleetData.Type || '')
+                                                  .data('status', fleetData.Status || '')
+                                                  .data('coords', fleetData.homePlanet));
                     });
 
                     lwm_jQuery.each(config.gameData.fleetInfo.dron_observationens, function(i, fleetData) {
                         fleetData.Type = '4'; fleetData.Status = '1';
                         filter.add(fleetData);
-                        lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>"+iconDrone+"Eigene " + fleetData.name + " von Planet <b>" + fleetData.homePlanet + "</b> ist unterwegs nach ( <b>" + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.planet + "</b> )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
-                        lwm_jQuery('#folottenbewegungenPageDiv table tbody tr').last().data('type', '4').data('status', '1').data('coords', fleetData.homePlanet);
+                        $fleetRows.push(lwm_jQuery("<tr><td>"+iconDrone+"Eigene " + fleetData.name + " von Planet <b>" + fleetData.homePlanet + "</b> ist unterwegs nach ( <b>" + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.planet + "</b> )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>")
+                                                  .data('type', fleetData.Type || '')
+                                                  .data('status', fleetData.Status || '')
+                                                  .data('coords', fleetData.homePlanet));
                     });
 
                     lwm_jQuery.each(config.gameData.fleetInfo.dron_planetenscanners, function(i, fleetData) {
                         fleetData.Type = '4'; fleetData.Status = '1';
                         filter.add(fleetData);
-                        lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>"+iconDrone+"Eigene " + fleetData.name + " von Planet <b>" + fleetData.homePlanet + "</b> ist unterwegs nach ( <b>" + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.planet + "</b> )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
-                        lwm_jQuery('#folottenbewegungenPageDiv table tbody tr').last().data('type', '4').data('status', '1').data('coords', fleetData.homePlanet);
+                        $fleetRows.push(lwm_jQuery("<tr><td>"+iconDrone+"Eigene " + fleetData.name + " von Planet <b>" + fleetData.homePlanet + "</b> ist unterwegs nach ( <b>" + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.planet + "</b> )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>")
+                                                  .data('type', fleetData.Type || '')
+                                                  .data('status', fleetData.Status || '')
+                                                  .data('coords', fleetData.homePlanet));
                     });
                 }
 
                 lwm_jQuery.each(config.gameData.fleetInfo.buy_ships_array, function(i, fleetData) {
                     filter.add(fleetData);
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append("<tr><td>"+iconSend+"Flotte vom Handelsposten wird überstellt nach <b>" + fleetData.homePlanet + "</b>.</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody tr').last().data('type', fleetData.Type).data('status', fleetData.Status).data('coords', fleetData.homePlanet);
+                    $fleetRows.push(lwm_jQuery("<tr><td>"+iconSend+"Flotte vom Handelsposten wird überstellt nach <b>" + fleetData.homePlanet + "</b>.</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>")
+                                              .data('type', fleetData.Type || '')
+                                              .data('status', fleetData.Status || '')
+                                              .data('coords', fleetData.homePlanet));
                 });
 
                 lwm_jQuery.each(config.gameData.fleetInfo.fleet_informations, function(i, fleetData) {
@@ -2796,9 +2883,19 @@ function siteManager() {
                             fleetClock =      'clock_' + fleetData.clock_id;
                             break;
                     }
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody').append('<tr><td>'+fleetInfoString+'</td><td>'+fleetTimeString+'</td><td id=\''+fleetClock+'\'>'+moment.duration(moment(fleetTimeString).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+'</td></tr>');
-                    lwm_jQuery('#folottenbewegungenPageDiv table tbody tr').last().data('type', fleetData.Type).data('status', fleetData.Status).data('coords', fleetData.homePlanet);
+                    $fleetRows.push(lwm_jQuery('<tr><td>'+fleetInfoString+'</td><td>'+fleetTimeString+'</td><td id=\''+fleetClock+'\'>'+moment.duration(moment(fleetTimeString).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+'</td></tr>')
+                                              .data('type', fleetData.Type || '')
+                                              .data('status', fleetData.Status || '')
+                                              .data('coords', fleetData.homePlanet));
                 });
+
+                //populate fleets
+                lwm_jQuery('#folottenbewegungenPageDiv table tbody').append($fleetRows);
+
+                //populate selects
+                lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_coords').append($selectOptions.coords);
+                lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_types').append($selectOptions.types);
+                lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_status').append($selectOptions.status);
 
                 //sort table by time
                 lwm_jQuery('#folottenbewegungenPageDiv table tbody tr:gt(0)').sort(function (a, b) {
@@ -2828,13 +2925,13 @@ function siteManager() {
                     if (xhr.responseJSON == '500') return;
 
                     if (page === 'get_flottenbewegungen_info') {
-                        addFleetDiv();
+                        addFleetDiv(unsafeWindow.active_page);
                     }
                 });
                 addOns.config.fleetCompleteHandlerAdded = true;
             }
             //add fleets to page
-            addFleetDiv();
+            addFleetDiv(page);
 
             //add refresh interval
             if (addOns.config.fleetRefreshInterval !== null) return;
@@ -2854,7 +2951,9 @@ function siteManager() {
                         playerName: config.gameData.playerName,
                         coords: coords,
                         type: 'building',
+                        name: planet.BuildingName,
                         text: planet.BuildingName,
+                        duration: 0,
                         ts: moment(planet.FinishTimeForBuilding).valueOf()
                     });
                     if (planet.BuildingName2 !== '') addOns.calendar.store({
@@ -2862,7 +2961,9 @@ function siteManager() {
                         playerName: config.gameData.playerName,
                         coords: coords,
                         type: 'building',
+                        name: planet.BuildingName2,
                         text: planet.BuildingName2,
+                        duration: 0,
                         ts: moment(planet.FinishTimeForBuilding2).valueOf()
                     });
                 });
@@ -2875,7 +2976,9 @@ function siteManager() {
                     playerName: config.gameData.playerName,
                     coords: data.research_info.researchGalaxy + 'x' + data.research_info.researchSystem + 'x' + data.research_info.researchPlanet,
                     type: 'research',
+                    name: data.research_info.ResearchName,
                     text: data.research_info.ResearchName,
+                    duration: 0,
                     ts: moment(data.research_info.FinishTime).valueOf()
                 });
                 var dataResearchAfter = JSON.stringify(addOns.calendar.getData('research',config.gameData.playerID));
@@ -2897,6 +3000,8 @@ function siteManager() {
                             playerName: config.gameData.playerName,
                             coords: config.gameData.planetCoords.string,
                             type: 'fleet',
+                            name: fleetData.id || 0,
+                            duration: 0,
                             text: 'Flotte Typ '+(lang.types[fleetData.Type] || fleetData.name)+' mit Status '+(lang.status[fleetData.Status || 1])+' und Coords ' + (fleetData.Galaxy_send || fleetData.galaxy) + "x" + (fleetData.System_send || fleetData.system) + "x" + (fleetData.Planet_send || fleetData.planet),
                             ts: moment(time).valueOf()
                         });
@@ -2910,15 +3015,29 @@ function siteManager() {
             storeProd: function (data) {
                 var dataDefenseBefore = JSON.stringify(addOns.calendar.getData('defense',config.gameData.playerID, config.gameData.planetCoords.string));
                 addOns.calendar.deleteCat('defense',config.gameData.playerID, config.gameData.planetCoords.string);
+                var lastEntry = {};
+                var sameEntryCount = 1;
                 lwm_jQuery.each(data.planet_defense, function (i, prodData) {
-                    addOns.calendar.store({
+                    var entry = {
                         playerID: config.gameData.playerID,
                         playerName: config.gameData.playerName,
                         coords: config.gameData.planetCoords.string,
                         type: 'defense',
+                        name: prodData.name,
                         text: prodData.name,
+                        duration: prodData.sati * 60 * 60 + prodData.minuti * 60 + prodData.sekunde,
                         ts: moment(prodData.finishTime).valueOf()
-                    });
+                    };
+                    //for same tasks (like upgrades) < 1 hour, just edit the last entry so that calendar doesn't get too big
+                    if (lastEntry.type === entry.type && lastEntry.name === entry.name && lastEntry.duration < (60*60) && lastEntry.duration === entry.duration) {
+                        sameEntryCount++;
+                        config.lwm.calendar[config.lwm.calendar.length-1].text = sameEntryCount+'x '+prodData.name+' (every '+(moment.duration(lastEntry.duration, "seconds").format("HH:mm:ss", { trim: false, forceLength: true }))+')';
+                        config.lwm.calendar[config.lwm.calendar.length-1].ts = moment(prodData.finishTime).valueOf();
+                    } else {
+                        sameEntryCount = 1;
+                        addOns.calendar.store(entry);
+                    }
+                    lastEntry = entry;
                 });
                 var dataDefenseAfter = JSON.stringify(addOns.calendar.getData('defense',config.gameData.playerID, config.gameData.planetCoords.string));
 
@@ -2930,7 +3049,9 @@ function siteManager() {
                         playerName: config.gameData.playerName,
                         coords: config.gameData.planetCoords.string,
                         type: 'ships',
+                        name: prodData.name,
                         text: prodData.name,
+                        duration: prodData.sati * 60 * 60 + prodData.minuti * 60 + prodData.sekunde,
                         ts: moment(prodData.finishTime).valueOf()
                     });
                 });
@@ -2989,6 +3110,27 @@ function siteManager() {
                     return ((entry.type === cat || cat === null) && (entry.playerID === playerID || playerID === null) && (entry.coords === coords || coords === null));
                 }).sort(function (a,b) { return a.ts - b.ts; });
             }
+        },
+        planetData: {
+            storeDataFromSpio: function () {
+                GM.getValue('lwm_planetData_temp', '{}').then(function (planetData) {
+                    planetData = JSON.parse(planetData);
+
+                    if (lwm_jQuery('#buildingsLevel').length === 0) return; //spy not sufficient
+                    var levelTT = lwm_jQuery('#researchLevel').text().match(/Tarntechnologie (\d+)/);
+                    if (levelTT === null) levelTT = 0;
+                    else                  levelTT = levelTT[1];
+
+                    //save
+                    var coords = document.querySelector('#tableOS th').textContent.match(/\d*x\d*x\d*/)[0];
+                    if (typeof planetData[coords] === "undefined") planetData[coords] = {};
+                    planetData[coords].Tarntechnologie = parseInt(levelTT);
+
+                    //write into temp save because we don't have complete save / load functionality on spy / obs pages
+                    //the main page will check on the temp save and pick up new values
+                    GM.setValue('lwm_planetData_temp', JSON.stringify(planetData));
+                });
+            }
         }
     }
 
@@ -2998,6 +3140,9 @@ function siteManager() {
         },
         get_spionage_info: function () {
             return site_jQuery.getJSON('/ajax_request/get_spionage_info.php?galaxy_check='+config.gameData.planetCoords.galaxy+'&system_check='+config.gameData.planetCoords.system+'&planet_check='+config.gameData.planetCoords.planet, { lwm_ignoreProcess: 1 });
+        },
+        get_obs_info: function () {
+            return site_jQuery.getJSON('/ajax_request/get_info_for_observationen_page.php', { lwm_ignoreProcess: 1 });
         }
     };
 
