@@ -765,7 +765,7 @@ function siteManager() {
                 // save specific responses for later use
                 var saveRequest = ['get_production_info', 'get_aktuelle_production_info', 'get_ubersicht_info',
                                    'get_flottenbewegungen_info','get_inbox_message','get_info_for_observationen_page',
-                                   'get_spionage_info','get_trade_offers'];
+                                   'get_spionage_info','get_trade_offers','put_fleets','delete_fleets','put_change_flotten'];
                 if (saveRequest.indexOf(page) !== -1) {
                     if (page === 'get_ubersicht_info')              config.gameData.overviewInfo     = xhr.responseJSON;
                     if (page === 'get_production_info')             config.getGameData.setProductionInfos(xhr.responseJSON);
@@ -782,6 +782,9 @@ function siteManager() {
                                                                     config.gameData.tradeInfo        = xhr.responseJSON;
                                                                     addOns.checkCapacities();
                                                                     addOns.calendar.storeTrades(xhr.responseJSON);
+                    }
+                    if (['put_fleets','delete_fleets','put_change_flotten'].includes(page)) {
+                                                                    requests.get_spionage_info();
                     }
                 }
 
@@ -2658,6 +2661,7 @@ function siteManager() {
                 //filter function
                 var filter = (function () {
                     var lang = config.const.lang.fleet;
+
                     var process = function () {
                         var $tableBase = lwm_jQuery('#folottenbewegungenPageDiv table');
                         $tableBase.find('tr:gt(0)').data('show', false);
@@ -2680,12 +2684,12 @@ function siteManager() {
 
                     var add = function (fleetData) {
                         if (typeof fleetData.homePlanet !== "undefined" &&
-                            !lwm_jQuery.map(lwm_jQuery('#lwm_fleetFilter_coords option'), function (option, i) { return lwm_jQuery(option).val(); }).includes(fleetData.homePlanet))
+                            !lwm_jQuery.map($selectOptions.coords, function (option, i) { return lwm_jQuery(option).val(); }).includes(fleetData.homePlanet))
                         {
                             $selectOptions.coords.push(lwm_jQuery('<option value="'+fleetData.homePlanet+'">'+fleetData.homePlanet+'</option>'));
                         }
                         if (typeof fleetData.Type !== "undefined" &&
-                            !lwm_jQuery.map(lwm_jQuery('#lwm_fleetFilter_types option'), function (option, i) { return lwm_jQuery(option).val(); }).includes(fleetData.Type))
+                            !lwm_jQuery.map($selectOptions.types, function (option, i) { return lwm_jQuery(option).val(); }).includes(fleetData.Type))
                         {
                             $selectOptions.types.push(lwm_jQuery('<option value="'+fleetData.Type+'">'+lang.types[fleetData.Type]+'</option>'));
                         }
