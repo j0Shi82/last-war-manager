@@ -628,7 +628,6 @@ function siteManager() {
                 // spionage is not needed initially and can be loaded later
                 getLoadStatePromise('gdrive').then(function () {
                     requests.get_spionage_info();
-                    requests.get_obs_info();
                 });
             },
             setProductionInfos: function (data) {
@@ -2530,7 +2529,7 @@ function siteManager() {
             config.promises.addons.then(function () {
                 config.loadStates.fleetaddon = true;
                 addOns.showFleetActivityGlobally(page);
-                if (GM_config.get('addon_fleet')) requests.get_flottenbewegungen_info();
+                if (GM_config.get('addon_fleet')) requests.get_obs_info().then(function () { requests.get_flottenbewegungen_info() });
                 addOns.refreshTrades();
                 if (GM_config.get('addon_clock')) addOns.addClockInterval();
 
