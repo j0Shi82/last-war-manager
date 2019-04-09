@@ -19,7 +19,7 @@
 - The level of camouflage technology now shows on the obs page for known planets.
 - In case the fleet addon is deactivated, fleets show up again on the old fleet / now calendar page.
 - Active obs for planets that fleets are currently attacking can now be opened from the fleet menu.
-- Fleets show their original speed.
+- The original speed of fleets was added to the fleet table.
 
 ## v0.7.0
 
