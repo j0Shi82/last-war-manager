@@ -2313,7 +2313,7 @@ function siteManager() {
     var global = {
         uiChanges: function () {
                 /* delete propassssss*/
-                lwm_jQuery('#propassssss').remove();
+                lwm_jQuery('#propassssss,#loader,.ui-loader').remove();
 
                 //add mobile support
                 lwm_jQuery('head').append('<meta name="viewport" content="width=device-width, initial-scale=1">');
@@ -3055,10 +3055,12 @@ function siteManager() {
                 });
                 var dataDefenseAfter = JSON.stringify(addOns.calendar.getData('defense',config.gameData.playerID, config.gameData.planetCoords.string));
 
+                lastEntry = {};
+                sameEntryCount = 1;
                 var dataShipsBefore = JSON.stringify(addOns.calendar.getData('ships',config.gameData.playerID, config.gameData.planetCoords.string));
                 addOns.calendar.deleteCat('ships',config.gameData.playerID, config.gameData.planetCoords.string);
                 lwm_jQuery.each(data.ships, function (i, prodData) {
-                    addOns.calendar.store({
+                    var entry = {
                         playerID: config.gameData.playerID,
                         playerName: config.gameData.playerName,
                         coords: config.gameData.planetCoords.string,
@@ -3067,7 +3069,17 @@ function siteManager() {
                         text: prodData.name,
                         duration: prodData.sati * 60 * 60 + prodData.minuti * 60 + prodData.sekunde,
                         ts: moment(prodData.finishTime).valueOf()
-                    });
+                    };
+                    //for same tasks (like upgrades) < 1 hour, just edit the last entry so that calendar doesn't get too big
+                    if (lastEntry.type === entry.type && lastEntry.name === entry.name && lastEntry.duration < (60*60) && lastEntry.duration === entry.duration) {
+                        sameEntryCount++;
+                        config.lwm.calendar[config.lwm.calendar.length-1].text = sameEntryCount+'x '+prodData.name+' (every '+(moment.duration(lastEntry.duration, "seconds").format("HH:mm:ss", { trim: false, forceLength: true }))+')';
+                        config.lwm.calendar[config.lwm.calendar.length-1].ts = moment(prodData.finishTime).valueOf();
+                    } else {
+                        sameEntryCount = 1;
+                        addOns.calendar.store(entry);
+                    }
+                    lastEntry = entry;
                 });
                 var dataShipsAfter = JSON.stringify(addOns.calendar.getData('ships',config.gameData.playerID, config.gameData.planetCoords.string));
 
