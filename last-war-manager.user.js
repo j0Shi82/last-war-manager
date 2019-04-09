@@ -3060,10 +3060,10 @@ function siteManager() {
                 });
                 var dataDefenseAfter = JSON.stringify(addOns.calendar.getData('defense',config.gameData.playerID, config.gameData.planetCoords.string));
 
-                lastEntry = {};
-                sameEntryCount = 1;
                 var dataShipsBefore = JSON.stringify(addOns.calendar.getData('ships',config.gameData.playerID, config.gameData.planetCoords.string));
                 addOns.calendar.deleteCat('ships',config.gameData.playerID, config.gameData.planetCoords.string);
+                lastEntry = {};
+                sameEntryCount = 1;
                 lwm_jQuery.each(data.ships, function (i, prodData) {
                     var entry = {
                         playerID: config.gameData.playerID,
