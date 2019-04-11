@@ -928,6 +928,7 @@ function siteManager() {
                 flottenkommando: ['flottenbewegungen','trade_offer'],
                 get_info_for_flotten_pages: ['flottenbewegungen','trade_offer'],
                 get_info_for_flotten_view: ['flottenbewegungen','trade_offer'],
+                get_change_flotten_info: ['flottenbewegungen','trade_offer'],
                 flotten_view: ['flottenbewegungen','trade_offer'],
                 flottenbasen_planet: ['flottenbewegungen','trade_offer'],
                 flottenbasen_all: ['flottenbewegungen','trade_offer'],
@@ -1025,12 +1026,12 @@ function siteManager() {
                         .attr('style','')
                         .css('width','1em')
                         .css('cursor','hand')
-                        .on( 'mousedown', function( e ) {
+                        .on( 'mousedown touchstart', function( e ) {
                             timeout1 = setTimeout(function () { interval1 = setInterval( function () { self.click(); },150); }, 250);
                             timeout2 = setTimeout(function () { clearInterval(interval1); interval2 = setInterval( function () { self.click(); },75); }, 2250);
                             timeout3 = setTimeout(function () { clearInterval(interval2); interval3 = setInterval( function () { self.click(); },25); }, 5250);
                         })
-                        .on( 'mouseleave', function( e ) { clearInterval(interval1); clearInterval(interval2); clearInterval(interval3); clearTimeout(timeout1); clearTimeout(timeout2); clearTimeout(timeout3); })
+                        .on( 'mouseleave touchend', function( e ) { clearInterval(interval1); clearInterval(interval2); clearInterval(interval3); clearTimeout(timeout1); clearTimeout(timeout2); clearTimeout(timeout3); })
                         .on( 'mouseup', function( e ) { clearInterval(interval1); clearInterval(interval2); clearInterval(interval3); clearTimeout(timeout1); clearTimeout(timeout2); clearTimeout(timeout3); });
                 });
             }).catch(function (e) {
@@ -2862,7 +2863,7 @@ function siteManager() {
                             var obsLink = existingObs.length ? '<i onclick="openObservationWindow('+existingObs[0].id+')" style="cursor:hand;" class="fas fa-search-plus fa2x"></i>' : (spydrones.length ? '<i style="cursor:hand;" class="fas fa-search fa2x"></i>' : '');
 
                             fleetInfoString = 'Eigene Flotte vom Planet '+ ownCoords;
-                            if (fleetData.Status == 1) fleetInfoString = iconAtt+lkomSendLink+obsLink+fleetInfoString+" greift Planet ";
+                            if (fleetData.Status == 1) fleetInfoString = iconAtt+obsLink+lkomSendLink+fleetInfoString+" greift Planet ";
                             else                       fleetInfoString = iconBack+lkomBackLink+fleetInfoString+" kehrt von ";
                             fleetInfoString += oppCoords + ' ('+oppNick+')';
                             if (fleetData.Status == 1) fleetInfoString += " an.";
