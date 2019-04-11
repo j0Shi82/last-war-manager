@@ -2858,7 +2858,8 @@ function siteManager() {
                     switch (fleetData.Type) {
                         case '1':
                             var existingObs = helper.getActiveObs([fleetData.Galaxy_send,fleetData.System_send,fleetData.Planet_send]);
-                            var obsLink = existingObs.length ? '<i onclick="openObservationWindow('+existingObs[0].id+')" style="cursor:hand;" class="fas fa-search-plus fa2x"></i>' : '';
+                            var spydrones = lwm_jQuery.grep(config.gameData.spionageInfos.planetenscanner_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
+                            var obsLink = existingObs.length ? '<i onclick="openObservationWindow('+existingObs[0].id+')" style="cursor:hand;" class="fas fa-search-plus fa2x"></i>' : (spydrones.length ? '<i style="cursor:hand;" class="fas fa-search fa2x"></i>' : '');
 
                             fleetInfoString = 'Eigene Flotte vom Planet '+ ownCoords;
                             if (fleetData.Status == 1) fleetInfoString = iconAtt+lkomSendLink+obsLink+fleetInfoString+" greift Planet ";
@@ -2910,10 +2911,14 @@ function siteManager() {
                                               .data('type', fleetData.Type || '')
                                               .data('status', fleetData.Status || '')
                                               .data('coords', fleetData.homePlanet));
+                    //add spionage action
+                    $fleetRows[$fleetRows.length-1].find('.fa-search').click(function () { operations.performSpionage([fleetData.Galaxy_send,fleetData.System_send,fleetData.Planet_send]); });
                 });
 
                 //populate fleets
                 lwm_jQuery('#folottenbewegungenPageDiv table tbody').append($fleetRows);
+                if ($fleetRows.length === 0) lwm_jQuery('#folottenbewegungenPageDiv').hide();
+                else                         lwm_jQuery('#folottenbewegungenPageDiv').show();
 
                 //populate selects
                 lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_coords').append($selectOptions.coords);
