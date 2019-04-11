@@ -454,7 +454,7 @@ function siteManager() {
             },
             planets: [],
             planetInformation: [],
-            spionageInfos: [],
+            spionageInfos: {},
             productionInfos: [],
             overviewInfo: {},
             messageData: {},
@@ -2574,9 +2574,13 @@ function siteManager() {
                 config.loadStates.fleetaddon = true;
                 addOns.showFleetActivityGlobally(page);
                 if (GM_config.get('addon_fleet')) {
-                    requests.get_obs_info()
-                        .then(function () { return requests.get_spionage_info(); })
-                        .then(function () { requests.get_flottenbewegungen_info(); });
+                    if (!Object.keys(config.gameData.spionageInfos).length || !Object.keys(config.gameData.observationInfo).length) {
+                        requests.get_obs_info()
+                            .then(function () { return requests.get_spionage_info(); })
+                            .then(function () { requests.get_flottenbewegungen_info(); });
+                    } else {
+                        requests.get_flottenbewegungen_info();
+                    }
                 }
                 addOns.refreshTrades();
                 if (GM_config.get('addon_clock')) addOns.addClockInterval();
