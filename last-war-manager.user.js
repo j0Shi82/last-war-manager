@@ -14,7 +14,7 @@
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e07de5c0a13d416fda88134f999baccfee6f7059/assets/jquery.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js
-// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@98b18fa1cf3c8f44d9723b3e1a5eabbb92f5e9ec/last-war-manager.css
+// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e7bafc1a2eecccf7e1490ac5dcc73bcf812d93d1/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
 // @grant         GM.setValue
@@ -696,7 +696,7 @@ function siteManager() {
 
     var install = function () {
         if (location.href.match(/planetenscanner_view/) !== null || location.href.match(/observationen_view/) !== null) {
-            lwm_jQuery(window).load(function () {
+            lwm_jQuery(document).ready(function() {
                 addOns.planetData.storeDataFromSpio();
             });
         }
@@ -717,16 +717,20 @@ function siteManager() {
             config.loadStates.gdrive = true;
             config.loadStates.gameData = true;
 
+            lwm_jQuery('.status.lwm-firstload').text('LOADING... Game Data...');
             config.getGameData.all();
-            site_jQuery.getScript('//apis.google.com/js/api.js').then(function () { driveManager.init(unsafeWindow.gapi); },function () { helper.throwError(); });
+            site_jQuery.getScript('//apis.google.com/js/api.js').then(function () {
+                lwm_jQuery('.status.lwm-firstload').text('LOADING... Google Drive...');
+                driveManager.init(unsafeWindow.gapi); },function () { lwm_jQuery('.status.lwm-firstload').text('LOADING... ERROR...'); helper.throwError(); });
             getLoadStatePromise('gdrive').then(function () {
+                lwm_jQuery('.status.lwm-firstload').text('LOADING... Page Setup...');
                 //wait for gameData and google because some stuff depends on it
                 global.hotkeySetup();
                 if (!GM_config.get('confirm_drive_sync')) config.setGMValues();
 
                 // the first ubersicht load is sometimes not caught by our ajax wrapper, so do manually
                 process('ubersicht');
-            },function () { helper.throwError(); });
+            },function () { lwm_jQuery('.status.lwm-firstload').text('LOADING... ERROR...'); helper.throwError(); });
 
             //we're hooking into ajax requests to figure out on which page we are and fire our own stuff
             var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
@@ -842,7 +846,7 @@ function siteManager() {
             lwm_jQuery('#all').show();
             if (firstLoad) {
                 lwm_jQuery('#Main').css('display','flex');
-                lwm_jQuery('.loader.lwm-firstload').remove();
+                lwm_jQuery('.lwm-firstload').remove();
                 firstLoad = false;
             }
             lwm_jQuery('#all').focus();
@@ -859,7 +863,7 @@ function siteManager() {
             lwm_jQuery('#all').show();
             if (firstLoad) {
                 lwm_jQuery('#Main').css('display','flex');
-                lwm_jQuery('.loader.lwm-firstload').remove();
+                lwm_jQuery('.lwm-firstload').remove();
                 firstLoad = false;
             }
             lwm_jQuery('#all').focus();
@@ -2319,7 +2323,7 @@ function siteManager() {
                 lwm_jQuery('head').append('<meta name="viewport" content="width=device-width, initial-scale=1">');
 
                 //attach loader for first page load
-                lwm_jQuery('body').append('<div class="loader lwm-firstload"></div>');
+                lwm_jQuery('body').append('<div class="loader lwm-firstload"></div><div class="status lwm-firstload"></div>');
 
                 //add mobile header collapse menu
                 var $menuToggle = lwm_jQuery('<div id=\'lwm_menu_toggle\'>'+
