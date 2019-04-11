@@ -1170,6 +1170,12 @@ body#lwmSettings .section_desc {
   background-color: #4290a157;
   border-bottom: 1px solid #7cf3f1;
 }
+[id*="ProductionButtonShip"] button {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
 /* PRODUCTION END */
 /* ROHSTOFFE START */
 #rohstoffeDiv > .rohstoffeTableClass > tbody > tr {
