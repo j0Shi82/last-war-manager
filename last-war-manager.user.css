@@ -980,6 +980,10 @@
     animation: spin 2s linear infinite;
     margin: 0 auto;
   }
+  .lwm-firstload.status {
+    width: 100%;
+    text-align: center;
+  }
   @keyframes spin {
     0% {
       transform: rotate(0deg);
