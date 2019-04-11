@@ -14,7 +14,7 @@
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e07de5c0a13d416fda88134f999baccfee6f7059/assets/jquery.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js
-// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e7bafc1a2eecccf7e1490ac5dcc73bcf812d93d1/last-war-manager.css
+// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@80a83d115546c97e6b70be8e7fe5de13c87d04ee/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
 // @grant         GM.setValue
@@ -627,7 +627,12 @@ function siteManager() {
 
                 // spionage is not needed initially and can be loaded later
                 getLoadStatePromise('gdrive').then(function () {
-                    requests.get_spionage_info();
+                    if (!GM_config.get('addon_fleet')) {
+                        //only load here in case fleet addon isn't active
+                        //otherwise the data gets loaded with the fleet addon
+                        requests.get_spionage_info();
+                        requests.get_obs_info();
+                    }
                 });
             },
             setProductionInfos: function (data) {
@@ -878,6 +883,8 @@ function siteManager() {
         switch (page) {
             case "ubersicht":                pageTweaks.uebersicht(); break;
             case "produktion":               pageTweaks.produktion(); break;
+            case "upgrade_ships":            pageTweaks.upgradeShips(); break;
+            case "recycling_anlage":         pageTweaks.recycleShips(); break;
             case "verteidigung":             pageTweaks.defense(); break;
             case "construction":             pageTweaks.construction(); break;
             case "research":                 pageTweaks.research(); break;
@@ -1310,6 +1317,39 @@ function siteManager() {
                     lwm_jQuery(this).append($icon);
                 });
 
+                config.loadStates.content = false;
+            }).catch(function (e) {
+                console.log(e);
+                helper.throwError();
+                config.loadStates.content = false;
+            });
+        },
+        upgradeShips: function() {
+            config.promises.content = getPromise('#upgradeShipsDiv');
+            config.promises.content.then(function () {
+                //add confirm to recycle buttons
+                lwm_jQuery('button[onclick*=\'upgradeShipsFunction\']').each(function () {
+                    if (GM_config.get('confirm_production')) helper.addConfirm(lwm_jQuery(this));
+                });
+
+                helper.addIconToHtmlElements(lwm_jQuery('button[onclick*=\'upgradeShipsFunction\']'), 'fas fa-2x fa-arrow-alt-circle-up');
+
+                config.loadStates.content = false;
+            }).catch(function (e) {
+                console.log(e);
+                helper.throwError();
+                config.loadStates.content = false;
+            });
+        },
+        recycleShips: function() {
+            config.promises.content = getPromise('#recyclingAngleDiv');
+            config.promises.content.then(function () {
+                //add confirm to recycle buttons
+                lwm_jQuery('button[onclick*=\'RecycleShips\']').each(function () {
+                    if (GM_config.get('confirm_production')) helper.addConfirm(lwm_jQuery(this));
+                });
+
+                helper.replaceElementsHtmlWithIcon(lwm_jQuery('button[onclick*=\'RecycleShips\']'), 'fas fa-2x fa-plus-circle');
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
@@ -2312,7 +2352,6 @@ function siteManager() {
                 config.loadStates.content = false;
             });
         }
-
     }
 
     var global = {
@@ -2321,7 +2360,7 @@ function siteManager() {
                 lwm_jQuery('#propassssss,#loader,.ui-loader').remove();
 
                 //add mobile support
-                lwm_jQuery('head').append('<meta name="viewport" content="width=device-width, initial-scale=1">');
+                lwm_jQuery('head').append('<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">');
 
                 //attach loader for first page load
                 lwm_jQuery('body').append('<div class="loader lwm-firstload"></div><div class="status lwm-firstload"></div>');
@@ -2535,8 +2574,9 @@ function siteManager() {
                 config.loadStates.fleetaddon = true;
                 addOns.showFleetActivityGlobally(page);
                 if (GM_config.get('addon_fleet')) {
-                    if (!Object.keys(config.gameData.observationInfo).length) requests.get_obs_info().then(function () { requests.get_flottenbewegungen_info() });
-                    else                                                      requests.get_flottenbewegungen_info();
+                    requests.get_obs_info()
+                        .then(function () { return requests.get_spionage_info(); })
+                        .then(function () { requests.get_flottenbewegungen_info(); });
                 }
                 addOns.refreshTrades();
                 if (GM_config.get('addon_clock')) addOns.addClockInterval();
