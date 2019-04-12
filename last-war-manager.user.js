@@ -853,6 +853,9 @@ function siteManager() {
                 lwm_jQuery('#Main').css('display','flex');
                 lwm_jQuery('.lwm-firstload').remove();
                 firstLoad = false;
+
+                var viewportmeta = document.querySelector('meta[name=viewport]');
+                viewportmeta.setAttribute('content', "width=device-width, initial-scale=1.0");
             }
             lwm_jQuery('#all').focus();
             unsafeWindow.changeContent = config.unsafeWindow.changeContent;
@@ -870,6 +873,9 @@ function siteManager() {
                 lwm_jQuery('#Main').css('display','flex');
                 lwm_jQuery('.lwm-firstload').remove();
                 firstLoad = false;
+
+                var viewportmeta = document.querySelector('meta[name=viewport]');
+                viewportmeta.setAttribute('content', "width=device-width, initial-scale=1.0");
             }
             lwm_jQuery('#all').focus();
             unsafeWindow.changeContent = config.unsafeWindow.changeContent;
@@ -1441,7 +1447,7 @@ function siteManager() {
                         if (!check) return;
                         if (![2,4].includes(unsafeWindow.window.current_view_type)) return;
                         lwm_jQuery.each(config.gameData.messageData[1], function (i, m) {
-                            addReportLink(m);
+                            if (m.subject.search(/Kampfbericht|Spionagebericht/) !== -1 && m.user_nickname === 'Systemnachricht') addReportLink(m);
                         });
                     });
                     config.pages.inbox.reportHandler = true;
@@ -2360,7 +2366,7 @@ function siteManager() {
                 lwm_jQuery('#propassssss,#loader,.ui-loader').remove();
 
                 //add mobile support
-                lwm_jQuery('head').append('<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">');
+                lwm_jQuery('head').append('<meta name="viewport" content="width=device-width, initial-scale=1.0">');
 
                 //attach loader for first page load
                 lwm_jQuery('body').append('<div class="loader lwm-firstload"></div><div class="status lwm-firstload"></div>');
