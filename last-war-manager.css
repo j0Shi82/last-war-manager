@@ -1032,6 +1032,11 @@ td.constructionName,
 #lwm_fleet_timer_wrapper input {
   height: 20px;
 }
+#lwm_fleet_timer_wrapper .lwm_preselect {
+  font-weight: bold;
+  background-color: #7cf3fd;
+  color: #0c3046;
+}
 /* FLEET END */
 /* SETTINGS */
 iframe#lwmSettings {
