@@ -14,7 +14,7 @@
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e07de5c0a13d416fda88134f999baccfee6f7059/assets/jquery.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js
-// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@80a83d115546c97e6b70be8e7fe5de13c87d04ee/last-war-manager.css
+// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@4ca60e9fbb6ddda6d8b499fb607900565173a13e/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
 // @grant         GM.setValue
@@ -2047,16 +2047,20 @@ function siteManager() {
             config.promises.content.then(function () {
                 var maxSpeed = data.max_speed_transport;
                 var minTimeInSeconds  = moment.duration(data.send_time, "seconds").asSeconds();
-                var minHour = moment().add(minTimeInSeconds, "seconds");
-                //round up to the next full hour
-                minHour = minHour.minute() || minHour.second() || minHour.millisecond() ? minHour.add(1, 'hour').startOf('hour') : minHour.startOf('hour');
+                var maxTimeInSeconds = (minTimeInSeconds / (2-(maxSpeed/100)) * (2-(20/100)));
+                
+                //round up to the next five mintue interval
+                var start = moment().add(minTimeInSeconds, 'seconds');
+                var remainder = 5 - (start.minute() % 5);
+                var minDate = moment(start).add(remainder, "minutes").startOf('minute');
+                var maxDate = moment().add(maxTimeInSeconds*2, 'seconds');
 
                 //build time choose select
                 var $select = lwm_jQuery('<select id="lwm_fleet_selecttime"><option value="" selected>Pick Return Hour</option></select>');
-                for (var i = 0; i < 21; i++) {
-                    $select.append('<option>'+minHour.format("YYYY-MM-DD HH:mm:ss")+'</option>');
-                    //increment hour for next option
-                    minHour.add(1,'hour');
+                while (minDate.valueOf() < maxDate.valueOf()) {
+                    $select.append('<option>'+minDate.format("YYYY-MM-DD HH:mm:ss")+'</option>');
+                    //increment minutes for next option
+                    minDate.add(5,'minutes');
                 }
 
                 var disableOptions = function () {
@@ -2074,7 +2078,7 @@ function siteManager() {
                 var calcFleetTime = function () {
                     disableOptions();
                     var $val = lwm_jQuery('#lwm_fleet_selecttime').val();
-                    var $momentVal = moment($val).add(lwm_jQuery('#lwm_fleet_min').val(), 'minute');
+                    var $momentVal = moment($val);
                     var $oneway = lwm_jQuery('#lwm_fleet_oneway').is(':checked');
                     if (!$val) {
                         lwm_jQuery('.changeTime').val(maxSpeed);
@@ -2150,14 +2154,12 @@ function siteManager() {
                 var $wrapper = lwm_jQuery('<div>');
                 $wrapper.attr('id', 'lwm_fleet_timer_wrapper');
                 $wrapper.append($selectWrap);
-                $wrapper.append('<div><span>Pick Return Minute: </span><input id="lwm_fleet_min" type="number" value="0" min="0" max="59" /></div>');
                 $wrapper.append('<div><select id="lwm_fleet_type"><option value="0">Send / Return Balanced</option><option value="1">Send Fast/ Return Slow</option><option value="2">Send Slow/Return Fast</option></select></div>');
                 $wrapper.append('<div><label style="display:flex;align-items:center;"><input type="checkbox" id="lwm_fleet_oneway">Oneway</label></div>');
 
                 $select.change(function () { calcFleetTime(); });
                 $wrapper.find('#lwm_fleet_oneway').change(function () { calcFleetTime(); lwm_jQuery('#lwm_fleet_type').prop('disabled', lwm_jQuery(this).is(':checked')); });
                 $wrapper.find('#lwm_fleet_type').change(function () { calcFleetTime(); });
-                $wrapper.find('#lwm_fleet_min').change(function () { calcFleetTime(); });
 
                 lwm_jQuery('#timeFlote').after($wrapper);
 
@@ -2219,9 +2221,12 @@ function siteManager() {
                 });
                 if (preTimes.length) {
                     preTimes.sort();
-                    lwm_jQuery.each(lwm_jQuery('#lwm_fleet_selecttime').find('option:gt(0)').not('[disabled]'), function (i, el) {
+
+                    var found = false;
+                    lwm_jQuery.each(lwm_jQuery('#lwm_fleet_selecttime').find('option:gt(0)'), function (i, el) {
                         var $el = lwm_jQuery(el);
                         var hour = moment($el.text()).hour();
+                        var minute = moment($el.text()).minute();
                         var weekday = moment($el.text()).day();
 
                         var weekdaysToValues = {
@@ -2237,20 +2242,19 @@ function siteManager() {
                             'Weekend': [0,6]
                         };
 
-                        var found = false;
                         preTimes.forEach(function (time, j) {
                             var preHour = parseInt(time.split(':')[0]);
                             var preMinute = parseInt(time.split(':')[1]);
 
-                            if (hour == preHour && weekdaysToValues[preDays[j]].includes(weekday)) {
-                                lwm_jQuery('#lwm_fleet_selecttime').val($el.val());
-                                lwm_jQuery('#lwm_fleet_min').val(preMinute);
-                                calcFleetTime();
-                                found = true;
-                                return false;
+                            if (hour == preHour && preMinute == minute && weekdaysToValues[preDays[j]].includes(weekday)) {
+                                if (!found && $el.is(':not(\'[disabled]\')')) {
+                                    lwm_jQuery('#lwm_fleet_selecttime').val($el.val());
+                                    calcFleetTime();
+                                    found = true;
+                                }
+                                $el.addClass('lwm_preselect');
                             }
                         });
-                        if (found) return false;
                     });
                 }
 
