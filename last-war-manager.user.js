@@ -1173,6 +1173,18 @@ function siteManager() {
                         .on( 'mouseleave touchend', function( e ) { clearInterval(interval1); clearInterval(interval2); clearInterval(interval3); clearTimeout(timeout1); clearTimeout(timeout2); clearTimeout(timeout3); })
                         .on( 'mouseup', function( e ) { clearInterval(interval1); clearInterval(interval2); clearInterval(interval3); clearTimeout(timeout1); clearTimeout(timeout2); clearTimeout(timeout3); });
                 });
+
+                //listen to enter key on production pages
+                lwm_jQuery.each(lwm_jQuery('.inputNumberDiv input,[id*=\'InputNumber\'] input'), function () {
+                    var $self = lwm_jQuery(this);
+                    var id = $self.attr('id').match(/\d+/)[0];
+                    var $button = $self.parents('table').find('[id*=\''+id+'\']').find('button').not('[onclick*=\'deleteDesign\']');
+                    $self.on('keyup', function (e) {
+                        if (event.keyCode === 13) {
+                            $button.click();
+                        }
+                    });
+                });
             }).catch(function (e) {
                 console.log(e);
                 helper.throwError();
@@ -2211,16 +2223,14 @@ function siteManager() {
                 });
 
                 //pre-select defined sets
-                var preTimes = [];
-                var preDays = [];
+                var presets = [];
                 [1,2,3,4,5].forEach(function (i) {
                     if (GM_config.get('fleet_presets_'+i+'_active')) {
-                        preTimes.push(GM_config.get('fleet_presets_'+i+'_time'));
-                        preDays.push(GM_config.get('fleet_presets_'+i+'_weekday'));
+                        presets.push({time: GM_config.get('fleet_presets_'+i+'_time'), days: GM_config.get('fleet_presets_'+i+'_weekday')});
                     }
                 });
-                if (preTimes.length) {
-                    preTimes.sort();
+                if (presets.length) {
+                    presets.sort(function (a,b) { return (a.time > b.time) ? 1 : ((b.time > a.time) ? -1 : 0); });
 
                     var found = false;
                     lwm_jQuery.each(lwm_jQuery('#lwm_fleet_selecttime').find('option:gt(0)'), function (i, el) {
@@ -2238,15 +2248,15 @@ function siteManager() {
                             'Fri': [5],
                             'Sat': [6],
                             'Sun': [0],
-                            'Weekdays': [1,2,3,4,5],
+                            'Weekday': [1,2,3,4,5],
                             'Weekend': [0,6]
                         };
 
-                        preTimes.forEach(function (time, j) {
-                            var preHour = parseInt(time.split(':')[0]);
-                            var preMinute = parseInt(time.split(':')[1]);
+                        presets.forEach(function (preset) {
+                            var preHour = parseInt(preset.time.split(':')[0]);
+                            var preMinute = parseInt(preset.time.split(':')[1]);
 
-                            if (hour == preHour && preMinute == minute && weekdaysToValues[preDays[j]].includes(weekday)) {
+                            if (hour == preHour && preMinute == minute && weekdaysToValues[preset.days].includes(weekday)) {
                                 if (!found && $el.is(':not(\'[disabled]\')')) {
                                     lwm_jQuery('#lwm_fleet_selecttime').val($el.val());
                                     calcFleetTime();

@@ -20,6 +20,7 @@
 - In case the fleet addon is deactivated, fleets show up again on the old fleet / now calendar page.
 - Active obs for planets that fleets are currently attacking can now be opened from the fleet menu. If no ob active, the script offers to send a spy drone.
 - The original speed of fleets was added to the fleet table.
+- Input fields on production pages listen to the enter key.
 
 ## v0.7.0
 
