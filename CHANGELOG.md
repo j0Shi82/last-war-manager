@@ -21,6 +21,7 @@
 - Active obs for planets that fleets are currently attacking can now be opened from the fleet menu. If no ob active, the script offers to send a spy drone.
 - The original speed of fleets was added to the fleet table.
 - Input fields on production pages listen to the enter key.
+- Option added to open obs reports in new tabs instead of new windows.
 
 ## v0.7.0
 

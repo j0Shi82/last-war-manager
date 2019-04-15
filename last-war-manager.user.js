@@ -400,6 +400,13 @@ function siteManager() {
                 'type': 'checkbox',
                 'default': true
             },
+            'obs_opentabs':
+            {
+                'label': 'OBS: Open observation report in new tab instead of new page.',
+                'labelPos': 'right',
+                'type': 'checkbox',
+                'default': false
+            },
             'fleet_presets_1_active':
             {
                 'section': [GM_config.create('Fleet Timing Presets'), 'Define timing presets for sending fleets.'],
@@ -2315,12 +2322,14 @@ function siteManager() {
                     var coords = parseCoords(lwm_jQuery(this).parents('tr').find('td').first().text());
                     var coordData = config.lwm.planetData[coords[0]+'x'+coords[1]+'x'+coords[2]];
                     //add spy buttons for planets that's missing it
-                    if (value !== '' && value !== 'false' && value !== '0' && lwm_jQuery(this).next().find('.spionagePlanetenscannerAction,.spionageObservationsAction').length === 0) {
+                    if (value !== '' && value !== 'false' && value !== '0') {
                         var spydrones = lwm_jQuery.grep(config.gameData.spionageInfos.planetenscanner_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
                         var obsdrones = lwm_jQuery.grep(config.gameData.spionageInfos.observations_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
                         var existingObs = helper.getActiveObs(coords);
-                        if (obsdrones.length > 0 || existingObs.length !== 0) lwm_jQuery(this).next().append('<a href="#" class="actionClass spionageObservationsAction fa-stack" onclick="javascript:void(0)"><i class="far fa-circle fa-stack-2x"></i><i class="fas fa-search-plus fa-stack-1x"></i></a>');
-                        if (spydrones.length > 0) lwm_jQuery(this).next().append('<a href="#" class="actionClass spionagePlanetenscannerAction fa-stack" onclick="javascript:void(0)"><i class="far fa-circle fa-stack-2x"></i><i class="fas fa-search fa-stack-1x"></i></a>');
+                        var hasSpy =  lwm_jQuery(this).next().find('.spionagePlanetenscannerAction').length > 0;
+                        var hasObs =  lwm_jQuery(this).next().find('.spionageObservationsAction').length > 0;
+                        if (!hasObs && (obsdrones.length > 0 || existingObs.length !== 0)) lwm_jQuery(this).next().append('<a href="#" class="actionClass spionageObservationsAction fa-stack" onclick="javascript:void(0)"><i class="far fa-circle fa-stack-2x"></i><i class="fas fa-search-plus fa-stack-1x"></i></a>');
+                        if (!hasSpy && spydrones.length > 0) lwm_jQuery(this).next().append('<a href="#" class="actionClass spionagePlanetenscannerAction fa-stack" onclick="javascript:void(0)"><i class="far fa-circle fa-stack-2x"></i><i class="fas fa-search fa-stack-1x"></i></a>');
                     }
 
                     //add stealth info
@@ -2344,8 +2353,13 @@ function siteManager() {
                     var existingObs = helper.getActiveObs(coords);
                     if (existingObs.length !== 0) {
                         //obs found... open!
-                        lwm_jQuery(this).click(function () { unsafeWindow.openObservationWindow(existingObs[0].id); })
-                                        .css('color', '#66f398');
+                        lwm_jQuery(this).click(function () {
+                            if (GM_config.get('obs_opentabs')) {
+                                window.open('view/content/new_window/observationen_view.php?id='+existingObs[0].id);
+                            } else {
+                                unsafeWindow.openObservationWindow(existingObs[0].id);
+                            }
+                        }).css('color', '#66f398');
                     } else {
                         //otherwise offer sending one
                         lwm_jQuery(this).click(function () { operations.performObservation(coords) });
@@ -2407,6 +2421,17 @@ function siteManager() {
                                 '<div style="color: #3c3ff5;font-size: 0.75em;float: right;" class="fa-stack"><i class="far fa-circle fa-stack-2x"></i><span>'+(coordData ? coordData.Tarntechnologie : '?')+'</span></div>']);
                     $td.find('a').click(function () { operations.performObservation(coords); });
                 });
+
+                //replace obs links
+                if (GM_config.get('obs_opentabs')) {
+                    lwm_jQuery.each(lwm_jQuery('#observationenDiv a[onclick*=\'openObservationWindow\']'), function () {
+                        $self = lwm_jQuery(this);
+                        var id = $self.attr('onclick').match(/\d+/)[0];
+                        $self.attr('onclick', '').attr('target', '_blank').attr('href', 'view/content/new_window/observationen_view.php?id='+id);
+                    });
+                    //	window.open('view/content/new_window/observationen_view.php?id=' + id, 'newwindow', 'scrollbars=yes, width=900px, height=550px');
+
+                }
 
                 config.loadStates.content = false;
             }).catch(function (e) {
@@ -3081,7 +3106,8 @@ function siteManager() {
                         case '1':
                             var existingObs = helper.getActiveObs([fleetData.Galaxy_send,fleetData.System_send,fleetData.Planet_send]);
                             var spydrones = lwm_jQuery.grep(config.gameData.spionageInfos.planetenscanner_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
-                            var obsLink = existingObs.length ? '<i onclick="openObservationWindow('+existingObs[0].id+')" style="cursor:hand;" class="fas fa-search-plus fa2x"></i>' : (spydrones.length ? '<i style="cursor:hand;" class="fas fa-search fa2x"></i>' : '');
+                            var obsOnclick = GM_config.get('obs_opentabs') ? 'window.open(\'view/content/new_window/observationen_view.php?id='+existingObs[0].id+'\')' : 'openObservationWindow('+existingObs[0].id+')';
+                            var obsLink = existingObs.length ? '<i onclick="'+obsOnclick+'" style="cursor:hand;" class="fas fa-search-plus fa2x"></i>' : (spydrones.length ? '<i style="cursor:hand;" class="fas fa-search fa2x"></i>' : '');
 
                             fleetInfoString = 'Eigene Flotte vom Planet '+ ownCoords;
                             if (fleetData.Status == 1) fleetInfoString = iconAtt+obsLink+lkomSendLink+fleetInfoString+" greift Planet ";
