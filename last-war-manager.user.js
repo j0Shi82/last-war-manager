@@ -872,9 +872,10 @@ function siteManager() {
 
             //we're hooking into ajax requests to figure out on which page we are and fire our own stuff
             var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
-                                'get_info_for_flotten_pages','get_change_flotten_info','get_trade_offers','get_flotten_informations_info','get_spionage_info'];
+                                'get_info_for_flotten_pages','get_change_flotten_info','get_trade_offers','get_flotten_informations_info','get_spionage_info',
+                                'get_bank_info'];
             var ignorePages =  ['spionage','inbox','trade_offer','make_command','galaxy_view','change_flotten','flottenkommando',
-                                'flottenbasen_all','fremde_flottenbasen','flottenbasen_planet','flotten_informations'];
+                                'flottenbasen_all','fremde_flottenbasen','flottenbasen_planet','flotten_informations','bank'];
             var preserveSubmenuPages = ['get_inbox_message','get_message_info'];
 
             site_jQuery(document).ajaxSend(function( event, xhr, settings ) {
@@ -1052,6 +1053,7 @@ function siteManager() {
             case "verteidigung_tree":        pageTweaks.buildingTree(); break;
             case "rohstoffe":                pageTweaks.resources(); break;
             case "kreditinstitut":           pageTweaks.credit(); break;
+            case "get_bank_info":            pageTweaks.bank(xhr.responseJSON); break;
             default:                         pageTweaks.default(); break;
         }
 
@@ -2067,7 +2069,7 @@ function siteManager() {
                 var maxSpeed = data.max_speed_transport;
                 var minTimeInSeconds  = moment.duration(data.send_time, "seconds").asSeconds();
                 var maxTimeInSeconds = (minTimeInSeconds / (2-(maxSpeed/100)) * (2-(20/100)));
-                
+
                 //round up to the next five mintue interval
                 var start = moment().add(minTimeInSeconds, 'seconds');
                 var remainder = 5 - (start.minute() % 5);
@@ -2568,7 +2570,65 @@ function siteManager() {
                 helper.throwError();
                 config.loadStates.content = false;
             });
-        }
+        },
+        bank: function (responseJSON) {
+            config.promises.content = getPromise('#bankDiv');
+            config.promises.content.then(function () {
+                var calcInterest = parseFloat(responseJSON.interest) < 0 ? 0 : parseFloat(responseJSON.interest)/100;
+                //add button to fill bank minus interest
+                var $wrapper = lwm_jQuery('<div class="buttonRow" style="width: 100%; margin-left: 0;"></div>');
+                var $buttonFill = lwm_jQuery('<a class="formButtonNewMessage" style="float:none;" href="#">Fill Bank</a>');
+                $buttonFill.click(function () {
+                    alert('WARNING: This function does not respect transactions that are not yet processed. Make sure you do not overflow your bank before submitting!');
+                    var maxPossibleRes = {
+                        roheisen: (responseJSON.bank_limit/(1+calcInterest))-parseInt(responseJSON.resource.roheisen) < 0 ? 0 : (responseJSON.bank_limit/(1+calcInterest))-parseInt(responseJSON.resource.roheisen),
+                        kristall: (responseJSON.bank_limit/(1+calcInterest))-parseInt(responseJSON.resource.kristall) < 0 ? 0 : (responseJSON.bank_limit/(1+calcInterest))-parseInt(responseJSON.resource.kristall),
+                        frubin:   (responseJSON.bank_limit/(1+calcInterest))-parseInt(responseJSON.resource.frubin)   < 0 ? 0 : (responseJSON.bank_limit/(1+calcInterest))-parseInt(responseJSON.resource.frubin),
+                        orizin:   (responseJSON.bank_limit/(1+calcInterest))-parseInt(responseJSON.resource.orizin)   < 0 ? 0 : (responseJSON.bank_limit/(1+calcInterest))-parseInt(responseJSON.resource.orizin),
+                        frurozin: (responseJSON.bank_limit/(1+calcInterest))-parseInt(responseJSON.resource.frurozin) < 0 ? 0 : (responseJSON.bank_limit/(1+calcInterest))-parseInt(responseJSON.resource.frurozin),
+                        gold:     (responseJSON.bank_limit/(1+calcInterest))-parseInt(responseJSON.resource.gold)     < 0 ? 0 : (responseJSON.bank_limit/(1+calcInterest))-parseInt(responseJSON.resource.gold)
+                    }
+
+                    lwm_jQuery('#typeTransaction').val('putIn');
+                    lwm_jQuery('#roheisenInputBank').val(parseInt(unsafeWindow.Roheisen > maxPossibleRes.roheisen ? maxPossibleRes.roheisen : unsafeWindow.Roheisen));
+                    lwm_jQuery('#kristallInputBank').val(parseInt(unsafeWindow.Kristall > maxPossibleRes.kristall ? maxPossibleRes.kristall : unsafeWindow.Kristall));
+                    lwm_jQuery('#frubinInputBank').val(parseInt(unsafeWindow.Frubin > maxPossibleRes.frubin ? maxPossibleRes.frubin : unsafeWindow.Frubin));
+                    lwm_jQuery('#orizinInputBank').val(parseInt(unsafeWindow.Orizin > maxPossibleRes.orizin ? maxPossibleRes.orizin : unsafeWindow.Orizin));
+                    lwm_jQuery('#frurozinInputBank').val(parseInt(unsafeWindow.Frurozin > maxPossibleRes.frurozin ? maxPossibleRes.frurozin : unsafeWindow.Frurozin));
+                    lwm_jQuery('#goldInputBank').val(parseInt(unsafeWindow.Gold > maxPossibleRes.gold ? maxPossibleRes.gold : unsafeWindow.Gold));
+                });
+
+                //add button to withdraw interest
+                var $buttonWithdraw = lwm_jQuery('<a class="formButtonNewMessage" style="float:none;" href="#">Withdraw Interest</a>');
+                $buttonWithdraw.click(function () {
+                    var withdrawableInterest = {
+                        roheisen: parseInt(responseJSON.resource.roheisen)-(responseJSON.bank_limit/(1+calcInterest)) < 0 ? 0 : parseInt(responseJSON.resource.roheisen)-(responseJSON.bank_limit/(1+calcInterest)),
+                        kristall: parseInt(responseJSON.resource.kristall)-(responseJSON.bank_limit/(1+calcInterest)) < 0 ? 0 : parseInt(responseJSON.resource.kristall)-(responseJSON.bank_limit/(1+calcInterest)),
+                        frubin:   parseInt(responseJSON.resource.frubin)  -(responseJSON.bank_limit/(1+calcInterest)) < 0 ? 0 : parseInt(responseJSON.resource.frubin)  -(responseJSON.bank_limit/(1+calcInterest)),
+                        orizin:   parseInt(responseJSON.resource.orizin)  -(responseJSON.bank_limit/(1+calcInterest)) < 0 ? 0 : parseInt(responseJSON.resource.roheisen)-(responseJSON.bank_limit/(1+calcInterest)),
+                        frurozin: parseInt(responseJSON.resource.frurozin)-(responseJSON.bank_limit/(1+calcInterest)) < 0 ? 0 : parseInt(responseJSON.resource.frurozin)-(responseJSON.bank_limit/(1+calcInterest)),
+                        gold:     parseInt(responseJSON.resource.gold)    -(responseJSON.bank_limit/(1+calcInterest)) < 0 ? 0 : parseInt(responseJSON.resource.gold)    -(responseJSON.bank_limit/(1+calcInterest))
+                    }
+
+                    lwm_jQuery('#typeTransaction').val('takeOut');
+                    lwm_jQuery('#roheisenInputBank').val(parseInt(withdrawableInterest.roheisen));
+                    lwm_jQuery('#kristallInputBank').val(parseInt(withdrawableInterest.kristall));
+                    lwm_jQuery('#frubinInputBank').val(parseInt(withdrawableInterest.frubin));
+                    lwm_jQuery('#orizinInputBank').val(parseInt(withdrawableInterest.orizin));
+                    lwm_jQuery('#frurozinInputBank').val(parseInt(withdrawableInterest.frurozin));
+                    lwm_jQuery('#goldInputBank').val(parseInt(withdrawableInterest.gold));
+                });
+
+                $wrapper.append([$buttonFill,$buttonWithdraw]);
+                lwm_jQuery('#bankDiv table:eq(0) tr:eq(3) td:eq(0)').append($wrapper);
+
+                config.loadStates.content = false;
+            }).catch(function (e) {
+                console.log(e);
+                helper.throwError();
+                config.loadStates.content = false;
+            });
+        },
     }
 
     var global = {

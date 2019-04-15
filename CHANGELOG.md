@@ -22,6 +22,7 @@
 - The original speed of fleets was added to the fleet table.
 - Input fields on production pages listen to the enter key.
 - Option added to open obs reports in new tabs instead of new windows.
+- Added buttons to the bank page to fill bank and withdraw interest.
 
 ## v0.7.0
 
