@@ -734,7 +734,7 @@ td.constructionName,
 #raumdockDiv th,
 #changeFlottenDiv th,
 #messagesListTableInbox > tbody > tr:first-child,
-#folottenbewegungenPageDiv table tr:first-child,
+#lwm_folottenbewegungenPageDiv table tr:first-child,
 #galaxyViewInfoTable th,
 #observationenDiv th,
 #calendarDiv th,
@@ -760,20 +760,20 @@ td.constructionName,
 #galaxyViewDiv {
   margin-top: 5px;
 }
-#folottenbewegungenPageDiv
+#lwm_folottenbewegungenPageDiv
   tr
   > td:not(:nth-last-child(1)):not(:nth-last-child(2)):not(:first-child) {
   display: none;
 }
-#folottenbewegungenPageDiv select {
+#lwm_folottenbewegungenPageDiv select {
   width: 30%;
   margin-left: 1.5%;
   margin-right: 1.5%;
 }
-#folottenbewegungenPageDiv b {
+#lwm_folottenbewegungenPageDiv b {
   text-decoration: underline;
 }
-#folottenbewegungenPageDiv i {
+#lwm_folottenbewegungenPageDiv i {
   float: left;
   margin-top: 2px;
   width: 1.5em;
