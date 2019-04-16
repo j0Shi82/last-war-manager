@@ -14,7 +14,7 @@
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e07de5c0a13d416fda88134f999baccfee6f7059/assets/jquery.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js
-// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@4ca60e9fbb6ddda6d8b499fb607900565173a13e/last-war-manager.css
+// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@b164a5ae015ac13e40d94290c485074cad9d68f6/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
 // @grant         GM.setValue
@@ -554,8 +554,6 @@ function siteManager() {
             gameData: false,
             content: false,
             submenu: false,
-            addons: false,
-            fleetaddon: false,
             lastLoadedPage: null
         },
         unsafeWindow: {
@@ -649,8 +647,7 @@ function siteManager() {
                 count: 75
             },
             submenu: null,
-            content: null,
-            addons: null
+            content: null
         },
 
         setGMValues: function () {
@@ -902,7 +899,7 @@ function siteManager() {
             site_jQuery(document).ajaxComplete(function( event, xhr, settings ) {
                 var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
-                if (xhr.responseJSON == '500') return;
+                if (xhr.responseJSON == '500' || xhr.readyState === 0) return;
 
                 // save specific responses for later use
                 var saveRequest = ['get_production_info', 'get_aktuelle_production_info', 'get_ubersicht_info',
@@ -941,7 +938,7 @@ function siteManager() {
             site_jQuery(document).ajaxComplete(function( event, xhr, settings ) {
                 var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
-                if (xhr.responseJSON == '500') return;
+                if (xhr.responseJSON == '500' || xhr.readyState === 0) return;
 
                 if (settings.url.search(/lwm_ignoreProcess/) !== -1) {
                     console.log('lwm_ignoreProcess... skipping');
@@ -969,13 +966,11 @@ function siteManager() {
     var process = function (page, xhr, preserveSubmenu) {
         config.loadStates.content = true;
         config.loadStates.lastLoadedPage = page;
-        config.loadStates.addons = true;
         //override changeContent to avoid multiple page calls
         unsafeWindow.changeContent = function () {};
         unsafeWindow.changeInboxContent = function () {};
         //reject current promises to cancel pending loads
         if (config.promises.content !== null) config.promises.content.reject();
-        if (config.promises.addons !== null) config.promises.addons.reject();
 
         //figure out whether or not to process submenu and reject ongoing load in case
         if (preserveSubmenu && config.promises.submenu !== null) config.promises.submenu.reject();
@@ -1932,7 +1927,7 @@ function siteManager() {
                     lwm_jQuery($elem).appendTo($tableBase.find('table tbody'));
                 });
 
-                $tableBase.appendTo('.pageContent');
+                lwm_jQuery('.pageContent').last().append($tableBase);
                 helper.setDataForClocks();
 
                 //set up filters
@@ -2060,14 +2055,14 @@ function siteManager() {
                 config.loadStates.content = false;
             });
         },
-        fleetSend: function (data) {
+        fleetSend: function (fleetSendData) {
             //save data so we have it available when browsing back and forth
-            var data = data || config.gameData.fleetSendData;
-            config.gameData.fleetSendData = data;
+            var fleetSendData = fleetSendData || config.gameData.fleetSendData;
+            config.gameData.fleetSendData = fleetSendData;
             config.promises.content = getPromise('#flottenInformationPage');
             config.promises.content.then(function () {
-                var maxSpeed = data.max_speed_transport;
-                var minTimeInSeconds  = moment.duration(data.send_time, "seconds").asSeconds();
+                var maxSpeed = fleetSendData.max_speed_transport;
+                var minTimeInSeconds  = moment.duration(fleetSendData.send_time, "seconds").asSeconds();
                 var maxTimeInSeconds = (minTimeInSeconds / (2-(maxSpeed/100)) * (2-(20/100)));
 
                 //round up to the next five mintue interval
@@ -2844,37 +2839,19 @@ function siteManager() {
             clockInterval: null,
             fleetCompleteHandlerAdded: false
         },
-        load: function (page) {
-            //load addons after submenu
-            config.promises.addons = getLoadStatePromise('submenu');
-            config.promises.addons.then(function () {
-                config.loadStates.fleetaddon = true;
-                addOns.showFleetActivityGlobally(page);
-                if (GM_config.get('addon_fleet')) {
-                    if (!Object.keys(config.gameData.spionageInfos).length || !Object.keys(config.gameData.observationInfo).length) {
-                        requests.get_obs_info()
-                            .then(function () { return requests.get_spionage_info(); })
-                            .then(function () { requests.get_flottenbewegungen_info(); });
-                    } else {
-                        requests.get_flottenbewegungen_info();
-                    }
+        load: function () {
+            if (GM_config.get('addon_fleet') && unsafeWindow.active_page !== 'flottenbewegungen') {
+                if (!Object.keys(config.gameData.spionageInfos).length || !Object.keys(config.gameData.observationInfo).length) {
+                    requests.get_obs_info()
+                        .then(function () { return requests.get_spionage_info(); })
+                        .then(function () { requests.get_flottenbewegungen_info(); });
+                } else {
+                    requests.get_flottenbewegungen_info();
                 }
-                addOns.refreshTrades();
-                if (GM_config.get('addon_clock')) addOns.addClockInterval();
+            }
 
-                //wait for fleetaddon before resolving addons
-                getLoadStatePromise('fleetaddon').then(function () {
-                    config.loadStates.addons = false;
-                }).catch(function (e) {
-                    console.log(e);
-                    helper.throwError();
-                    config.loadStates.addons = false;
-                });
-            }).catch(function (e) {
-                console.log(e);
-                config.loadStates.addons = false;
-                config.loadStates.fleetaddon = false;
-            });
+            addOns.refreshTrades();
+            if (GM_config.get('addon_clock')) addOns.addClockInterval();
         },
         unload: function () {
             if (addOns.config.fleetRefreshInterval !== null) { clearInterval(addOns.config.fleetRefreshInterval); addOns.config.fleetRefreshInterval = null; }
@@ -2964,7 +2941,6 @@ function siteManager() {
                     ||
                 (!GM_config.get('addon_fleet') && page !== 'flottenbewegungen')
             ) {
-                config.loadStates.fleetaddon = false;
                 return;
             }
 
@@ -2976,9 +2952,9 @@ function siteManager() {
                     status: []
                 };
                 var existingValues = {
-                    coords: lwm_jQuery.map(lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_coords option'), function (option, i) { return lwm_jQuery(option).val(); }),
-                    types: lwm_jQuery.map(lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_types option'), function (option, i) { return lwm_jQuery(option).val(); }),
-                    status: lwm_jQuery.map(lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_status option'), function (option, i) { return lwm_jQuery(option).val(); })
+                    coords: lwm_jQuery.map(lwm_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_coords option'), function (option, i) { return lwm_jQuery(option).val(); }),
+                    types: lwm_jQuery.map(lwm_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_types option'), function (option, i) { return lwm_jQuery(option).val(); }),
+                    status: lwm_jQuery.map(lwm_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_status option'), function (option, i) { return lwm_jQuery(option).val(); })
                 };
 
                 //exclude flottenbewegungen here as the only page that should not show fleets even with setting set
@@ -2987,7 +2963,6 @@ function siteManager() {
                         ||
                     (!GM_config.get('addon_fleet') && page !== 'flottenbewegungen')
                 ) {
-                    config.loadStates.fleetaddon = false;
                     return;
                 }
 
@@ -2996,11 +2971,11 @@ function siteManager() {
                     var lang = config.const.lang.fleet;
 
                     var process = function () {
-                        var $tableBase = lwm_jQuery('#folottenbewegungenPageDiv table');
+                        var $tableBase = lwm_jQuery('#lwm_folottenbewegungenPageDiv table');
                         $tableBase.find('tr:gt(0)').data('show', false);
-                        var $coords = lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_coords').val();
-                        var $type = lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_types').val();
-                        var $status = lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_status').val();
+                        var $coords = lwm_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_coords').val();
+                        var $type = lwm_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_types').val();
+                        var $status = lwm_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_status').val();
 
                         lwm_jQuery.each($tableBase.find('tr:gt(0)'), function () {
                             lwm_jQuery(this).data('show',
@@ -3037,20 +3012,20 @@ function siteManager() {
                     }
 
                     var attachSelects = function () {
-                        if (lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_coords').length === 0) {
+                        if (lwm_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_coords').length === 0) {
                             var $selectCoords = lwm_jQuery('<select id="lwm_fleetFilter_coords"><option value="">Pick Coords</option></select>');
                             $selectCoords.change(function () { process(); })
-                            lwm_jQuery('#folottenbewegungenPageDiv table td').first().append($selectCoords);
+                            lwm_jQuery('#lwm_folottenbewegungenPageDiv table td').first().append($selectCoords);
                         }
-                        if (lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_types').length === 0) {
+                        if (lwm_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_types').length === 0) {
                             var $selectTypes = lwm_jQuery('<select id="lwm_fleetFilter_types"><option value="">Pick Type</option></select>');
                             $selectTypes.change(function () { process(); })
-                            lwm_jQuery('#folottenbewegungenPageDiv table td').first().append($selectTypes);
+                            lwm_jQuery('#lwm_folottenbewegungenPageDiv table td').first().append($selectTypes);
                         }
-                        if (lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_status').length === 0) {
+                        if (lwm_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_status').length === 0) {
                             var $selectStatus = lwm_jQuery('<select id="lwm_fleetFilter_status"><option value="">Pick Status</option></select>');
                             $selectStatus.change(function () { process(); })
-                            lwm_jQuery('#folottenbewegungenPageDiv table td').first().append($selectStatus);
+                            lwm_jQuery('#lwm_folottenbewegungenPageDiv table td').first().append($selectStatus);
                         }
                     }
 
@@ -3061,15 +3036,15 @@ function siteManager() {
                     }
                 })();
 
-                if (lwm_jQuery('#folottenbewegungenPageDiv').length === 0) {
-                    var $div = lwm_jQuery('<div class="pageContent" style="margin-bottom:20px;"><div id="folottenbewegungenPageDiv"><table><tbody><tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>Ankunft</td><td>Restflugzeit</td></tr></tbody></table></div></div>');
+                if (lwm_jQuery('#lwm_folottenbewegungenPageDiv').length === 0) {
+                    var $div = lwm_jQuery('<div class="pageContent" style="margin-bottom:20px;"><div id="lwm_folottenbewegungenPageDiv"><table><tbody><tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>Ankunft</td><td>Restflugzeit</td></tr></tbody></table></div></div>');
                     $div.hide();
                     $div.prependTo('#all');
                     filter.attachSelects();
                     $div.show();
                 }
 
-                lwm_jQuery('#folottenbewegungenPageDiv table tr:gt(0)').remove();
+                lwm_jQuery('#lwm_folottenbewegungenPageDiv table tr:gt(0)').remove();
 
                 var iconAtt         = '<i class="fas fa-fighter-jet"></i>';
                 var iconBack        = '<i class="fas fa-long-arrow-alt-left"></i>';
@@ -3166,8 +3141,7 @@ function siteManager() {
                         case '1':
                             var existingObs = helper.getActiveObs([fleetData.Galaxy_send,fleetData.System_send,fleetData.Planet_send]);
                             var spydrones = lwm_jQuery.grep(config.gameData.spionageInfos.planetenscanner_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
-                            var obsOnclick = GM_config.get('obs_opentabs') ? 'window.open(\'view/content/new_window/observationen_view.php?id='+existingObs[0].id+'\')' : 'openObservationWindow('+existingObs[0].id+')';
-                            var obsLink = existingObs.length ? '<i onclick="'+obsOnclick+'" style="cursor:hand;" class="fas fa-search-plus fa2x"></i>' : (spydrones.length ? '<i style="cursor:hand;" class="fas fa-search fa2x"></i>' : '');
+                            var obsLink = existingObs.length ? '<i onclick="'+(GM_config.get('obs_opentabs') ? 'window.open(\'view/content/new_window/observationen_view.php?id='+existingObs[0].id+'\')' : 'openObservationWindow('+existingObs[0].id+')')+'" style="cursor:hand;" class="fas fa-search-plus fa2x"></i>' : (spydrones.length ? '<i style="cursor:hand;" class="fas fa-search fa2x"></i>' : '');
 
                             fleetInfoString = 'Eigene Flotte vom Planet '+ ownCoords;
                             if (fleetData.Status == 1) fleetInfoString = iconAtt+obsLink+lkomSendLink+fleetInfoString+" greift Planet ";
@@ -3219,25 +3193,25 @@ function siteManager() {
                 });
 
                 //populate fleets
-                lwm_jQuery('#folottenbewegungenPageDiv table tbody').append($fleetRows);
-                if ($fleetRows.length === 0) lwm_jQuery('#folottenbewegungenPageDiv').hide();
-                else                         lwm_jQuery('#folottenbewegungenPageDiv').show();
+                lwm_jQuery('#lwm_folottenbewegungenPageDiv table tbody').append($fleetRows);
+                if ($fleetRows.length === 0) lwm_jQuery('#lwm_folottenbewegungenPageDiv').hide();
+                else                         lwm_jQuery('#lwm_folottenbewegungenPageDiv').show();
 
                 //add spionage action
-                lwm_jQuery('#folottenbewegungenPageDiv table tbody tr').find('.fa-search').click(function () { operations.performSpionage(lwm_jQuery(this).parents('tr').attr('data-coords').split("x")); });
+                lwm_jQuery('#lwm_folottenbewegungenPageDiv table tbody tr').find('.fa-search').click(function () { operations.performSpionage(lwm_jQuery(this).parents('tr').attr('data-coords').split("x")); });
                 //populate selects
-                lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_coords').append($selectOptions.coords);
-                lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_types').append($selectOptions.types);
-                lwm_jQuery('#folottenbewegungenPageDiv #lwm_fleetFilter_status').append($selectOptions.status);
+                lwm_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_coords').append($selectOptions.coords);
+                lwm_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_types').append($selectOptions.types);
+                lwm_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_status').append($selectOptions.status);
 
                 //sort table by time
-                lwm_jQuery('#folottenbewegungenPageDiv table tbody tr:gt(0)').sort(function (a, b) {
+                lwm_jQuery('#lwm_folottenbewegungenPageDiv table tbody tr:gt(0)').sort(function (a, b) {
                     var tsA = moment.duration(lwm_jQuery(a).find('td').last().text());
                     var tsB = moment.duration(lwm_jQuery(b).find('td').last().text());
                     return tsA.asSeconds() - tsB.asSeconds();
                 }).each(function() {
                     var $elem = lwm_jQuery(this).detach();
-                    lwm_jQuery($elem).appendTo(lwm_jQuery('#folottenbewegungenPageDiv table tbody'));
+                    lwm_jQuery($elem).appendTo(lwm_jQuery('#lwm_folottenbewegungenPageDiv table tbody'));
                 });
 
                 filter.process();
@@ -3246,8 +3220,6 @@ function siteManager() {
                     clearInterval(unsafeWindow.timeinterval_flottenbewegungen);
                     helper.setDataForClocks();
                 }
-
-                config.loadStates.fleetaddon = false;
             }
 
 
@@ -3269,7 +3241,6 @@ function siteManager() {
             //add refresh interval
             if (addOns.config.fleetRefreshInterval !== null) return;
             addOns.config.fleetRefreshInterval = setInterval(function() {
-                config.loadStates.fleetaddon = true;
                 requests.get_flottenbewegungen_info();
             }, 30000);
         },
