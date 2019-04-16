@@ -63,7 +63,6 @@ function siteManager() {
         var API_KEY = 'AIzaSyA7VHXY213eg3suaarrMmrbOlX8T9hVwrc';
         var DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
         var SCOPES = 'https://www.googleapis.com/auth/drive.appfolder https://www.googleapis.com/auth/drive.file';
-        var configFileID = null;
 
         //if drive fails to load, set loadstate and los browser config instead
         var handleError = function () {
@@ -73,8 +72,7 @@ function siteManager() {
             GM_config.set('confirm_drive_sync', false);
 
             //load browser values
-            config.loadStates.gdrive = false;
-            config.setGMValues();
+            getLoadStatePromise('gameData').then(function () { config.setGMValues(); },function () { helper.throwError(); });
         }
 
         /**
@@ -114,26 +112,36 @@ function siteManager() {
         var updateSigninStatus = function(isSignedIn) {
             if (isSignedIn) {
                 console.log('gapi.client.drive.files.list');
-                gapi.client.drive.files.list({
-                    q: 'name="lwm_config.json"',
-                    spaces: 'appDataFolder',
-                    fields: 'files(id)'
-                }).then(function(response) {
-                    console.log(response);
-                    if (response.status === 200) {
-                        if (response.result.files.length === 0) {
-                            createConfig();
-                        } else {
-                            configFileID = response.result.files[0].id;
-                            getConfig();
-                        }
+                //if config file was already loaded, return and resolve gdrive load
+                GM.getValue('lwm_gDriveFileID', null).then(function (ID) {
+                    config.lwm.gDriveFileID = ID;
+                    if (config.lwm.gDriveFileID !== null) {
+                        getLoadStatePromise('gameData').then(function () { config.setGMValues(); },function () { helper.throwError(); });
+                        return;
                     } else {
-                        console.error('files.create: ' + response);
-                        handleError();
+                        gapi.client.drive.files.list({
+                            q: 'name="lwm_config.json"',
+                            spaces: 'appDataFolder',
+                            fields: 'files(id)'
+                        }).then(function(response) {
+                            console.log(response);
+                            if (response.status === 200) {
+                                if (response.result.files.length === 0) {
+                                    createConfig();
+                                } else {
+                                    config.lwm.gDriveFileID = response.result.files[0].id;
+                                    GM.setValue('lwm_gDriveFileID', config.lwm.gDriveFileID);
+                                    getConfig();
+                                }
+                            } else {
+                                console.error('files.create: ' + response);
+                                handleError();
+                            }
+                        }, function (error) {
+                            console.error(JSON.stringify(error, null, 2));
+                            handleError();
+                        });
                     }
-                }, function (error) {
-                    console.error(JSON.stringify(error, null, 2));
-                    handleError();
                 });
             } else {
                 handleError();
@@ -155,7 +163,8 @@ function siteManager() {
             }).then(function(response) {
                 console.log(response);
                 if (response.status === 200) {
-                    configFileID = response.result.id;
+                    config.lwm.gDriveFileID = response.result.id;
+                    GM.setValue('lwm_gDriveFileID', config.lwm.gDriveFileID);
                     config.loadStates.gdrive = false;
                     saveConfig();
                 } else {
@@ -205,7 +214,7 @@ function siteManager() {
 
             console.log('gapi.client.request',saveObj);
             gapi.client.request({
-                path: '/upload/drive/v3/files/' + configFileID,
+                path: '/upload/drive/v3/files/' + config.lwm.gDriveFileID,
                 method: 'PATCH',
                 params: {
                     uploadType: 'media',
@@ -225,7 +234,7 @@ function siteManager() {
         var getConfig = function () {
             console.log('gapi.client.drive.files.get');
             gapi.client.drive.files.get({
-                fileId: configFileID,
+                fileId: config.lwm.gDriveFileID,
                 alt: 'media'
             }).then(function (response) {
                 console.log(response);
@@ -600,6 +609,7 @@ function siteManager() {
             productionFilters: {},
             hiddenShips: {},
             resProd: {},
+            gDriveFileID: null,
             raidPrios: [],
             planetInfo: {},
             calendar: [],
@@ -839,6 +849,12 @@ function siteManager() {
     };
 
     var installMain = function() {
+        // coming from login, invalidate gDrive settings
+        if (document.referrer.search(/index\.php\?page=Login$/) !== -1) {
+            config.lwm.gDriveFileID = null;
+            GM.setValue('lwm_gDriveFileID', null);
+        }
+
         // load site jQuery as well, need this to make API calls
         lwm_jQuery(window).load(function () {
             site_jQuery = unsafeWindow.jQuery;
@@ -2058,7 +2074,7 @@ function siteManager() {
         fleetSend: function (fleetSendData) {
             //save data so we have it available when browsing back and forth
             var fleetSendData = fleetSendData || config.gameData.fleetSendData;
-            config.gameData.fleetSendData = fleetSendData;
+            config.gameData.fleetSendData = JSON.parse(JSON.stringify(fleetSendData));
             config.promises.content = getPromise('#flottenInformationPage');
             config.promises.content.then(function () {
                 var maxSpeed = fleetSendData.max_speed_transport;
