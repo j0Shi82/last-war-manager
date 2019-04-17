@@ -63,8 +63,9 @@ function siteManager() {
         var API_KEY = 'AIzaSyA7VHXY213eg3suaarrMmrbOlX8T9hVwrc';
         var DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
         var SCOPES = 'https://www.googleapis.com/auth/drive.appfolder https://www.googleapis.com/auth/drive.file';
+        var saveFileID = null;
 
-        //if drive fails to load, set loadstate and los browser config instead
+        //if drive fails to load, set loadstate and use browser config instead
         var handleError = function () {
             //reset the google settings
             if (GM_config.set('confirm_drive_sync')) alert('Couldn\'t sync with Google Drive. Please go to the settings and reconnect the service!');
@@ -129,8 +130,7 @@ function siteManager() {
                                 if (response.result.files.length === 0) {
                                     createConfig();
                                 } else {
-                                    config.lwm.gDriveFileID = response.result.files[0].id;
-                                    GM.setValue('lwm_gDriveFileID', config.lwm.gDriveFileID);
+                                    saveFileID = response.result.files[0].id;
                                     getConfig();
                                 }
                             } else {
@@ -234,12 +234,14 @@ function siteManager() {
         var getConfig = function () {
             console.log('gapi.client.drive.files.get');
             gapi.client.drive.files.get({
-                fileId: config.lwm.gDriveFileID,
+                fileId: saveFileID,
                 alt: 'media'
             }).then(function (response) {
                 console.log(response);
                 if (response.status === 200) {
                     config.lwm.set(response.result);
+                    config.lwm.gDriveFileID = saveFileID;
+                    GM.setValue('lwm_gDriveFileID', config.lwm.gDriveFileID);
                     //config.loadStates.gdrive = false; <-- loadState is updated in config.lwm.set()
                 } else {
                     console.error('files.create: ' + response);
@@ -530,6 +532,8 @@ function siteManager() {
                     else driveManager.save();
                 } else {
                     if (driveManager.isSignedIn()) driveManager.signOut();
+                    config.lwm.gDriveFileID = null;
+                    GM.setValue('lwm_gDriveFileID', null);
                 }
             }
         },
@@ -982,9 +986,7 @@ function siteManager() {
     var process = function (page, xhr, preserveSubmenu) {
         config.loadStates.content = true;
         config.loadStates.lastLoadedPage = page;
-        //override changeContent to avoid multiple page calls
-        unsafeWindow.changeContent = function () {};
-        unsafeWindow.changeInboxContent = function () {};
+
         //reject current promises to cancel pending loads
         if (config.promises.content !== null) config.promises.content.reject();
 
@@ -1003,8 +1005,6 @@ function siteManager() {
                 viewportmeta.setAttribute('content', "width=device-width, initial-scale=1.0");
             }
             lwm_jQuery('#all').focus();
-            unsafeWindow.changeContent = config.unsafeWindow.changeContent;
-            unsafeWindow.changeInboxContent = config.unsafeWindow.changeInboxContent;
 
             if (page === 'get_galaxy_view_info') {
                 lwm_jQuery("html, body").animate({ scrollTop: lwm_jQuery(document).height() }, 250);
@@ -1023,8 +1023,6 @@ function siteManager() {
                 viewportmeta.setAttribute('content', "width=device-width, initial-scale=1.0");
             }
             lwm_jQuery('#all').focus();
-            unsafeWindow.changeContent = config.unsafeWindow.changeContent;
-            unsafeWindow.changeInboxContent = config.unsafeWindow.changeInboxContent;
         });
 
         if (!preserveSubmenu) {
@@ -2732,6 +2730,26 @@ function siteManager() {
                     lwm_jQuery(e.target).closest('.navButton').addClass('activeBox');
                 });
 
+                lwm_jQuery(document).on('click', '.menu_box[onclick*=changeContent],.secound_line .navButton[onclick*=changeContent],#veticalLink .navButton[onclick*=changeContent]', function (e) {
+                    //override changeContent to avoid multiple page calls
+                    //they are re-attached once a page loads or fails
+                    unsafeWindow.changeContent = function () {};
+                    unsafeWindow.changeInboxContent = function () {};
+
+                    var $button = $(e.target).is('[onclick*=changeContent]') ? $(e.target) : $(e.target).parents('[onclick*=changeContent]');
+                    $button.attr('data-onclick', $button.attr('onclick')).attr('onclick', '');
+
+                    getPageLoadPromise().then(function () {
+                        unsafeWindow.changeContent = config.unsafeWindow.changeContent;
+                        unsafeWindow.changeInboxContent = config.unsafeWindow.changeInboxContent;
+                        $button.attr('onclick', $button.attr('data-onclick'));
+                    }).catch(function (e) {
+                        unsafeWindow.changeContent = config.unsafeWindow.changeContent;
+                        unsafeWindow.changeInboxContent = config.unsafeWindow.changeInboxContent;
+                        $button.attr('onclick', $button.attr('data-onclick'));
+                    });
+                });
+
                 //rewrite clock functions so we can kill timers
                 if (GM_config.get('addon_clock')) {
                     var oldInitializeClock = unsafeWindow.initializeClock;
@@ -3276,6 +3294,7 @@ function siteManager() {
                         duration: 0,
                         ts: moment(planet.FinishTimeForBuilding).valueOf()
                     });
+
                     if (planet.BuildingName2 !== '') addOns.calendar.store({
                         playerID: config.gameData.playerID,
                         playerName: config.gameData.playerName,
