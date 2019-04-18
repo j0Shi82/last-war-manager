@@ -68,7 +68,7 @@ function siteManager() {
         //if drive fails to load, set loadstate and use browser config instead
         var handleError = function () {
             //reset the google settings
-            if (GM_config.set('confirm_drive_sync')) alert('Couldn\'t sync with Google Drive. Please go to the settings and reconnect the service!');
+            if (GM_config.get('confirm_drive_sync')) alert('Couldn\'t sync with Google Drive. Please go to the settings and reconnect the service!');
             signOut();
             GM_config.set('confirm_drive_sync', false);
 
@@ -200,7 +200,6 @@ function siteManager() {
                 fleet_presets_3_active: GM_config.get('fleet_presets_3_active'),fleet_presets_3_weekday: GM_config.get('fleet_presets_3_weekday'),fleet_presets_3_time: GM_config.get('fleet_presets_3_time'),
                 fleet_presets_4_active: GM_config.get('fleet_presets_4_active'),fleet_presets_4_weekday: GM_config.get('fleet_presets_4_weekday'),fleet_presets_4_time: GM_config.get('fleet_presets_4_time'),
                 fleet_presets_5_active: GM_config.get('fleet_presets_5_active'),fleet_presets_5_weekday: GM_config.get('fleet_presets_5_weekday'),fleet_presets_5_time: GM_config.get('fleet_presets_5_time'),
-                confirm_drive_sync: GM_config.get('confirm_drive_sync'),
                 confirm_production: GM_config.get('confirm_production'),
                 confirm_research: GM_config.get('confirm_research'),
                 coords_fleets: GM_config.get('coords_fleets'),
@@ -1649,19 +1648,19 @@ function siteManager() {
                             var isMyPlanet = offer.galaxy == config.gameData.planetCoords.galaxy && offer.system == config.gameData.planetCoords.system && offer.planet == config.gameData.planetCoords.planet;
                             $.each(currentRes, function (i, amount) {
                                 if (GM_config.get('trade_highlights')) {
-                                    if (offer.my === 1 && (incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+6]) : 0)) > capacities[i]) {
+                                    if (offer.my === 1 && parseInt(offer.resource[i+6]) > 0 && (incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+6]) : 0)) > capacities[i]) {
                                         $tradeDiv.find('tr:eq('+(i+5)+') td').last().addClass('redBackground');
                                         $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
                                     }
-                                    if (offer.my === 1 && (incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+12]) : 0)) > capacities[i]) {
+                                    if (isMyPlanet && offer.my === 1 && parseInt(offer.resource[i+12]) > 0 && (incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+12]) : 0)) > capacities[i]) {
                                         $tradeDiv.find('tr:eq('+(i+5)+') td').first().addClass('redBackground');
                                         $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
                                     }
-                                    if (isMyPlanet && offer.my === 0  && (incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+12]) : 0)) > capacities[i]) {
+                                    if (isMyPlanet && offer.my === 0  && parseInt(offer.resource[i+12]) > 0 && (incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+12]) : 0)) > capacities[i]) {
                                         $tradeDiv.find('tr:eq('+(i+5)+') td').first().addClass('redBackground');
                                         $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
                                     }
-                                    if (offer.my === 0  && (incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+6]) : 0)) > capacities[i]) {
+                                    if (offer.my === 0  && parseInt(offer.resource[i+6]) > 0 && (incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+6]) : 0)) > capacities[i]) {
                                         $tradeDiv.find('tr:eq('+(i+5)+') td').last().addClass('redBackground');
                                         $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
                                     }
