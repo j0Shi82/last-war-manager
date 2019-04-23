@@ -71,6 +71,7 @@ function siteManager() {
             if (GM_config.get('confirm_drive_sync')) alert('Couldn\'t sync with Google Drive. Please go to the settings and reconnect the service!');
             signOut();
             GM_config.set('confirm_drive_sync', false);
+            GM_config.save();
 
             //load browser values
             getLoadStatePromise('gameData').then(function () { config.setGMValues(); },function () { helper.throwError(); });
@@ -111,7 +112,7 @@ function siteManager() {
         }
 
         var updateSigninStatus = function(isSignedIn) {
-            if (isSignedIn) {
+            if (isSignedIn && GM_config.get('confirm_drive_sync')) {
                 console.log('gapi.client.drive.files.list');
                 //if config file was already loaded, return and resolve gdrive load
                 GM.getValue('lwm_gDriveFileID', null).then(function (ID) {
@@ -195,6 +196,8 @@ function siteManager() {
                 overview_planetnames: GM_config.get('overview_planetnames'),
                 message_spylinks: GM_config.get('message_spylinks'),
                 trade_highlights: GM_config.get('trade_highlights'),
+                fleet_saveprios: GM_config.get('fleet_saveprios'),
+                obs_opentabs: GM_config.get('obs_opentabs'),
                 fleet_presets_1_active: GM_config.get('fleet_presets_1_active'),fleet_presets_1_weekday: GM_config.get('fleet_presets_1_weekday'),fleet_presets_1_time: GM_config.get('fleet_presets_1_time'),
                 fleet_presets_2_active: GM_config.get('fleet_presets_2_active'),fleet_presets_2_weekday: GM_config.get('fleet_presets_2_weekday'),fleet_presets_2_time: GM_config.get('fleet_presets_2_time'),
                 fleet_presets_3_active: GM_config.get('fleet_presets_3_active'),fleet_presets_3_weekday: GM_config.get('fleet_presets_3_weekday'),fleet_presets_3_time: GM_config.get('fleet_presets_3_time'),
@@ -204,11 +207,6 @@ function siteManager() {
                 confirm_research: GM_config.get('confirm_research'),
                 coords_fleets: GM_config.get('coords_fleets'),
                 coords_trades: GM_config.get('coords_trades')
-            };
-
-            if (config.gameData.playerID == 186 && Object.keys(config.lwm.lastTradeCoords[config.gameData.playerID]).length < 5) {
-                alert( 'save might have been reset!');
-                return;
             };
 
             console.log('gapi.client.request',saveObj);
@@ -238,9 +236,9 @@ function siteManager() {
             }).then(function (response) {
                 console.log(response);
                 if (response.status === 200) {
-                    config.lwm.set(response.result);
                     config.lwm.gDriveFileID = saveFileID;
                     GM.setValue('lwm_gDriveFileID', config.lwm.gDriveFileID);
+                    config.lwm.set(response.result);
                     //config.loadStates.gdrive = false; <-- loadState is updated in config.lwm.set()
                 } else {
                     console.error('files.create: ' + response);
@@ -528,7 +526,7 @@ function siteManager() {
             'save': function() {
                 if (this.fields.confirm_drive_sync.value) {
                     if (!driveManager.isSignedIn()) driveManager.signIn();
-                    else driveManager.save();
+                    if (config.lwm.gDriveFileID !== null) driveManager.save();
                 } else {
                     if (driveManager.isSignedIn()) driveManager.signOut();
                     config.lwm.gDriveFileID = null;
@@ -632,6 +630,7 @@ function siteManager() {
                     Object.keys(data.menu).forEach(function(key) {
                         if (typeof GM_config.fields[key] !== "undefined") GM_config.set(key, data.menu[key]);
                     });
+                    GM_config.save();
                 }
 
                 //set and get to sync
