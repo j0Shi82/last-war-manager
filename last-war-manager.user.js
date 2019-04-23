@@ -21,7 +21,7 @@
 // @grant         GM_getResourceText
 // @grant         GM_addStyle
 // @run-at        document-start
-// @version       0.8
+// @version       0.9
 // ==/UserScript==
 
 var firstLoad = true;
