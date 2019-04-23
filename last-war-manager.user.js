@@ -2561,6 +2561,13 @@ function siteManager() {
         credit: function () {
             config.promises.content = getPromise('#kreditinstitutDiv');
             config.promises.content.then(function () {
+                //fix a bug leading to credit institute reporting an error even though you can technically get the credit
+                lwm_jQuery('#hoursKredit').change(function () {
+                    unsafeWindow.max_resource.forEach(function (value, i) {
+                        unsafeWindow.max_resource[i] = parseInt(value.replace('.',''));
+                    });
+                });
+
                 lwm_jQuery('[type=\'number\']').after('<i class="fas fa-2x fa-angle-double-left"></i>');
                 lwm_jQuery('.fa-angle-double-left').each(function () {
                     lwm_jQuery(this).parent().css('display','flex');
