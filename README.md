@@ -26,14 +26,6 @@ A German feedback thread can be found on the [official message board](http://for
 
 # Features
 
-- **TRADE**
-
-- **ESPIONAGE**
-  - Drone types without an amount do no longer show up in the spy listing.
-- **FLEETS**
-  - 
-  
-
 - Visual improvements for Desktop resolutions and a full mobile layout.
 - Export and import settings from Google Drive
 - Show fleet activity on all pages (optional)
@@ -86,6 +78,8 @@ A German feedback thread can be found on the [official message board](http://for
   - Add spy and obs links to all planets
   - The level of camouflage technology shows in the galaxy view if known
   - Planets with existing observation drones are marked in the galaxy view and instead of sending an obs drone open the report
+- **ESPIONAGE**
+  - Drone types without an amount do no longer show up in the spy listing (fixes a current bug)
 - **OBSERVATIONS**
   - Ability to sort observations by coords
   - Re-send drones from the obs page
