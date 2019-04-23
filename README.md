@@ -35,6 +35,7 @@ A German feedback thread can be found on the [official message board](http://for
 - Settings page that lets you control what the script should do
 - **OVERVIEW**
   - Resources get added to the planets on the overview
+  - Show energy and building slots on overview page for all planets
   - Ability to switch planets by clicking the coord table headers
 - **PRODUCTION**
   - Ability to hide ships (workaround for a known issue that prevents users to delete ship designs)
@@ -114,9 +115,11 @@ A German feedback thread can be found on the [official message board](http://for
 [changelog.md](CHANGELOG.md)
 d ships to fleets
 - **FLEETS**
+  - The fleet movement page turned into a calendar page that lists all running tasks
   - Callback button added to the fleet pages
   - Buttons to bulk add ships to fleets
   - Ability to store last used coords
+  - While sending fleets, you can choose a return time and the script automatically adjusts speeds
 - **TRADE**
    - Ability to store last used coords
    - Two-click save to own planets

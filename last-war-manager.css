@@ -371,6 +371,7 @@ i.icon-galaxy {
 .pageContent {
   height: unset;
   overflow-y: initial;
+  overflow-x: auto;
   padding-right: 0;
 }
 ul.loadbarConstruction,
@@ -523,7 +524,7 @@ tr th:first-child,
   background-color: #4290a157;
 }
 .menu_box {
-  width: 125px !important;
+  width: 120px !important;
   height: 22px;
   line-height: 22px;
   display: flex;
@@ -730,6 +731,7 @@ td.constructionName,
 #folottenbewegungenPageDiv table tr:first-child,
 #galaxyViewInfoTable th,
 #observationenDiv th,
+#calendarDiv th,
 #tableForChangingPlanet tr {
   word-break: break-all;
   background-color: #4290a157;
@@ -1172,3 +1174,17 @@ body#lwmSettings .section_desc {
   margin: 0 !important;
 }
 /* BANK END */
+/* CALENDAR */
+@media (max-width: 850px) {
+  #calendarDiv tr td:nth-child(1),
+  #calendarDiv tr td:nth-child(1) {
+    word-break: break-all;
+  }
+  #calendarDiv tr td:nth-child(1) {
+    min-width: 50px;
+  }
+  #calendarDiv tr td:nth-child(2) {
+    min-width: 25px;
+  }
+}
+/* CALENDAR END*/

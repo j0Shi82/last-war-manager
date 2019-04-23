@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.7.0
+
+- The production page no longer has the shipdock in its submenu
+- The fleet page now turned to a calendar page that lists all running tasks
+  - Per default, the calendar only shows fleet activity, but it can list buildings, research, production, etc. as well
+- The fleet page was scratched from all submenus
+- Some improvements have been made to the script startup routine to speed up things and avoid errors
+
+- **FLEETS**
+  - The icon to recall a fleet now only shows up in case the fleet is on its way to the target
+  - While sending fleets, you can choose a return time and the script automatically adjusts speeds
+
+- **OVERVIEW**
+  - Show energy and building slots on overview page for all planets
+
 ## v0.6.0
 
 - All arrow keys that add or remove ships or defense bulk add them when you hold the mouse button
