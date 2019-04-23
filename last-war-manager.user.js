@@ -96,7 +96,7 @@ function siteManager() {
              *  listeners.
              */
         var initClient = function() {
-            console.log('gapi.client.init');
+            //console.log('gapi.client.init');
             gapi.client.init({
                 apiKey: API_KEY,
                 clientId: CLIENT_ID,
@@ -113,7 +113,7 @@ function siteManager() {
 
         var updateSigninStatus = function(isSignedIn) {
             if (isSignedIn && GM_config.get('confirm_drive_sync')) {
-                console.log('gapi.client.drive.files.list');
+                //console.log('gapi.client.drive.files.list');
                 //if config file was already loaded, return and resolve gdrive load
                 GM.getValue('lwm_gDriveFileID', null).then(function (ID) {
                     config.lwm.gDriveFileID = ID;
@@ -126,7 +126,7 @@ function siteManager() {
                             spaces: 'appDataFolder',
                             fields: 'files(id)'
                         }).then(function(response) {
-                            console.log(response);
+                            //console.log(response);
                             if (response.status === 200) {
                                 if (response.result.files.length === 0) {
                                     createConfig();
@@ -157,12 +157,12 @@ function siteManager() {
                 mimeType: 'application/json',
                 uploadType: 'multipart'
             };
-            console.log('gapi.client.drive.files.create');
+            //console.log('gapi.client.drive.files.create');
             gapi.client.drive.files.create({
                 resource: fileMetadata,
                 fields: 'id,name'
             }).then(function(response) {
-                console.log(response);
+                //console.log(response);
                 if (response.status === 200) {
                     config.lwm.gDriveFileID = response.result.id;
                     GM.setValue('lwm_gDriveFileID', config.lwm.gDriveFileID);
@@ -181,7 +181,7 @@ function siteManager() {
         var saveConfig = function () {
             // check whether config is ready
             if (config.loadStates.gdrive) {
-                console.log('gapi.client.request failed due to config.loadStates.gdrive');
+                //console.log('gapi.client.request failed due to config.loadStates.gdrive');
                 return;
             }
             //save
@@ -209,7 +209,7 @@ function siteManager() {
                 coords_trades: GM_config.get('coords_trades')
             };
 
-            console.log('gapi.client.request',saveObj);
+            //console.log('gapi.client.request',saveObj);
             gapi.client.request({
                 path: '/upload/drive/v3/files/' + config.lwm.gDriveFileID,
                 method: 'PATCH',
@@ -219,7 +219,7 @@ function siteManager() {
                 },
                 body: JSON.stringify(saveObj)
             }).then(function (response) {
-                console.log(response);
+                //console.log(response);
                 if (response.status !== 200) {
                     console.error('client.request: ' + response);
                 }
@@ -229,12 +229,12 @@ function siteManager() {
         }
 
         var getConfig = function () {
-            console.log('gapi.client.drive.files.get');
+            //console.log('gapi.client.drive.files.get');
             gapi.client.drive.files.get({
                 fileId: saveFileID,
                 alt: 'media'
             }).then(function (response) {
-                console.log(response);
+                //console.log(response);
                 if (response.status === 200) {
                     config.lwm.gDriveFileID = saveFileID;
                     GM.setValue('lwm_gDriveFileID', config.lwm.gDriveFileID);
@@ -897,7 +897,7 @@ function siteManager() {
                 var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
                 if (settings.url.search(/lwm_ignoreProcess/) !== -1) {
-                    console.log('lwm_ignoreProcess... skipping');
+                    //console.log('lwm_ignoreProcess... skipping');
                     return;
                 }
                 // first ubersicht load is usually not caught by our wrapper. But in case it is, return because we invoke this manually
@@ -906,7 +906,7 @@ function siteManager() {
                 if ((settings.url.match(/content/) || processPages.indexOf(page) !== -1) && ignorePages.indexOf(page) === -1) {
                     //prevent the same page to get processed twice
                     if (!config.loadStates.content || config.loadStates.lastLoadedPage !== page) {
-                        console.log(page);
+                        //console.log(page);
                         if (!preserveSubmenuPages.includes(page)) submenu.clear();
                         lwm_jQuery('#all').hide();
                         lwm_jQuery('.loader').show();
@@ -948,8 +948,8 @@ function siteManager() {
                 var listenPages = ['put_building'];
 
                 if (listenPages.indexOf(page) !== -1) {
-                    console.log(event, xhr, settings);
-                    console.log('ajaxComplete',page, xhr.responseJSON);
+                    //console.log(event, xhr, settings);
+                    //console.log('ajaxComplete',page, xhr.responseJSON);
                 }
             });
 
@@ -959,7 +959,7 @@ function siteManager() {
                 if (xhr.responseJSON == '500' || xhr.readyState === 0) return;
 
                 if (settings.url.search(/lwm_ignoreProcess/) !== -1) {
-                    console.log('lwm_ignoreProcess... skipping');
+                    //console.log('lwm_ignoreProcess... skipping');
                     return;
                 }
                 // first ubersicht load is usually not caught by our wrapper. But in case it is, return because we invoke this manually
@@ -1008,7 +1008,7 @@ function siteManager() {
                 lwm_jQuery("html, body").animate({ scrollTop: lwm_jQuery(document).height() }, 250);
             }
         }).catch(function (e) {
-            console.log(e);
+            //console.log(e);
             helper.throwError();
             lwm_jQuery('.loader').hide();
             lwm_jQuery('#all').show();
@@ -1147,7 +1147,7 @@ function siteManager() {
 
                 config.loadStates.submenu = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.submenu = false;
             });
@@ -1164,7 +1164,7 @@ function siteManager() {
             config.promises.content.then(function () {
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -1202,7 +1202,7 @@ function siteManager() {
                     });
                 });
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
             });
         },
@@ -1263,7 +1263,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -1283,7 +1283,7 @@ function siteManager() {
                 helper.replaceElementsHtmlWithIcon(lwm_jQuery('td[onclick*=\'deleteAktuelleProduktion\']'), 'fas fa-ban');
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -1298,7 +1298,7 @@ function siteManager() {
                 helper.replaceElementsHtmlWithIcon(lwm_jQuery('button[onclick*=\'makeDefence\']'), 'fas fa-2x fa-plus-circle');
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -1316,7 +1316,7 @@ function siteManager() {
                 helper.replaceElementsHtmlWithIcon(lwm_jQuery('button[onclick*=\'buyHandeslpostenShips\']'), 'fas fa-2x fa-plus-circle');
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -1332,7 +1332,7 @@ function siteManager() {
                 helper.replaceElementsHtmlWithIcon(lwm_jQuery('button[onclick*=\'recycleDefence\']'), 'fas fa-2x fa-plus-circle');
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -1349,7 +1349,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -1479,7 +1479,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -1496,7 +1496,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -1512,7 +1512,7 @@ function siteManager() {
                 helper.replaceElementsHtmlWithIcon(lwm_jQuery('button[onclick*=\'RecycleShips\']'), 'fas fa-2x fa-plus-circle');
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -1534,7 +1534,7 @@ function siteManager() {
                 });
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -1555,7 +1555,7 @@ function siteManager() {
                 });
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -1571,7 +1571,7 @@ function siteManager() {
                 });
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -1620,7 +1620,7 @@ function siteManager() {
                     });
                 }
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -1732,12 +1732,12 @@ function siteManager() {
 
                         config.loadStates.content = false;
                     }).catch(function (e) {
-                        console.log(e);
+                        //console.log(e);
                         config.loadStates.content = false;
                     });
                 }
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -1820,7 +1820,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -1847,7 +1847,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -1864,7 +1864,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -1889,7 +1889,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -1987,7 +1987,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -2062,7 +2062,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -2286,7 +2286,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -2302,7 +2302,7 @@ function siteManager() {
 
                     config.loadStates.content = false;
                 }).catch(function (e) {
-                    console.log(e);
+                    //console.log(e);
                     helper.throwError();
                     config.loadStates.content = false;
                 });
@@ -2383,7 +2383,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -2444,7 +2444,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -2455,7 +2455,7 @@ function siteManager() {
                 //lwm_jQuery('#create').click(function () { config.gameData.reloads.productionInfos = 'production'; });
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -2484,7 +2484,7 @@ function siteManager() {
                 $div.prependTo(lwm_jQuery('#Tables'));
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -2552,7 +2552,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -2580,7 +2580,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
@@ -2638,7 +2638,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                console.log(e);
+                //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
             });
