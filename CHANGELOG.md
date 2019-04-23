@@ -2,27 +2,37 @@
 
 ## v0.8.0
 
-- Save trades are now recognized by the script and can no longer be canceled from another planet.
-- Fixed multiple bugs that sometimes incorrectly found trades to exceed storage capacities.
-- Drone types without an amount do no longer show up in the spy listing.
-- Added the ability to auto save raid priorities.
-- The fleet addon now shows fleet activity for all planets, not just the current one.
-- Added an option to exclude drones from fleet activity.
-- Added an option to bulk accept / deny trades.
-- Fleets on their way back now have an info icon that leads to the fleet info.
-- Fleet warning distance shows on the overview page.
-- Fleets received a visual upgrade and can be filtered by coords, type, and status.
-- The calendar now groups similar entries to avoid too many rows.
-- You can now re-send drones from the obs page.
-- Planets with existing observation drones are now marked in the galaxy view and instead of sending an obs drone open the existing obs report.
-- The level of camouflage technology now shows in the galaxy view for known planets.
-- The level of camouflage technology now shows on the obs page for known planets.
-- In case the fleet addon is deactivated, fleets show up again on the old fleet / now calendar page.
-- Active obs for planets that fleets are currently attacking can now be opened from the fleet menu. If no ob active, the script offers to send a spy drone.
-- The original speed of fleets was added to the fleet table.
-- Input fields on production pages listen to the enter key.
-- Option added to open obs reports in new tabs instead of new windows.
-- Added buttons to the bank page to fill bank and withdraw interest.
+- The Google Drive saves are loaded once per login, not once per planet change.
+- **TRADE**
+  - Save trades are now recognized by the script and can no longer be canceled from another planet.
+  - Fixed multiple bugs that sometimes incorrectly found trades to exceed storage capacities.
+  - Added an option to bulk accept / deny trades.
+- **ESPIONAGE**
+  - Drone types without an amount do no longer show up in the spy listing.
+- **FLEETS**
+  - Added the ability to auto save raid priorities.
+  - The fleet addon now shows fleet activity for all recently visited planets, not just the current one.
+  - Added an option to exclude drones from fleet activity.
+  - Fleets on their way back now have an info icon that leads to the fleet info.
+  - Fleets received a visual upgrade and can be filtered by coords, type, and status.
+  - In case the fleet addon is deactivated, fleets show up again on the old fleet / now calendar page.
+  - The original speed of fleets was added to the fleet table.
+- **OVERVIEW**
+  - Fleet warning distance shows on the overview page.
+- **CALENDAR**
+  - The calendar now groups similar entries to avoid too many rows.
+- **OBSERVATIONS**
+  - You can now re-send drones from the obs page.
+  - Planets with existing observation drones are now marked in the galaxy view and instead of sending an obs drone open the existing obs report.
+  - The level of camouflage technology now shows on the obs page for known planets.
+  - Active obs for planets that fleets are currently attacking can now be opened from the fleet menu. If no ob active, the script offers to send a spy drone.
+  - Option added to open obs reports in new tabs instead of new windows.
+- **GALAXY**
+  - The level of camouflage technology now shows in the galaxy view for known planets.
+- **PRODUCTION**
+  - Input fields on production pages listen to the enter key.
+- **BANK**
+  - Added buttons to the bank page to fill bank and withdraw interest.
 
 ## v0.7.0
 
