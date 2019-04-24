@@ -811,6 +811,7 @@
   #lwm_folottenbewegungenPageDiv select {
     margin-left: 1.5%;
     margin-right: 1.5%;
+    width: 25%;
   }
   #lwm_folottenbewegungenPageDiv tr:first-child td:first-child > div {
     display: flex;
