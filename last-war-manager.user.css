@@ -799,7 +799,7 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    align-content: center;
+    align-content: space-between;
     justify-content: space-between;
     width: 100%;
   }
