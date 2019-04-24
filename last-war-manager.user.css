@@ -75,8 +75,11 @@
       margin-bottom: 20px !important;
     }
     .fontSizeFourteenClass,
-    table {
-      font-size: 12px;
+    table,
+    select,
+    .resourceBox,
+    .menu_box {
+      font-size: 16px !important;
     }
     #Main {
       flex-flow: column;
@@ -140,12 +143,11 @@
       align-content: center;
     }
     .resourceBox {
-      flex: 0 0 100px;
+      flex: 0 0 110px;
       float: none;
       margin-left: 2px !important;
       margin-right: 0px !important;
       display: flex;
-      font-size: 12px !important;
       flex-direction: column;
       align-items: center;
       justify-content: center;
@@ -624,10 +626,14 @@
   @media (max-width: 850px) {
     .navButton,
     .navButton.bigNavButton {
-      width: 120px !important;
-      line-height: 22px !important;
-      height: 22px !important;
-      font-size: 12px !important;
+      width: 150px !important;
+      line-height: 30px !important;
+      height: 30px !important;
+      font-size: 16px !important;
+    }
+    .navButton i,
+    .navButton.bigNavButton i {
+      font-size: 1.5em;
     }
     .buttonAccount,
     .formButtonNewMessage,
@@ -635,15 +641,21 @@
     .formButtonSpionage,
     .buttonGalaxyView,
     .formButtonGalaxyView {
-      width: 125px !important;
-      font-size: 12px !important;
+      width: 155px !important;
+      font-size: 16px !important;
+      height: 30px !important;
+      line-height: 30px !important;
     }
     #tradeOfferDiv .formButton {
       width: 100px !important;
     }
     .menu_box {
-      width: 100px !important;
-      font-size: 12px !important;
+      width: 155px !important;
+      height: 30px !important;
+      line-height: 30px !important;
+    }
+    .menu_box i {
+      font-size: 1.5em;
     }
     td.roheisenVariable,
     td.kristallVariable,
@@ -651,7 +663,7 @@
     td.orizinVariable,
     td.frurozinVariable,
     td.goldVariable {
-      font-size: 10px;
+      font-size: 16px;
       word-break: break-all;
     }
   }
@@ -780,23 +792,50 @@
   #galaxyViewDiv {
     margin-top: 5px;
   }
+  #lwm_folottenbewegungenPageDiv .lwm_fleetinfowrapper {
+    display: flex;
+  }
+  #lwm_folottenbewegungenPageDiv .lwm_fleeticonwrapper {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    align-content: center;
+    justify-content: space-between;
+    width: 100%;
+  }
   #lwm_folottenbewegungenPageDiv
     tr
     > td:not(:nth-last-child(1)):not(:nth-last-child(2)):not(:first-child) {
     display: none;
   }
   #lwm_folottenbewegungenPageDiv select {
-    width: 25%;
+    margin-left: 1.5%;
+    margin-right: 1.5%;
+  }
+  #lwm_folottenbewegungenPageDiv tr:first-child td:first-child > div {
+    display: flex;
+    vertical-align: middle;
+    justify-content: space-between;
   }
   @media (min-width: 851px) {
     #lwm_folottenbewegungenPageDiv tr > td:nth-last-child(2) {
       word-break: keep-all;
       white-space: nowrap;
     }
+
+    #lwm_folottenbewegungenPageDiv .lwm_fleeticonwrapper {
+      flex: 0 0 4.5em;
+    }
   }
   @media (max-width: 850px) {
     #lwm_folottenbewegungenPageDiv i {
       font-size: 2em;
+    }
+    #lwm_folottenbewegungenPageDiv .lwm_fleeticonwrapper {
+      flex: 0 0 30%;
+    }
+    #lwm_folottenbewegungenPageDiv .lwm_fleetinfo {
+      word-break: break-all;
     }
   }
   #lwm_folottenbewegungenPageDiv b {
@@ -1120,6 +1159,11 @@
   .actionClass {
     font-size: 0.75em;
   }
+  @media (max-width: 850px) {
+    .actionClass {
+      font-size: 1em;
+    }
+  }
   .flottenKommandoAction,
   .newTradeOfferAction,
   .spionagePlanetenscannerAction,
@@ -1182,6 +1226,22 @@
     float: left;
     margin-left: 5px;
     margin-right: 5px;
+  }
+  #productionDiv .inboxDeleteMessageButtons {
+    position: fixed;
+    bottom: 0;
+    background-color: #000;
+    width: 100%;
+  }
+
+  @media (max-width: 850px) {
+    #productionDiv i {
+      font-size: 2em;
+    }
+
+    #productionDiv .inboxDeleteMessageButtons .buttonRowInbox {
+      margin: 0 auto;
+    }
   }
   #productionDiv button[onclick*="delete"] {
     border: 0 !important;
@@ -1267,6 +1327,11 @@
   /* UEBERSICHT */
   #uberPageDiv table {
     overflow: hidden;
+  }
+  @media (max-width: 850px) {
+    .uberProgressbar {
+      display: none;
+    }
   }
   /* UEBERSICHT END */
 }
