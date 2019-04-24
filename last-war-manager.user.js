@@ -1529,6 +1529,7 @@ function siteManager() {
                     if (GM_config.get('confirm_const')) helper.addConfirm($td);
                     if (GM_config.get('addon_clock')) {
                         clearInterval(unsafeWindow.timeinterval_construction);
+                        clearInterval(unsafeWindow.timeinterval_construction2);
                         helper.setDataForClocks();
                     }
                 });
@@ -1549,7 +1550,7 @@ function siteManager() {
                     lwm_jQuery(this).attr('onclick', '')
                     if (GM_config.get('confirm_research')) helper.addConfirm($td);
                     if (GM_config.get('addon_clock')) {
-                        clearInterval(unsafeWindow.timeinterval_construction);
+                        clearInterval(unsafeWindow.timeinterval_research);
                         helper.setDataForClocks();
                     }
                 });
@@ -2755,16 +2756,6 @@ function siteManager() {
                     });
                 });
 
-                //rewrite clock functions so we can kill timers
-                if (GM_config.get('addon_clock')) {
-                    var oldInitializeClock = unsafeWindow.initializeClock;
-                    unsafeWindow.initializeClock = function (idTr, idTd, idTime, total_secounds, secounds, construction_number) {
-                        oldInitializeClock(idTr, idTd, idTime, total_secounds, secounds, construction_number);
-                        clearInterval(unsafeWindow.timeinterval_construction);
-                        helper.setDataForClocks();
-                    }
-                }
-
                 // register events to navigate with arrow keys
                 lwm_jQuery(document).keyup(function (e) {
                     var isGalaxy = lwm_jQuery('#galaxyViewDiv').length > 0;
@@ -3024,8 +3015,10 @@ function siteManager() {
                         });
 
                         lwm_jQuery.each($tableBase.find('tr:gt(0)'), function (i, el) {
-                            if (lwm_jQuery(el).data('show')) lwm_jQuery(el).show();
-                            else                             lwm_jQuery(el).hide();
+                            GM.getValue('lwm_fleetToggled', false).then(function (value) {
+                                if (lwm_jQuery(el).data('show') && !value) lwm_jQuery(el).show();
+                                else                                       lwm_jQuery(el).hide();
+                            });
                         });
                     }
 
@@ -3066,6 +3059,17 @@ function siteManager() {
                             $selectStatus.change(function () { process(); })
                             lwm_jQuery('#lwm_folottenbewegungenPageDiv table td').first().append($selectStatus);
                         }
+                        GM.getValue('lwm_fleetToggled', false).then(function (value) {
+                            var $toggleIcon = value ? lwm_jQuery('<i class="toggle fas fa-plus-circle"></i>') : lwm_jQuery('<i class="toggle fas fa-minus-circle"></i>');
+                            $toggleIcon.click(function () {
+                                lwm_jQuery(this).toggleClass('fa-plus-circle fa-minus-circle');
+                                GM.getValue('lwm_fleetToggled', false).then(function (value) {
+                                    GM.getValue('lwm_fleetToggled', !value);
+                                });
+                                process();
+                            });
+                            lwm_jQuery('#lwm_folottenbewegungenPageDiv table td').first().append($toggleIcon);
+                        });
                     }
 
                     return {
@@ -3180,7 +3184,7 @@ function siteManager() {
                         case '1':
                             var existingObs = helper.getActiveObs([fleetData.Galaxy_send,fleetData.System_send,fleetData.Planet_send]);
                             var spydrones = lwm_jQuery.grep(config.gameData.spionageInfos.planetenscanner_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
-                            var obsLink = existingObs.length ? '<i onclick="'+(GM_config.get('obs_opentabs') ? 'window.open(\'view/content/new_window/observationen_view.php?id='+existingObs[0].id+'\')' : 'openObservationWindow('+existingObs[0].id+')')+'" style="cursor:hand;" class="fas fa-search-plus fa2x"></i>' : (spydrones.length ? '<i style="cursor:hand;" class="fas fa-search fa2x"></i>' : '');
+                            var obsLink = existingObs.length ? '<i onclick="'+(GM_config.get('obs_opentabs') ? 'window.open(\'view/content/new_window/observationen_view.php?id='+existingObs[0].id+'\')' : 'openObservationWindow('+existingObs[0].id+')')+'" style="cursor:hand;" class="fas fa-search-plus"></i>' : (spydrones.length ? '<i style="cursor:hand;" class="fas fa-search"></i>' : '');
 
                             fleetInfoString = 'Eigene Flotte vom Planet '+ ownCoords;
                             if (fleetData.Status == 1) fleetInfoString = iconAtt+obsLink+lkomSendLink+fleetInfoString+" greift Planet ";

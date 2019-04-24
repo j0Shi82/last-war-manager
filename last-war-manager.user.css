@@ -474,6 +474,15 @@
   .redButton {
     margin: 0;
   }
+  @media (max-width: 850px) {
+    .defaultButton,
+    .greenButton,
+    .yellowButton,
+    .redButton {
+      width: 30px;
+      height: 30px;
+    }
+  }
   #saveLinks {
     padding-top: 10px;
     padding-bottom: 10px;
@@ -777,9 +786,18 @@
     display: none;
   }
   #lwm_folottenbewegungenPageDiv select {
-    width: 30%;
-    margin-left: 1.5%;
-    margin-right: 1.5%;
+    width: 25%;
+  }
+  @media (min-width: 851px) {
+    #lwm_folottenbewegungenPageDiv tr > td:nth-last-child(2) {
+      word-break: keep-all;
+      white-space: nowrap;
+    }
+  }
+  @media (max-width: 850px) {
+    #lwm_folottenbewegungenPageDiv i {
+      font-size: 2em;
+    }
   }
   #lwm_folottenbewegungenPageDiv b {
     text-decoration: underline;
