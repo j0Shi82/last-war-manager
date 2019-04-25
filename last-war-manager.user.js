@@ -3744,6 +3744,9 @@ function siteManager() {
                 GM_notification(entry.text+' just finished on '+entry.coords+' ('+entry.playerName+')',
                                 'Last War Manager Notification', notifications.imgUrl, function () { window.open('https://last-war.de/main.php'); });
             });
+            GM.getValue('lwm_calendar', '[]').then(function (data) {
+                notifications.worker.postMessage({'cmd':'push','calendar':JSON.parse(data),'config':{'notifications_buildings':GM_config.get('notifications_buildings')}});
+            });
         }
     };
 
@@ -3962,6 +3965,7 @@ function notificationsWorker() {
                 self.GM_notification = data.GM_notification;
                 self.clearTimeouts();
                 self.process();
+                console.log(self.timeouts);
                 break;
             case 'stop':
                 self.clearTimeouts();
