@@ -30,10 +30,19 @@
   .ui-loader {
     display: none;
   }
+  @media only screen and (max-width: 1610px) {
+    html,
+    table,
+    body,
+    select {
+      font-size: inherit;
+    }
+  }
   html {
     overflow: auto;
     overflow-x: hidden;
     width: 100%;
+    font-size: 14px;
     height: unset;
     background-image: url(images/main_screen/background.jpg);
     background-size: 100% 100%;
@@ -67,6 +76,10 @@
       width: 100%;
       margin-left: 0;
     }
+    body,
+    .resourceBox {
+      font-size: 16px !important;
+    }
     #link,
     #veticalLink {
       display: flex;
@@ -74,12 +87,8 @@
       flex-wrap: wrap;
       margin-bottom: 20px !important;
     }
-    .fontSizeFourteenClass,
-    table,
-    select,
-    .resourceBox,
-    .menu_box {
-      font-size: 16px !important;
+    .fontSizeFourteenClass {
+      font-size: 12px !important;
     }
     #Main {
       flex-flow: column;
@@ -186,6 +195,9 @@
       margin-top: 5px !important;
     }
   }
+  .fa-dimmed {
+    opacity: 0.5;
+  }
   select {
     color: #7cf3fd;
     background-color: rgb(12, 48, 70);
@@ -246,7 +258,7 @@
     flex-wrap: wrap;
   }
   #lwm_menu_toggle .lwm_menu-content .lwm_menu-item:first-child i {
-    font-size: 2em;
+    font-size: 28px;
     width: 35px;
     text-align: center;
   }
@@ -626,14 +638,15 @@
   @media (max-width: 850px) {
     .navButton,
     .navButton.bigNavButton {
-      width: 150px !important;
+      width: 160px !important;
       line-height: 30px !important;
       height: 30px !important;
       font-size: 16px !important;
     }
     .navButton i,
     .navButton.bigNavButton i {
-      font-size: 1.5em;
+      font-size: 24px;
+      width: 30px;
     }
     .buttonAccount,
     .formButtonNewMessage,
@@ -641,7 +654,7 @@
     .formButtonSpionage,
     .buttonGalaxyView,
     .formButtonGalaxyView {
-      width: 155px !important;
+      width: 165px !important;
       font-size: 16px !important;
       height: 30px !important;
       line-height: 30px !important;
@@ -650,12 +663,13 @@
       width: 100px !important;
     }
     .menu_box {
-      width: 155px !important;
+      width: 140px !important;
       height: 30px !important;
       line-height: 30px !important;
     }
     .menu_box i {
-      font-size: 1.5em;
+      font-size: 24px;
+      width: 30px;
     }
     td.roheisenVariable,
     td.kristallVariable,
@@ -663,7 +677,7 @@
     td.orizinVariable,
     td.frurozinVariable,
     td.goldVariable {
-      font-size: 16px;
+      font-size: 12px;
       word-break: break-all;
     }
   }
@@ -768,6 +782,7 @@
   #messagesListTableInbox > tbody > tr:first-child,
   #lwm_folottenbewegungenPageDiv table tr:first-child,
   #galaxyViewInfoTable th,
+  #aktuelleProduktionPageDiv tbody > tr:first-child,
   #observationenDiv th,
   #calendarDiv th,
   #tableForChangingPlanet tr {
@@ -830,13 +845,14 @@
   }
   @media (max-width: 850px) {
     #lwm_folottenbewegungenPageDiv i {
-      font-size: 2em;
+      font-size: 24px;
+      width: 30px;
     }
     #lwm_folottenbewegungenPageDiv .lwm_fleeticonwrapper {
       flex: 0 0 30%;
     }
     #lwm_folottenbewegungenPageDiv .lwm_fleetinfo {
-      word-break: break-all;
+      font-size: 12px;
     }
   }
   #lwm_folottenbewegungenPageDiv b {
@@ -875,6 +891,8 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    width: 150px;
+    height: 30px;
   }
   .createShipButton:hover {
     background-color: #cdd21c57;
@@ -1088,6 +1106,11 @@
     color: #fff;
     background-color: #242d6f8f;
   }
+  .flottenViewDiv input[type="checkbox"] {
+    width: 100%;
+    height: 30px;
+    display: block;
+  }
   #lwm_fleet_timer_wrapper {
     margin-top: 20px;
     border: 1px solid rgba(124, 243, 241, 0.5);
@@ -1162,7 +1185,7 @@
   }
   @media (max-width: 850px) {
     .actionClass {
-      font-size: 1em;
+      font-size: 12px;
     }
   }
   .flottenKommandoAction,

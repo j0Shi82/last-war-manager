@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.9.0
+- The fleet addon can be toggled and received a slight design change.
+
 ## v0.8.0
 
 - The Google Drive saves are loaded once per login, not once per planet change.
