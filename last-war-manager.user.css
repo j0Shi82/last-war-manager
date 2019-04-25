@@ -34,9 +34,16 @@
     html,
     table,
     body,
-    select {
+    select,
+    input,
+    textarea {
       font-size: inherit;
     }
+  }
+  select,
+  input,
+  textarea {
+    font-size: inherit;
   }
   html {
     overflow: auto;
@@ -654,7 +661,7 @@
     .formButtonSpionage,
     .buttonGalaxyView,
     .formButtonGalaxyView {
-      width: 165px !important;
+      width: 160px !important;
       font-size: 16px !important;
       height: 30px !important;
       line-height: 30px !important;
