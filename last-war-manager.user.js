@@ -8,17 +8,16 @@
 // @updateURL     https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/last-war-manager.user.js
 // @downloadURL   https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/last-war-manager.user.js
 // @supportURL    https://github.com/j0Shi82/last-war-manager/issues
-// @match         https://*.last-war.de/main.php*
-// @match         https://*.last-war.de/planetenscanner_view.php*
-// @match         https://*.last-war.de/view/content/new_window/observationen_view.php*
+// @match         https://*.last-war.de/*
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e07de5c0a13d416fda88134f999baccfee6f7059/assets/jquery.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js
-// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bc6e0c1ff005d4a5007f14e0077c8f02c3a36678/last-war-manager.css
+// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@b69962218e78e35c12ffa5e1757c112186c5dec5/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
 // @grant         GM.setValue
 // @grant         GM_getResourceText
+// @grant         GM_notification
 // @grant         GM_addStyle
 // @run-at        document-start
 // @version       0.9
@@ -31,6 +30,7 @@ var lwm_jQuery = window.jQuery;
 (function() {
     if (location.href.match(/planetenscanner_view/) !== null) return;
     if (location.href.match(/observationen_view/) !== null) return;
+    if (location.href.match(/main/) === null) return;
 
     var css = GM_getResourceText('css');
     if (typeof GM_addStyle != "undefined") {
@@ -511,10 +511,18 @@ function siteManager() {
                 'options': GM_config_time_array,
                 'default': '00:00'
             },
+            'notifications_buildings':
+            {
+                'section': [GM_config.create('Notifications'), 'Allow the script to push notifications to desktop or mobile. All options are per device and not saved globally.'],
+                'label': 'Inform me about completed buildings and researches.',
+                'labelPos': 'right',
+                'type': 'checkbox',
+                'default': false
+            },
             'confirm_drive_sync':
             {
                 'section': [GM_config.create('Sync'), 'Options to sync settings across your different browsers.'],
-                'label': 'Use Google Drive to sync settings (recommended). WARNING: Any existing cloud configs will override local configs.',
+                'label': 'Use Google Drive to sync settings (recommended). WARNING: Any existing cloud configs will override local configs. This option is per device and not saved globally.',
                 'labelPos': 'right',
                 'type': 'checkbox',
                 'default': false
@@ -847,7 +855,10 @@ function siteManager() {
                 addOns.planetData.storeDataFromSpio();
             });
         }
-        else installMain();
+        if (location.href.match(/main/) !== null) installMain();
+
+        //add notification WebWorker
+        notifications.init();
     };
 
     var installMain = function() {
@@ -3091,12 +3102,12 @@ function siteManager() {
 
                 lwm_jQuery('#lwm_folottenbewegungenPageDiv table tr:gt(0)').remove();
 
-                var iconAtt         = '<i class="fas fa-fighter-jet"></i>';
-                var iconBack        = '<i class="fas fa-long-arrow-alt-left"></i>';
-                var iconSend        = '<i class="fas fa-long-arrow-alt-right"></i>';
-                var iconDef         = '<i class="fas fa-shield-alt"></i>';
-                var iconTrans       = '<i class="fas fa-exchange-alt"></i>';
-                var iconPlanet      = '<i class="fas fa-globe"></i>';
+                var iconAtt         = '<i class="fas fa-fighter-jet fa-dimmed"></i>';
+                var iconBack        = '<i class="fas fa-long-arrow-alt-left fa-dimmed"></i>';
+                var iconSend        = '<i class="fas fa-long-arrow-alt-right fa-dimmed"></i>';
+                var iconDef         = '<i class="fas fa-shield-alt fa-dimmed"></i>';
+                var iconTrans       = '<i class="fas fa-exchange-alt fa-dimmed"></i>';
+                var iconPlanet      = '<i class="fas fa-globe fa-dimmed"></i>';
                 var iconDrone       = '<i class="fas fa-search"></i>';
 
                 lwm_jQuery.each(config.gameData.fleetInfo.send_infos, function(i, fleetData) {
@@ -3108,26 +3119,26 @@ function siteManager() {
                     var oppCoords       = "<b>"+fleetData.Galaxy + "x" + fleetData.System + "x" + fleetData.Planet+"</b>";
                     var oppNick         = fleetData.Nickname_send;
                     var ownCoords       = "<b>"+fleetData.Galaxy_send + "x" + fleetData.System_send + "x" + fleetData.Planet_send+"</b>";
-                    var speedString     = " <span class='lwm_fleet_duration' style='font-style:italic;'>Flugdauer: "+moment.duration(fleetData.total_secounds,'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+".</span>";
+                    var speedString     = " <span class='lwm_fleet_duration' style='font-style:italic;'>Flugdauer: "+moment.duration(fleetData.total_secounds,'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+".</span></div>";
                     switch (parseInt(fleetData.Type)) {
                         case 1:
                             trStyle = 'background-color:red;';
-                            fleetInfoString = iconAtt+"Eine Flotte vom Planet "+ oppCoords +" greift deinen Planeten " + ownCoords + " an.";
+                            fleetInfoString = '<div class="lwm_fleeticonwrapper">'+iconAtt+"</div><div class=\"lwm_fleetinfo\">Eine Flotte vom Planet "+ oppCoords +" greift deinen Planeten " + ownCoords + " an."+speedString;
                             fleetTimeString = fleetData.ComeTime;
                             fleetClock =      'clock_' + fleetData.clock_id;
                             break;
                         case 2:
-                            fleetInfoString = iconTrans+"Fremde Flotte vom "+ oppCoords +" ("+oppNick+") transportiert Rohstoffe nach "+ ownCoords +".";
+                            fleetInfoString = '<div class="lwm_fleeticonwrapper">'+iconTrans+"</div><div class=\"lwm_fleetinfo\">Fremde Flotte vom "+ oppCoords +" ("+oppNick+") transportiert Rohstoffe nach "+ ownCoords +"."+speedString;
                             fleetTimeString = fleetData.ComeTime;
                             fleetClock =      'clock_' + fleetData.clock_id;
                             break;
                         case 3:
                             if(fleetData.Status == 1) {
-                                fleetInfoString = iconDef+"Eine Flotte vom Planet "+ oppCoords +" verteidigt deinen Planeten "+ ownCoords +".";
+                                fleetInfoString = '<div class="lwm_fleeticonwrapper">'+iconDef+"</div><div class=\"lwm_fleetinfo\">Eine Flotte vom Planet "+ oppCoords +" verteidigt deinen Planeten "+ ownCoords +"."+speedString;
                                 fleetTimeString = fleetData.ComeTime;
                                 fleetClock =      'clock_' + fleetData.clock_id;
                             } else if(fleetData.Status == 3) {
-                                fleetInfoString = iconDef+"Eine Flotte von Planet "+ oppCoords +" verteidigt deinen Planeten "+ ownCoords +".";
+                                fleetInfoString = '<div class="lwm_fleeticonwrapper">'+iconDef+"</div><div class=\"lwm_fleetinfo\">Eine Flotte von Planet "+ oppCoords +" verteidigt deinen Planeten "+ ownCoords +"."+speedString;
                                 fleetTimeString = fleetData.DefendingTime;
                                 if(fleetData.DefendingTime == null) fleetClock = "unbefristet";
                                 else
@@ -3137,12 +3148,12 @@ function siteManager() {
                             }
                             break;
                         case 5:
-                            fleetInfoString = iconSend+"Fremde Flotte von "+ oppCoords +" wird überstellt nach "+ ownCoords +".";
+                            fleetInfoString = '<div class="lwm_fleeticonwrapper">'+iconSend+"</div><div class=\"lwm_fleetinfo\">Fremde Flotte von "+ oppCoords +" wird überstellt nach "+ ownCoords +"."+speedString;
                             fleetTimeString = fleetData.ComeTime;
                             fleetClock =      'clock_' + fleetData.clock_id;
                             break;
                     }
-                    $fleetRows.push('<tr data-type="'+(fleetData.Type || '')+'" data-status="'+(fleetData.Status || '')+'" data-coords="'+(fleetData.Galaxy_send + "x" + fleetData.System_send + "x" + fleetData.Planet_send)+'" style='+trStyle+'><td>'+fleetInfoString+speedString+'</td><td>'+fleetTimeString+'</td><td id=\''+fleetClock+'\'>'+moment.duration(moment(fleetTimeString).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+'</td></tr>');
+                    $fleetRows.push('<tr data-type="'+(fleetData.Type || '')+'" data-status="'+(fleetData.Status || '')+'" data-coords="'+(fleetData.Galaxy_send + "x" + fleetData.System_send + "x" + fleetData.Planet_send)+'" style='+trStyle+'><td><div class="lwm_fleetinfowrapper">'+fleetInfoString+'</div></td><td>'+fleetTimeString+'</td><td id=\''+fleetClock+'\'>'+moment.duration(moment(fleetTimeString).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+'</td></tr>');
                 });
 
                 if (!GM_config.get('addon_fleet_exclude_drones')) {
@@ -3335,6 +3346,8 @@ function siteManager() {
 
                 GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
                 if (GM_config.get('confirm_drive_sync') && (!addOns.calendar.truncateData() || dataResearchBefore !== dataResearchAfter || dataBuildingBefore !== dataBuildingAfter)) driveManager.save();
+
+                notifications.worker.postMessage({'cmd':'push','calendar':config.lwm.calendar,'config':{'notifications_buildings':GM_config.get('notifications_buildings')}});
             },
             storeFleets: function (data) {
                 var lang = config.const.lang.fleet;
@@ -3721,6 +3734,19 @@ function siteManager() {
         }
     };
 
+    var notifications = {
+        worker: null,
+        imgUrl: 'https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png',
+        init: function () {
+            notifications.worker = new Worker(notificationsWorkerBlobUrl);
+            notifications.worker.addEventListener('message', function(e) {
+                var entry = e.data;
+                GM_notification(entry.text+' just finished on '+entry.coords+' ('+entry.playerName+')',
+                                'Last War Manager Notification', notifications.imgUrl, function () { window.open('https://last-war.de/main.php'); });
+            });
+        }
+    };
+
     var helper = {
         addConfirm: function($el, m) {
             var m = m || 'Really?';
@@ -3901,6 +3927,55 @@ function siteManager() {
 
     install();
 };
+
+//web worker to handle notifications
+function notificationsWorker() {
+    var calendar = [];
+    var config = {};
+    var timeouts = [];
+
+    var clearTimeouts = function () {
+        self.timeouts.forEach(function (timeout) {
+            clearTimeout(timeout);
+        });
+        self.timeouts = [];
+    }
+
+    var process = function () {
+        if (self.config.notifications_buildings) {
+            self.calendar.filter(function (entry) {
+                return (entry.type === 'building' || entry.type === 'research') && entry.ts > new Date().valueOf();
+            }).forEach(function (entry) {
+                self.timeouts.push(setTimeout(function () {
+                    self.postMessage(entry);
+                }, entry.ts - new Date().valueOf()));
+            });
+        };
+    }
+
+    self.addEventListener('message', function(e) {
+        var data = e.data;
+        switch (data.cmd) {
+            case 'push':
+                self.calendar = data.calendar;
+                self.config = data.config;
+                self.GM_notification = data.GM_notification;
+                self.clearTimeouts();
+                self.process();
+                break;
+            case 'stop':
+                self.clearTimeouts();
+                self.close();
+                break;
+        };
+      }, false);
+  };
+
+var notificationsWorkerBlob = new Blob(
+    [notificationsWorker.toString().replace(/^function .+\{?|\}$/g, '')],
+    { type:'text/javascript' }
+  );
+var notificationsWorkerBlobUrl = URL.createObjectURL(notificationsWorkerBlob);
 
 (function() {
     'use strict';
