@@ -10,7 +10,7 @@
 // @supportURL    https://github.com/j0Shi82/last-war-manager/issues
 // @match         https://*.last-war.de/*
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
-// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@b69962218e78e35c12ffa5e1757c112186c5dec5/last-war-manager.css
+// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@c1ef11593cff9baf19e2d33cebeb7c1eb8f47bfd/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
 // @grant         GM.setValue
@@ -55,7 +55,7 @@ var firstLoad = true;
     //add vendor.js
     var s = document.createElement("script");
     s.type = "text/javascript";
-    s.src = "https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@1dd68cf9fddb3afcd61326717d4018759bcfb239/assets/vendor.js";
+    s.src = "https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@b3ff70fe5987528cf441c6cd7fa0389b1f98e41f/assets/vendor.js";
     var heads = document.getElementsByTagName("head");
     if (heads.length > 0) {
         heads[0].appendChild(s);
@@ -2026,6 +2026,30 @@ function siteManager() {
 
                 //clear fleet interval manually on this page, because add on is deactivated by default
                 clearInterval(unsafeWindow.timeinterval_flottenbewegungen);
+
+                //add export button and functionality
+                var $exportEl = site_jQuery('<div class="tableFilters"><div class="tableFilters_header">Export</div><div class="tableFilters_content"></div></div>');
+                var $exportElContent = $exportEl.find('.tableFilters_content');
+                var $checkboxes = [];
+                var types = site_jQuery.map(config.lwm.calendar, function (el, i) { return el.type; }).filter(function (value, index, self) { return self.indexOf(value) === index; });
+                site_jQuery.each(types, function (i, type) { $checkboxes.push('<div class="lwm-export-checkbox"><input type="checkbox" data-type="'+type+'" id="type_'+type+'" name="type_'+type+'"><label for="type_'+type+'">'+type+'</label></div>'); });
+                var $exportButton = site_jQuery('<div class="buttonRowInbox"><a class="formButton" href="javascript:void(0)">Export</a></div>');
+                $exportButton.click(function () {
+                    var cal = ics();
+                    var exportTypes = site_jQuery('.lwm-export-checkbox input:checked').map(function (i, el) { return site_jQuery(el).data('type'); });
+                    site_jQuery.each(config.lwm.calendar.filter(function (entry) {
+                        return exportTypes.toArray().includes(entry.type);
+                    }), function (i, entry) {
+                        var d = moment(entry.ts).toISOString();
+                        cal.addEvent(
+                            'Last War Notification ('+entry.type+')',
+                            entry.text + ' finishes on ' + entry.coords + ' ('+entry.playerName+')',
+                            'https://last-war.de/main.php', d, d);
+                    });
+                    cal.download();
+                });
+                $checkboxes.push($exportButton);
+                site_jQuery('#calendarDiv table').before($exportEl.append($exportElContent.append($checkboxes)));
 
                 config.loadStates.content = false;
             }).catch(function (e) {
