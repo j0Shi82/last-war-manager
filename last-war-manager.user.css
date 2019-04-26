@@ -1,6 +1,6 @@
 /* ==UserStyle==
 @name           Last War Manager Styling Changes
-@version        0.6.0
+@version        0.9.0
 @namespace      https://github.com/j0Shi82/
 @author         j0Shi <psycho.j0shi@gmail.com>
 @description    Styling Changes for the Last War Browsergame. Complementary to the LWM Tampermonkey Script
@@ -1353,6 +1353,16 @@
     #calendarDiv tr td:nth-child(2) {
       min-width: 25px;
     }
+    #calendarDiv .lwm-export-checkbox input {
+      height: 30px;
+      width: 30px;
+    }
+  }
+  #calendarDiv .lwm-export-checkbox {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 5px;
   }
   /* CALENDAR END*/
   /* UEBERSICHT */

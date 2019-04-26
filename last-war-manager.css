@@ -1342,6 +1342,16 @@ body#lwmSettings .section_desc {
   #calendarDiv tr td:nth-child(2) {
     min-width: 25px;
   }
+  #calendarDiv .lwm-export-checkbox input {
+    height: 30px;
+    width: 30px;
+  }
+}
+#calendarDiv .lwm-export-checkbox {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 5px;
 }
 /* CALENDAR END*/
 /* UEBERSICHT */
