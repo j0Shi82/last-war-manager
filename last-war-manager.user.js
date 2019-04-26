@@ -9,9 +9,7 @@
 // @downloadURL   https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/last-war-manager.user.js
 // @supportURL    https://github.com/j0Shi82/last-war-manager/issues
 // @match         https://*.last-war.de/*
-// @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e07de5c0a13d416fda88134f999baccfee6f7059/assets/jquery.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
-// @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js
 // @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@b69962218e78e35c12ffa5e1757c112186c5dec5/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
@@ -24,7 +22,9 @@
 // ==/UserScript==
 
 var firstLoad = true;
-var lwm_jQuery = window.jQuery;
+//var lwm_jQuery = window.jQuery;
+
+// @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e07de5c0a13d416fda88134f999baccfee6f7059/assets/jquery.min.js
 
 // add style
 (function() {
@@ -51,16 +51,28 @@ var lwm_jQuery = window.jQuery;
             document.documentElement.appendChild(node);
         }
     }
+
+    //add vendor.js
+    var s = document.createElement("script");
+    s.type = "text/javascript";
+    s.src = "https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@1dd68cf9fddb3afcd61326717d4018759bcfb239/assets/vendor.js";
+    var heads = document.getElementsByTagName("head");
+    if (heads.length > 0) {
+        heads[0].appendChild(s);
+    } else {
+        // no head yet, stick it whereever
+        document.documentElement.appendChild(s);
+    }
 })();
 
 
 function siteManager() {
     var site_jQuery = null;
 
-    var driveManager = (function() {
+    var googleManager = (function() {
         var gapi = null;
-        var CLIENT_ID = '807071171095-2r28v4jpvgujv5n449ja4lrmk4hg88ie.apps.googleusercontent.com';
-        var API_KEY = 'AIzaSyA7VHXY213eg3suaarrMmrbOlX8T9hVwrc';
+        var CLIENT_ID = '807071171095-behcr73gjee7hombcia0ikkso7buk9h1.apps.googleusercontent.com';
+        var API_KEY = 'AIzaSyBL5DW-WoI1Y2G7oRR5y58Xeoxbh2LEyA4';
         var DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
         var SCOPES = 'https://www.googleapis.com/auth/drive.appfolder https://www.googleapis.com/auth/drive.file';
         var saveFileID = null;
@@ -519,6 +531,22 @@ function siteManager() {
                 'type': 'checkbox',
                 'default': false
             },
+            'notifications_fleets':
+            {
+                'label': 'Inform me about incoming and outgoing fleets.',
+                'labelPos': 'right',
+                'type': 'checkbox',
+                'default': false
+            },
+            'notifications_fleets_min':
+            {
+                'label': 'Amount of minutes before impact to send out notifications.',
+                'labelPos': 'right',
+                'type': 'int',
+                'min': 5,
+                'max': 15,
+                'default': 10
+            },
             'confirm_drive_sync':
             {
                 'section': [GM_config.create('Sync'), 'Options to sync settings across your different browsers.'],
@@ -533,10 +561,10 @@ function siteManager() {
             'close': function() {setTimeout(function () { location.reload(); }, 100); },
             'save': function() {
                 if (this.fields.confirm_drive_sync.value) {
-                    if (!driveManager.isSignedIn()) driveManager.signIn();
-                    if (config.lwm.gDriveFileID !== null) driveManager.save();
+                    if (!googleManager.isSignedIn()) googleManager.signIn();
+                    if (config.lwm.gDriveFileID !== null) googleManager.save();
                 } else {
-                    if (driveManager.isSignedIn()) driveManager.signOut();
+                    if (googleManager.isSignedIn()) googleManager.signOut();
                     config.lwm.gDriveFileID = null;
                     GM.setValue('lwm_gDriveFileID', null);
                 }
@@ -675,9 +703,9 @@ function siteManager() {
                 if (typeof config.lwm[settingName][config.gameData.playerID] === "undefined") config.lwm[settingName][config.gameData.playerID] = {};
 
                 //check for coords that don't exist
-                lwm_jQuery.each(config.lwm[settingName][config.gameData.playerID], function (planet, planetData) {
-                    var planets = lwm_jQuery.map(config.gameData.planets, function (d, i) { return d.string; });
-                    if (lwm_jQuery.inArray(planet, planets) === -1) delete config.lwm[settingName][config.gameData.playerID][planet];
+                site_jQuery.each(config.lwm[settingName][config.gameData.playerID], function (planet, planetData) {
+                    var planets = site_jQuery.map(config.gameData.planets, function (d, i) { return d.string; });
+                    if (site_jQuery.inArray(planet, planets) === -1) delete config.lwm[settingName][config.gameData.playerID][planet];
                 });
 
                 if (typeof config.lwm[settingName][config.gameData.playerID][config.gameData.planetCoords.string] === "undefined") config.lwm[settingName][config.gameData.playerID][config.gameData.planetCoords.string] = [];
@@ -744,7 +772,7 @@ function siteManager() {
             }).then(function (data) {
                 /* pick up temp saved values from obs and spy */
                 data = JSON.parse(data);
-                lwm_jQuery.each(data, function (i, d) {
+                site_jQuery.each(data, function (i, d) {
                     config.lwm.planetData[i] = d;
                 });
 
@@ -752,7 +780,7 @@ function siteManager() {
                 GM.setValue('lwm_planetData', JSON.stringify(config.lwm.planetData));
 
                 config.loadStates.gdrive = false; // <-- this ends gdrive setup on first load
-                if (GM_config.get('confirm_drive_sync')) driveManager.save();
+                if (GM_config.get('confirm_drive_sync')) googleManager.save();
             }).finally(function () {
                 config.loadStates.gdrive = false; // <-- this ends gdrive setup on first load
             });
@@ -770,7 +798,7 @@ function siteManager() {
                 config.gameData.playerData.tarntechnologie = unsafeWindow.lvlTarntechnologie;
 
                 // resolves loadState because other stuff has to wait for the data
-                lwm_jQuery.when(
+                site_jQuery.when(
                     config.getGameData.overviewInfos(),
                     config.getGameData.planetInformation()
                 ).then(function () { config.loadStates.gameData = false; },function () { helper.throwError(); });
@@ -786,9 +814,9 @@ function siteManager() {
                 });
             },
             setProductionInfos: function (data) {
-                lwm_jQuery.each(data, function (i, cat) {
-                    if (!lwm_jQuery.isArray(cat)) return true;
-                    lwm_jQuery.each(cat, function (j, ship) {
+                site_jQuery.each(data, function (i, cat) {
+                    if (!site_jQuery.isArray(cat)) return true;
+                    site_jQuery.each(cat, function (j, ship) {
                         config.gameData.productionInfos.push(ship);
                     });
                 });
@@ -808,7 +836,7 @@ function siteManager() {
                 return site_jQuery.getJSON('/ajax_request/get_all_planets_information.php', function (data) {
                     config.gameData.planetInformation = data;
                     config.gameData.planets = [];
-                    lwm_jQuery.each(data, function (i, d) {
+                    site_jQuery.each(data, function (i, d) {
                         config.gameData.planets.push({galaxy:d.Galaxy,system:d.System,planet:d.Planet,string:d.Galaxy+'x'+d.System+'x'+d.Planet});
                     });
                 });
@@ -826,22 +854,22 @@ function siteManager() {
                     types.forEach(function (type) {
                         if (typeof config.gameData.fleetInfo[type] === "undefined") config.gameData.fleetInfo[type] = [];
                         //delete fleets for planet and re-insert
-                        config.gameData.fleetInfo[type] = lwm_jQuery.grep(config.gameData.fleetInfo[type], function (f, i) { return f.homePlanet !== config.gameData.planetCoords.string; });
-                        lwm_jQuery.each(fleetData[type], function (i, fleet) {
+                        config.gameData.fleetInfo[type] = site_jQuery.grep(config.gameData.fleetInfo[type], function (f, i) { return f.homePlanet !== config.gameData.planetCoords.string; });
+                        site_jQuery.each(fleetData[type], function (i, fleet) {
                             //if fleet is present, delete and add to update seconds and time
                             //checkForFleet(type, fleet);
                             fleet.homePlanet = config.gameData.planetCoords.string;
                             config.gameData.fleetInfo[type].push(fleet);
                         });
                         //delete fleets that arrived
-                        config.gameData.fleetInfo[type] = lwm_jQuery.grep(config.gameData.fleetInfo[type], function (fleet, i) { return fleet.Status === "3" || moment(fleet.ComeTime || fleet.DefendingTime || fleet.time).valueOf() > moment().valueOf(); });
+                        config.gameData.fleetInfo[type] = site_jQuery.grep(config.gameData.fleetInfo[type], function (fleet, i) { return fleet.Status === "3" || moment(fleet.ComeTime || fleet.DefendingTime || fleet.time).valueOf() > moment().valueOf(); });
                     });
                     GM.setValue('fleetInfo', JSON.stringify(config.gameData.fleetInfo));
                     addOns.showFleetActivityGlobally(unsafeWindow.active_page);
 
                     //add fleet warning to uebersicht
                     if (unsafeWindow.active_page === 'ubersicht') {
-                        lwm_jQuery('.lwm_fleetwarning').text(site_jQuery.number(fleetData.View_Units, 0, ',', '.' ) + ' SU');
+                        site_jQuery('.lwm_fleetwarning').text(site_jQuery.number(fleetData.View_Units, 0, ',', '.' ) + ' SU');
                     }
                 });
             }
@@ -851,14 +879,16 @@ function siteManager() {
 
     var install = function () {
         if (location.href.match(/planetenscanner_view/) !== null || location.href.match(/observationen_view/) !== null) {
-            lwm_jQuery(document).ready(function() {
+            site_jQuery(document).ready(function() {
                 addOns.planetData.storeDataFromSpio();
             });
         }
         if (location.href.match(/main/) !== null) installMain();
 
         //add notification WebWorker
-        notifications.init();
+        window.addEventListener('load', function () {
+            notifications.init();
+        });
     };
 
     var installMain = function() {
@@ -869,7 +899,7 @@ function siteManager() {
         }
 
         // load site jQuery as well, need this to make API calls
-        lwm_jQuery(window).load(function () {
+        window.addEventListener('load', function () {
             site_jQuery = unsafeWindow.jQuery;
             config.unsafeWindow.changeContent = unsafeWindow.changeContent;
             config.unsafeWindow.changeInboxContent = unsafeWindow.changeInboxContent;
@@ -881,20 +911,20 @@ function siteManager() {
             config.loadStates.gdrive = true;
             config.loadStates.gameData = true;
 
-            lwm_jQuery('.status.lwm-firstload').text('LOADING... Game Data...');
+            site_jQuery('.status.lwm-firstload').text('LOADING... Game Data...');
             config.getGameData.all();
             site_jQuery.getScript('//apis.google.com/js/api.js').then(function () {
-                lwm_jQuery('.status.lwm-firstload').text('LOADING... Google Drive...');
-                driveManager.init(unsafeWindow.gapi); },function () { lwm_jQuery('.status.lwm-firstload').text('LOADING... ERROR...'); helper.throwError(); });
+                site_jQuery('.status.lwm-firstload').text('LOADING... Google Drive...');
+                googleManager.init(unsafeWindow.gapi); },function () { site_jQuery('.status.lwm-firstload').text('LOADING... ERROR...'); helper.throwError(); });
             getLoadStatePromise('gdrive').then(function () {
-                lwm_jQuery('.status.lwm-firstload').text('LOADING... Page Setup...');
+                site_jQuery('.status.lwm-firstload').text('LOADING... Page Setup...');
                 //wait for gameData and google because some stuff depends on it
                 global.hotkeySetup();
                 if (!GM_config.get('confirm_drive_sync')) config.setGMValues();
 
                 // the first ubersicht load is sometimes not caught by our ajax wrapper, so do manually
                 process('ubersicht');
-            },function () { lwm_jQuery('.status.lwm-firstload').text('LOADING... ERROR...'); helper.throwError(); });
+            },function () { site_jQuery('.status.lwm-firstload').text('LOADING... ERROR...'); helper.throwError(); });
 
             //we're hooking into ajax requests to figure out on which page we are and fire our own stuff
             var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
@@ -919,8 +949,8 @@ function siteManager() {
                     if (!config.loadStates.content || config.loadStates.lastLoadedPage !== page) {
                         console.log(page);
                         if (!preserveSubmenuPages.includes(page)) submenu.clear();
-                        lwm_jQuery('#all').hide();
-                        lwm_jQuery('.loader').show();
+                        site_jQuery('#all').hide();
+                        site_jQuery('.loader').show();
                     }
                 }
             });
@@ -1003,35 +1033,35 @@ function siteManager() {
         if (preserveSubmenu && config.promises.submenu !== null) config.promises.submenu.reject();
 
         getPageLoadPromise().then(function () {
-            lwm_jQuery('.loader').hide();
-            lwm_jQuery('#all').show();
+            site_jQuery('.loader').hide();
+            site_jQuery('#all').show();
             if (firstLoad) {
-                lwm_jQuery('#Main').css('display','flex');
-                lwm_jQuery('.lwm-firstload').remove();
+                site_jQuery('#Main').css('display','flex');
+                site_jQuery('.lwm-firstload').remove();
                 firstLoad = false;
 
                 var viewportmeta = document.querySelector('meta[name=viewport]');
                 viewportmeta.setAttribute('content', "width=device-width, initial-scale=1.0");
             }
-            lwm_jQuery('#all').focus();
+            site_jQuery('#all').focus();
 
             if (page === 'get_galaxy_view_info') {
-                lwm_jQuery("html, body").animate({ scrollTop: lwm_jQuery(document).height() }, 250);
+                site_jQuery("html, body").animate({ scrollTop: site_jQuery(document).height() }, 250);
             }
         }).catch(function (e) {
             console.log(e);
             helper.throwError();
-            lwm_jQuery('.loader').hide();
-            lwm_jQuery('#all').show();
+            site_jQuery('.loader').hide();
+            site_jQuery('#all').show();
             if (firstLoad) {
-                lwm_jQuery('#Main').css('display','flex');
-                lwm_jQuery('.lwm-firstload').remove();
+                site_jQuery('#Main').css('display','flex');
+                site_jQuery('.lwm-firstload').remove();
                 firstLoad = false;
 
                 var viewportmeta = document.querySelector('meta[name=viewport]');
                 viewportmeta.setAttribute('content', "width=device-width, initial-scale=1.0");
             }
-            lwm_jQuery('#all').focus();
+            site_jQuery('#all').focus();
         });
 
         if (!preserveSubmenu) {
@@ -1105,56 +1135,56 @@ function siteManager() {
             config.loadStates.submenu = true;
             config.promises.submenu = getLoadStatePromise('content');
             config.promises.submenu.then(function () {
-                lwm_jQuery('#link .navButton, #veticalLink .navButton').each(function () {
-                    lwm_jQuery(this).attr('data-page', lwm_jQuery(this).attr('onclick').match(/(\'|\")([a-z0-9A-Z_]*)(\'|\")/)[2]);
+                site_jQuery('#link .navButton, #veticalLink .navButton').each(function () {
+                    site_jQuery(this).attr('data-page', site_jQuery(this).attr('onclick').match(/(\'|\")([a-z0-9A-Z_]*)(\'|\")/)[2]);
                     //check if items can be skipped
-                    if (ignoreItems[page] && ignoreItems[page].includes(lwm_jQuery(this).attr('data-page'))) {
-                        lwm_jQuery(this).remove();
+                    if (ignoreItems[page] && ignoreItems[page].includes(site_jQuery(this).attr('data-page'))) {
+                        site_jQuery(this).remove();
                         return true;
                     }
-                    lwm_jQuery(this).find('i').remove(); //remove icons to avoid situations in which buttons could have more than one icon
-                    switch (lwm_jQuery(this).attr('data-page')) {
-                        case 'trade_offer': lwm_jQuery(this).prepend('<i class="fas fa-handshake"></i>'); break;
-                        case 'handelsposten': lwm_jQuery(this).prepend('<i class="fas fa-dollar-sign"></i>'); break;
-                        case 'building_tree': lwm_jQuery(this).prepend('<i class="fas fa-warehouse"></i>'); break;
-                        case 'research_tree': lwm_jQuery(this).prepend('<i class="fas fa-database"></i>'); break;
-                        case 'shiptree': lwm_jQuery(this).prepend('<i class="fas fa-fighter-jet"></i>'); break;
-                        case 'verteidigung_tree': lwm_jQuery(this).prepend('<i class="fas fa-shield-alt"></i>'); break;
-                        case 'planeten_tree': lwm_jQuery(this).prepend('<i class="fas fa-globe"></i>'); break;
-                        case 'rohstoffe': lwm_jQuery(this).prepend('<i class="fas fa-gem"></i>'); break;
-                        case 'eigenschaften': lwm_jQuery(this).prepend('<i class="fas fa-chart-bar"></i>'); break;
-                        case 'highscore_player': lwm_jQuery(this).prepend('<i class="fas fa-trophy"></i>'); break;
-                        case 'highscore_alliance': lwm_jQuery(this).prepend('<i class="fas fa-users"></i>'); break;
-                        case 'newPrivateMessage': lwm_jQuery(this).prepend('<i class="fas fa-envelope-open"></i>'); break;
-                        case 'privateMessageList': lwm_jQuery(this).prepend('<i class="fas fa-envelope"></i>'); break;
-                        case 'notifiscationMessageList': lwm_jQuery(this).prepend('<i class="fas fa-bell"></i>'); break;
-                        case 'reportMessageList': lwm_jQuery(this).prepend('<i class="fas fa-bomb"></i>'); break;
-                        case 'adminMessageList': lwm_jQuery(this).prepend('<i class="fas fa-user-cog"></i>'); break;
-                        case 'delitedMessageList': lwm_jQuery(this).prepend('<i class="fas fa-trash-alt"></i>'); break;
-                        case 'flottenbewegungen': lwm_jQuery(this).prepend('<i class="fas fa-wifi"></i>'); break;
-                        case 'raumdock': lwm_jQuery(this).prepend('<i class="fas fa-plane-arrival"></i>'); break;
-                        case 'flottenkommando': lwm_jQuery(this).prepend('<i class="fas fa-plane-departure"></i>'); break;
-                        case 'spionage': lwm_jQuery(this).prepend('<i class="fas fa-search"></i>'); break;
-                        case 'aktuelle_produktion': lwm_jQuery(this).prepend('<i class="fas fa-tools"></i>'); break;
-                        case 'schiffskomponenten': lwm_jQuery(this).prepend('<i class="fas fa-cogs"></i>'); break;
-                        case 'upgrade_ships': lwm_jQuery(this).prepend('<i class="fas fa-arrow-alt-circle-up"></i>'); break;
-                        case 'verteidigung': lwm_jQuery(this).prepend('<i class="fas fa-shield-alt"></i>'); break;
-                        case 'produktion': lwm_jQuery(this).prepend('<i class="fas fa-fighter-jet"></i>'); break;
-                        case 'upgrade_defence': lwm_jQuery(this).prepend('<i class="fas fa-arrow-alt-circle-up"></i>'); break;
-                        case 'recycling_defence': lwm_jQuery(this).prepend('<i class="fas fa-recycle"></i>'); break;
-                        case 'recycling_anlage': lwm_jQuery(this).prepend('<i class="fas fa-recycle"></i>'); break;
-                        case 'new_trade_offer': lwm_jQuery(this).prepend('<i class="fas fa-plus-circle"></i>'); break;
-                        case 'flottenbasen_planet': lwm_jQuery(this).prepend('<i class="fas fa-plane-departure"></i>'); break;
-                        case 'flottenbasen_all': lwm_jQuery(this).prepend('<i class="fas fa-plane-departure"></i>'); break;
-                        case 'fremde_flottenbasen': lwm_jQuery(this).prepend('<i class="fas fa-plane-departure"></i>'); break;
-                        case 'bank': lwm_jQuery(this).prepend('<i class="fas fa-university"></i>'); break;
-                        case 'kreditinstitut': lwm_jQuery(this).prepend('<i class="fab fa-cc-visa"></i>'); break;
+                    site_jQuery(this).find('i').remove(); //remove icons to avoid situations in which buttons could have more than one icon
+                    switch (site_jQuery(this).attr('data-page')) {
+                        case 'trade_offer': site_jQuery(this).prepend('<i class="fas fa-handshake"></i>'); break;
+                        case 'handelsposten': site_jQuery(this).prepend('<i class="fas fa-dollar-sign"></i>'); break;
+                        case 'building_tree': site_jQuery(this).prepend('<i class="fas fa-warehouse"></i>'); break;
+                        case 'research_tree': site_jQuery(this).prepend('<i class="fas fa-database"></i>'); break;
+                        case 'shiptree': site_jQuery(this).prepend('<i class="fas fa-fighter-jet"></i>'); break;
+                        case 'verteidigung_tree': site_jQuery(this).prepend('<i class="fas fa-shield-alt"></i>'); break;
+                        case 'planeten_tree': site_jQuery(this).prepend('<i class="fas fa-globe"></i>'); break;
+                        case 'rohstoffe': site_jQuery(this).prepend('<i class="fas fa-gem"></i>'); break;
+                        case 'eigenschaften': site_jQuery(this).prepend('<i class="fas fa-chart-bar"></i>'); break;
+                        case 'highscore_player': site_jQuery(this).prepend('<i class="fas fa-trophy"></i>'); break;
+                        case 'highscore_alliance': site_jQuery(this).prepend('<i class="fas fa-users"></i>'); break;
+                        case 'newPrivateMessage': site_jQuery(this).prepend('<i class="fas fa-envelope-open"></i>'); break;
+                        case 'privateMessageList': site_jQuery(this).prepend('<i class="fas fa-envelope"></i>'); break;
+                        case 'notifiscationMessageList': site_jQuery(this).prepend('<i class="fas fa-bell"></i>'); break;
+                        case 'reportMessageList': site_jQuery(this).prepend('<i class="fas fa-bomb"></i>'); break;
+                        case 'adminMessageList': site_jQuery(this).prepend('<i class="fas fa-user-cog"></i>'); break;
+                        case 'delitedMessageList': site_jQuery(this).prepend('<i class="fas fa-trash-alt"></i>'); break;
+                        case 'flottenbewegungen': site_jQuery(this).prepend('<i class="fas fa-wifi"></i>'); break;
+                        case 'raumdock': site_jQuery(this).prepend('<i class="fas fa-plane-arrival"></i>'); break;
+                        case 'flottenkommando': site_jQuery(this).prepend('<i class="fas fa-plane-departure"></i>'); break;
+                        case 'spionage': site_jQuery(this).prepend('<i class="fas fa-search"></i>'); break;
+                        case 'aktuelle_produktion': site_jQuery(this).prepend('<i class="fas fa-tools"></i>'); break;
+                        case 'schiffskomponenten': site_jQuery(this).prepend('<i class="fas fa-cogs"></i>'); break;
+                        case 'upgrade_ships': site_jQuery(this).prepend('<i class="fas fa-arrow-alt-circle-up"></i>'); break;
+                        case 'verteidigung': site_jQuery(this).prepend('<i class="fas fa-shield-alt"></i>'); break;
+                        case 'produktion': site_jQuery(this).prepend('<i class="fas fa-fighter-jet"></i>'); break;
+                        case 'upgrade_defence': site_jQuery(this).prepend('<i class="fas fa-arrow-alt-circle-up"></i>'); break;
+                        case 'recycling_defence': site_jQuery(this).prepend('<i class="fas fa-recycle"></i>'); break;
+                        case 'recycling_anlage': site_jQuery(this).prepend('<i class="fas fa-recycle"></i>'); break;
+                        case 'new_trade_offer': site_jQuery(this).prepend('<i class="fas fa-plus-circle"></i>'); break;
+                        case 'flottenbasen_planet': site_jQuery(this).prepend('<i class="fas fa-plane-departure"></i>'); break;
+                        case 'flottenbasen_all': site_jQuery(this).prepend('<i class="fas fa-plane-departure"></i>'); break;
+                        case 'fremde_flottenbasen': site_jQuery(this).prepend('<i class="fas fa-plane-departure"></i>'); break;
+                        case 'bank': site_jQuery(this).prepend('<i class="fas fa-university"></i>'); break;
+                        case 'kreditinstitut': site_jQuery(this).prepend('<i class="fab fa-cc-visa"></i>'); break;
                     }
                 });
                 if (window.matchMedia("(min-width: 849px)").matches) {
-                    lwm_jQuery('#link .navButton, #veticalLink .navButton').appendTo('.secound_line');
+                    site_jQuery('#link .navButton, #veticalLink .navButton').appendTo('.secound_line');
                 }
-                lwm_jQuery('.secound_line').toggle(lwm_jQuery('.secound_line .navButton').length > 0);
+                site_jQuery('.secound_line').toggle(site_jQuery('.secound_line .navButton').length > 0);
 
                 config.loadStates.submenu = false;
             }).catch(function (e) {
@@ -1164,8 +1194,8 @@ function siteManager() {
             });
         },
         clear: function () {
-            lwm_jQuery('.secound_line .navButton').remove();
-            //lwm_jQuery('#link').html('');
+            site_jQuery('.secound_line .navButton').remove();
+            //site_jQuery('#link').html('');
         }
     };
 
@@ -1182,13 +1212,13 @@ function siteManager() {
         },
         replaceArrows: function() {
             getLoadStatePromise('content').then(function () {
-                lwm_jQuery('.arrow-left,.arrow-left-recycle,.spionage-arrow-left,.raumdock-arrow-left').removeClass('arrow-left arrow-left-recycle spionage-arrow-left raumdock-arrow-left').addClass('fa-2x fas fa-angle-left');
-                lwm_jQuery('.arrow-right,.arrow-right-recycle,.spionage-arrow-right,.raumdock-arrow-right').removeClass('arrow-right arrow-right-recycle spionage-arrow-right raumdock-arrow-right').addClass('fa-2x fas fa-angle-right');
-                lwm_jQuery('.fa-angle-right,.fa-angle-left').each(function () {
+                site_jQuery('.arrow-left,.arrow-left-recycle,.spionage-arrow-left,.raumdock-arrow-left').removeClass('arrow-left arrow-left-recycle spionage-arrow-left raumdock-arrow-left').addClass('fa-2x fas fa-angle-left');
+                site_jQuery('.arrow-right,.arrow-right-recycle,.spionage-arrow-right,.raumdock-arrow-right').removeClass('arrow-right arrow-right-recycle spionage-arrow-right raumdock-arrow-right').addClass('fa-2x fas fa-angle-right');
+                site_jQuery('.fa-angle-right,.fa-angle-left').each(function () {
                     var longpress = 500;
-                    var self = lwm_jQuery(this);
+                    var self = site_jQuery(this);
                     var start, interval1, interval2, interval3, timeout1, timeout2, timeout3;
-                    lwm_jQuery(this)
+                    site_jQuery(this)
                         .attr('style','')
                         .css('width','1em')
                         .css('cursor','hand')
@@ -1202,8 +1232,8 @@ function siteManager() {
                 });
 
                 //listen to enter key on production pages
-                lwm_jQuery.each(lwm_jQuery('.inputNumberDiv input,[id*=\'InputNumber\'] input'), function () {
-                    var $self = lwm_jQuery(this);
+                site_jQuery.each(site_jQuery('.inputNumberDiv input,[id*=\'InputNumber\'] input'), function () {
+                    var $self = site_jQuery(this);
                     var id = $self.attr('id').match(/\d+/)[0];
                     var $button = $self.parents('table').find('[id*=\''+id+'\']').find('button').not('[onclick*=\'deleteDesign\']');
                     $self.on('keyup', function (e) {
@@ -1220,24 +1250,24 @@ function siteManager() {
         uebersicht: function() {
             config.promises.content = getPromise('#uberPageDiv');
             config.promises.content.then(function () {
-                lwm_jQuery('.Posle').find('td:first').attr('colspan', '3');
-                lwm_jQuery('.Posle').find('td:first').each(function () {
-                    var coords = lwm_jQuery(this).html().match(/\d+x\d+x\d+/)[0].split('x');
-                    var button = '<input class="planetButton planetButtonMain" type="button" value="'+lwm_jQuery(this).html()+'" onclick="changeCords('+coords[0]+', '+coords[1]+', '+coords[2]+');">';
-                    lwm_jQuery(this).parents('.Posle').attr('data-coords', coords[0]+'x'+coords[1]+'x'+coords[2]);
-                    lwm_jQuery(this).html(button);
+                site_jQuery('.Posle').find('td:first').attr('colspan', '3');
+                site_jQuery('.Posle').find('td:first').each(function () {
+                    var coords = site_jQuery(this).html().match(/\d+x\d+x\d+/)[0].split('x');
+                    var button = '<input class="planetButton planetButtonMain" type="button" value="'+site_jQuery(this).html()+'" onclick="changeCords('+coords[0]+', '+coords[1]+', '+coords[2]+');">';
+                    site_jQuery(this).parents('.Posle').attr('data-coords', coords[0]+'x'+coords[1]+'x'+coords[2]);
+                    site_jQuery(this).html(button);
                 });
 
                 //add resources
                 if (GM_config.get('overview_planetresources')) {
-                    lwm_jQuery.each(config.gameData.planetInformation, function (i, d) {
-                        var $Posle = lwm_jQuery('.Posle[data-coords=\''+d.Galaxy+'x'+d.System+'x'+d.Planet+'\']');
-                        var $tr = lwm_jQuery('<tr></tr>');
-                        var $td = lwm_jQuery('<td colspan="3" style="padding:2px;"></td>'); $tr.append($td);
-                        var $table = lwm_jQuery('<table></table>'); $td.append($table);
-                        var $tbody = lwm_jQuery('<tbody></tbody>'); $table.append($tbody);
-                        var $tr1 = lwm_jQuery('<tr><td class="sameWith roheisenVariable">Roheisen</td><td class="sameWith kristallVariable">Kristall</td><td class="sameWith frubinVariable">Frubin</td><td class="sameWith orizinVariable">Orizin</td><td class="sameWith frurozinVariable">Frurozin</td><td class="sameWith goldVariable">Gold</td></tr>');
-                        var $tr2 = lwm_jQuery('<tr><td class="roheisenVariable">'+site_jQuery.number(Math.round(d.Planet_Roheisen), 0, ',', '.' )+'</td><td class="kristallVariable">'+site_jQuery.number(Math.round(d.Planet_Kristall), 0, ',', '.' )+'</td><td class="frubinVariable">'+site_jQuery.number(Math.round(d.Planet_Frubin), 0, ',', '.' )+'</td><td class="orizinVariable">'+site_jQuery.number(Math.round(d.Planet_Orizin), 0, ',', '.' )+'</td><td class="frurozinVariable">'+site_jQuery.number(Math.round(d.Planet_Frurozin), 0, ',', '.' )+'</td><td class="goldVariable">'+site_jQuery.number(Math.round(d.Planet_Gold), 0, ',', '.' )+'</td></tr>');
+                    site_jQuery.each(config.gameData.planetInformation, function (i, d) {
+                        var $Posle = site_jQuery('.Posle[data-coords=\''+d.Galaxy+'x'+d.System+'x'+d.Planet+'\']');
+                        var $tr = site_jQuery('<tr></tr>');
+                        var $td = site_jQuery('<td colspan="3" style="padding:2px;"></td>'); $tr.append($td);
+                        var $table = site_jQuery('<table></table>'); $td.append($table);
+                        var $tbody = site_jQuery('<tbody></tbody>'); $table.append($tbody);
+                        var $tr1 = site_jQuery('<tr><td class="sameWith roheisenVariable">Roheisen</td><td class="sameWith kristallVariable">Kristall</td><td class="sameWith frubinVariable">Frubin</td><td class="sameWith orizinVariable">Orizin</td><td class="sameWith frurozinVariable">Frurozin</td><td class="sameWith goldVariable">Gold</td></tr>');
+                        var $tr2 = site_jQuery('<tr><td class="roheisenVariable">'+site_jQuery.number(Math.round(d.Planet_Roheisen), 0, ',', '.' )+'</td><td class="kristallVariable">'+site_jQuery.number(Math.round(d.Planet_Kristall), 0, ',', '.' )+'</td><td class="frubinVariable">'+site_jQuery.number(Math.round(d.Planet_Frubin), 0, ',', '.' )+'</td><td class="orizinVariable">'+site_jQuery.number(Math.round(d.Planet_Orizin), 0, ',', '.' )+'</td><td class="frurozinVariable">'+site_jQuery.number(Math.round(d.Planet_Frurozin), 0, ',', '.' )+'</td><td class="goldVariable">'+site_jQuery.number(Math.round(d.Planet_Gold), 0, ',', '.' )+'</td></tr>');
                         $tbody.append($tr1).append($tr2);
                         $Posle.find('tbody').append($tr);
 
@@ -1246,8 +1276,8 @@ function siteManager() {
 
                 //replace planet type (main, colony) with planet name
                 if (GM_config.get('overview_planetnames')) {
-                    lwm_jQuery.each(config.gameData.planetInformation, function (i, d) {
-                        var $Posle = lwm_jQuery('.Posle[data-coords=\''+d.Galaxy+'x'+d.System+'x'+d.Planet+'\']');
+                    site_jQuery.each(config.gameData.planetInformation, function (i, d) {
+                        var $Posle = site_jQuery('.Posle[data-coords=\''+d.Galaxy+'x'+d.System+'x'+d.Planet+'\']');
                         var $val = $Posle.find('.planetButton').val();
                         $val = $val.replace(/\(.*\)/, '(' + d.Planet_Name + ')');
                         $Posle.find('.planetButton').val($val);
@@ -1256,8 +1286,8 @@ function siteManager() {
 
                 //add energy and slots
                 if (GM_config.get('overview_planetstatus')) {
-                    lwm_jQuery.each(config.lwm.planetInfo[config.gameData.playerID], function (coords, data) {
-                        var $Posle = lwm_jQuery('.Posle[data-coords=\''+coords+'\']');
+                    site_jQuery.each(config.lwm.planetInfo[config.gameData.playerID], function (coords, data) {
+                        var $Posle = site_jQuery('.Posle[data-coords=\''+coords+'\']');
                         $Posle.find('td:first input').val($Posle.find('td:first input').val()+' '+data.energy + ' TW - ' + data.slots + ' Free Slot(s)');
                     });
                 }
@@ -1270,7 +1300,7 @@ function siteManager() {
                 }
 
                 //add fleet warning distance
-                lwm_jQuery('.Posle').last().next().find('tr').last().after('<tr><td class="Pola">Frühwarnung:</td><td class="Pola lwm_fleetwarning"></td></tr>');
+                site_jQuery('.Posle').last().next().find('tr').last().after('<tr><td class="Pola">Frühwarnung:</td><td class="Pola lwm_fleetwarning"></td></tr>');
 
                 config.loadStates.content = false;
             }).catch(function (e) {
@@ -1282,16 +1312,16 @@ function siteManager() {
         prodQueue: function() {
             config.promises.content = getPromise('#divTabele1,#divTabele2,#link');
             config.promises.content.then(function () {
-                lwm_jQuery('#aktuelleProduktionPageDiv td[onclick]').each(function () {
-                    lwm_jQuery(this).css('cursor', 'hand');
-                    if (GM_config.get('confirm_production')) helper.addConfirm(lwm_jQuery(this));
+                site_jQuery('#aktuelleProduktionPageDiv td[onclick]').each(function () {
+                    site_jQuery(this).css('cursor', 'hand');
+                    if (GM_config.get('confirm_production')) helper.addConfirm(site_jQuery(this));
                     if (GM_config.get('addon_clock')) {
                         clearInterval(unsafeWindow.timeinterval_aktuelle_produktion);
                         helper.setDataForClocks();
                     }
                 });
 
-                helper.replaceElementsHtmlWithIcon(lwm_jQuery('td[onclick*=\'deleteAktuelleProduktion\']'), 'fas fa-ban');
+                helper.replaceElementsHtmlWithIcon(site_jQuery('td[onclick*=\'deleteAktuelleProduktion\']'), 'fas fa-ban');
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
@@ -1302,11 +1332,11 @@ function siteManager() {
         defense: function() {
             config.promises.content = getPromise('#verteidigungDiv');
             config.promises.content.then(function () {
-                lwm_jQuery('button[onclick*=\'makeDefence\']').each(function () {
-                    if (GM_config.get('confirm_production')) helper.addConfirm(lwm_jQuery(this));
+                site_jQuery('button[onclick*=\'makeDefence\']').each(function () {
+                    if (GM_config.get('confirm_production')) helper.addConfirm(site_jQuery(this));
                 });
 
-                helper.replaceElementsHtmlWithIcon(lwm_jQuery('button[onclick*=\'makeDefence\']'), 'fas fa-2x fa-plus-circle');
+                helper.replaceElementsHtmlWithIcon(site_jQuery('button[onclick*=\'makeDefence\']'), 'fas fa-2x fa-plus-circle');
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
@@ -1318,13 +1348,13 @@ function siteManager() {
             config.promises.content = getPromise('#handelspostenDiv');
             config.promises.content.then(function () {
                 //remove margin from arrows
-                lwm_jQuery('.arrow-left,.arrow-right').css('margin-top',0);
+                site_jQuery('.arrow-left,.arrow-right').css('margin-top',0);
 
-                lwm_jQuery('button[onclick*=\'buyHandeslpostenShips\']').each(function () {
-                    if (GM_config.get('confirm_production')) helper.addConfirm(lwm_jQuery(this));
+                site_jQuery('button[onclick*=\'buyHandeslpostenShips\']').each(function () {
+                    if (GM_config.get('confirm_production')) helper.addConfirm(site_jQuery(this));
                 });
 
-                helper.replaceElementsHtmlWithIcon(lwm_jQuery('button[onclick*=\'buyHandeslpostenShips\']'), 'fas fa-2x fa-plus-circle');
+                helper.replaceElementsHtmlWithIcon(site_jQuery('button[onclick*=\'buyHandeslpostenShips\']'), 'fas fa-2x fa-plus-circle');
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
@@ -1336,11 +1366,11 @@ function siteManager() {
             config.promises.content = getPromise('#recyclingDefenceDiv');
             config.promises.content.then(function () {
                 //add confirm to recycle buttons
-                lwm_jQuery('button[onclick*=\'recycleDefence\']').each(function () {
-                    if (GM_config.get('confirm_production')) helper.addConfirm(lwm_jQuery(this));
+                site_jQuery('button[onclick*=\'recycleDefence\']').each(function () {
+                    if (GM_config.get('confirm_production')) helper.addConfirm(site_jQuery(this));
                 });
 
-                helper.replaceElementsHtmlWithIcon(lwm_jQuery('button[onclick*=\'recycleDefence\']'), 'fas fa-2x fa-plus-circle');
+                helper.replaceElementsHtmlWithIcon(site_jQuery('button[onclick*=\'recycleDefence\']'), 'fas fa-2x fa-plus-circle');
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
@@ -1352,11 +1382,11 @@ function siteManager() {
             config.promises.content = getPromise('#upgradeDefenceDiv');
             config.promises.content.then(function () {
                 //add confirm to recycle buttons
-                lwm_jQuery('button[onclick*=\'upgradeDefenceFunction\']').each(function () {
-                    if (GM_config.get('confirm_production')) helper.addConfirm(lwm_jQuery(this));
+                site_jQuery('button[onclick*=\'upgradeDefenceFunction\']').each(function () {
+                    if (GM_config.get('confirm_production')) helper.addConfirm(site_jQuery(this));
                 });
 
-                helper.addIconToHtmlElements(lwm_jQuery('button[onclick*=\'upgradeDefenceFunction\']'), 'fas fa-2x fa-arrow-alt-circle-up');
+                helper.addIconToHtmlElements(site_jQuery('button[onclick*=\'upgradeDefenceFunction\']'), 'fas fa-2x fa-arrow-alt-circle-up');
 
                 config.loadStates.content = false;
             }).catch(function (e) {
@@ -1368,37 +1398,37 @@ function siteManager() {
         produktion: function() {
             config.promises.content = getPromise('#productionDiv');
             config.promises.content.then(function () {
-                lwm_jQuery('button[onclick*=\'delete\']').each(function () {
-                    if (GM_config.get('confirm_production')) helper.addConfirm(lwm_jQuery(this));
+                site_jQuery('button[onclick*=\'delete\']').each(function () {
+                    if (GM_config.get('confirm_production')) helper.addConfirm(site_jQuery(this));
                 });
 
-                helper.replaceElementsHtmlWithIcon(lwm_jQuery('button[onclick*=\'delete\']'), 'fas fa-ban');
+                helper.replaceElementsHtmlWithIcon(site_jQuery('button[onclick*=\'delete\']'), 'fas fa-ban');
 
-                lwm_jQuery('button[onclick*=\'makeShip\']').each(function () {
-                    if (GM_config.get('confirm_production')) helper.addConfirm(lwm_jQuery(this));
+                site_jQuery('button[onclick*=\'makeShip\']').each(function () {
+                    if (GM_config.get('confirm_production')) helper.addConfirm(site_jQuery(this));
                 });
 
-                helper.replaceElementsHtmlWithIcon(lwm_jQuery('button[onclick*=\'makeShip\']'), 'fas fa-2x fa-plus-circle');
+                helper.replaceElementsHtmlWithIcon(site_jQuery('button[onclick*=\'makeShip\']'), 'fas fa-2x fa-plus-circle');
 
                 //set up filters
                 var productionFilters = function () {
                     var process = function () {
                         //write setting
-                        config.lwm.productionFilters[config.gameData.playerID][config.gameData.planetCoords.string] = lwm_jQuery.map(lwm_jQuery('.tableFilters_content > div > .activeBox'), function (el, i) { return lwm_jQuery(el).parent().data('filter'); });
+                        config.lwm.productionFilters[config.gameData.playerID][config.gameData.planetCoords.string] = site_jQuery.map(site_jQuery('.tableFilters_content > div > .activeBox'), function (el, i) { return site_jQuery(el).parent().data('filter'); });
                         GM.setValue('lwm_productionFilters', JSON.stringify(config.lwm.productionFilters));
-                        if (GM_config.get('confirm_drive_sync')) driveManager.save();
+                        if (GM_config.get('confirm_drive_sync')) googleManager.save();
 
                         var filterFunctions = {
                             all: function() {
-                                return lwm_jQuery.map(config.gameData.productionInfos,function (el, k) { return el.id; });
+                                return site_jQuery.map(config.gameData.productionInfos,function (el, k) { return el.id; });
                             },
-                            freight: function () { return lwm_jQuery.map(lwm_jQuery.grep(config.gameData.productionInfos, function (el, k) { return parseInt(el.cargo) > 0; }),function (el, k) { return el.id; }); },
-                            kolo: function () { return lwm_jQuery.map(lwm_jQuery.grep(config.gameData.productionInfos, function (el, k) { return parseInt(el.kolonisationsmodul) > 0; }),function (el, k) { return el.id; }); },
-                            traeger: function () { return lwm_jQuery.map(lwm_jQuery.grep(config.gameData.productionInfos, function (el, k) { return parseInt(el.tragerdeck) > 0; }),function (el, k) { return el.id; }); },
-                            tarn: function () { return lwm_jQuery.map(lwm_jQuery.grep(config.gameData.productionInfos, function (el, k) { return parseInt(el.tarnvorrichtung) > 0; }),function (el, k) { return el.id; }); },
-                            nuk: function () { return lwm_jQuery.map(lwm_jQuery.grep(config.gameData.productionInfos, function (el, k) { return el.engineShortCode === 'NUK'; }),function (el, k) { return el.id; }); },
-                            hyp: function () { return lwm_jQuery.map(lwm_jQuery.grep(config.gameData.productionInfos, function (el, k) { return el.engineShortCode === 'Hyp'; }),function (el, k) { return el.id; }); },
-                            gty: function () { return lwm_jQuery.map(lwm_jQuery.grep(config.gameData.productionInfos, function (el, k) { return el.engineShortCode === 'Gty'; }),function (el, k) { return el.id; }); }
+                            freight: function () { return site_jQuery.map(site_jQuery.grep(config.gameData.productionInfos, function (el, k) { return parseInt(el.cargo) > 0; }),function (el, k) { return el.id; }); },
+                            kolo: function () { return site_jQuery.map(site_jQuery.grep(config.gameData.productionInfos, function (el, k) { return parseInt(el.kolonisationsmodul) > 0; }),function (el, k) { return el.id; }); },
+                            traeger: function () { return site_jQuery.map(site_jQuery.grep(config.gameData.productionInfos, function (el, k) { return parseInt(el.tragerdeck) > 0; }),function (el, k) { return el.id; }); },
+                            tarn: function () { return site_jQuery.map(site_jQuery.grep(config.gameData.productionInfos, function (el, k) { return parseInt(el.tarnvorrichtung) > 0; }),function (el, k) { return el.id; }); },
+                            nuk: function () { return site_jQuery.map(site_jQuery.grep(config.gameData.productionInfos, function (el, k) { return el.engineShortCode === 'NUK'; }),function (el, k) { return el.id; }); },
+                            hyp: function () { return site_jQuery.map(site_jQuery.grep(config.gameData.productionInfos, function (el, k) { return el.engineShortCode === 'Hyp'; }),function (el, k) { return el.id; }); },
+                            gty: function () { return site_jQuery.map(site_jQuery.grep(config.gameData.productionInfos, function (el, k) { return el.engineShortCode === 'Gty'; }),function (el, k) { return el.id; }); }
                         };
 
                         var getShipClassFromElement = function ($tr) {
@@ -1408,37 +1438,37 @@ function siteManager() {
                         }
 
                         var shipClasses = filterFunctions.all();
-                        lwm_jQuery.each(lwm_jQuery('.tableFilters_content > div > .activeBox'), function () {
-                            var filterClasses = filterFunctions[lwm_jQuery(this).parent().data('filter')]();
-                            shipClasses = lwm_jQuery(shipClasses).filter(filterClasses);
+                        site_jQuery.each(site_jQuery('.tableFilters_content > div > .activeBox'), function () {
+                            var filterClasses = filterFunctions[site_jQuery(this).parent().data('filter')]();
+                            shipClasses = site_jQuery(shipClasses).filter(filterClasses);
 
                         });
 
-                        lwm_jQuery('#productionDiv tr').each(function () {
-                            if (lwm_jQuery(this).data('hide')) return true;
+                        site_jQuery('#productionDiv tr').each(function () {
+                            if (site_jQuery(this).data('hide')) return true;
                             //get first class name and strip s_ from it => then test for null in case regexp turns out empty
-                            var shipClass = getShipClassFromElement(lwm_jQuery(this));
-                            if (shipClass !== '' && lwm_jQuery.inArray(shipClass, shipClasses) === -1) lwm_jQuery(this).hide();
-                            else                                                              lwm_jQuery(this).show();
+                            var shipClass = getShipClassFromElement(site_jQuery(this));
+                            if (shipClass !== '' && site_jQuery.inArray(shipClass, shipClasses) === -1) site_jQuery(this).hide();
+                            else                                                              site_jQuery(this).show();
                         });
                     };
 
-                    var $div = lwm_jQuery('<div class="tableFilters"><div class="tableFilters_header">Filter</div><div class="tableFilters_content"></div></div>');
-                    var $freightButton = lwm_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterFreight" data-filter="freight"><a class="formButton" href="javascript:void(0)">Fracht > 0</a></div>').appendTo($div.find('.tableFilters_content'));
-                    var $koloButton = lwm_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterKolo" data-filter="kolo"><a class="formButton" href="javascript:void(0)">Module: Kolo</a></div>').appendTo($div.find('.tableFilters_content'));
-                    var $tragerButton = lwm_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterTraeger" data-filter="traeger"><a class="formButton" href="javascript:void(0)">Module: Trägerdeck</a></div>').appendTo($div.find('.tableFilters_content'));
-                    var $tarnButton = lwm_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterTarn" data-filter="tarn"><a class="formButton" href="javascript:void(0)">Module: Tarn</a></div>').appendTo($div.find('.tableFilters_content'));
-                    var $nukButton = lwm_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterNuk" data-filter="nuk"><a class="formButton" href="javascript:void(0)">Engine: Nuk</a></div>').appendTo($div.find('.tableFilters_content'));
-                    var $hypButton = lwm_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterHyp" data-filter="hyp"><a class="formButton" href="javascript:void(0)">Engine: Hyp</a></div>').appendTo($div.find('.tableFilters_content'));
-                    var $gtyButton = lwm_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterGty" data-filter="gty"><a class="formButton" href="javascript:void(0)">Engine: Gty</a></div>').appendTo($div.find('.tableFilters_content'));
+                    var $div = site_jQuery('<div class="tableFilters"><div class="tableFilters_header">Filter</div><div class="tableFilters_content"></div></div>');
+                    var $freightButton = site_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterFreight" data-filter="freight"><a class="formButton" href="javascript:void(0)">Fracht > 0</a></div>').appendTo($div.find('.tableFilters_content'));
+                    var $koloButton = site_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterKolo" data-filter="kolo"><a class="formButton" href="javascript:void(0)">Module: Kolo</a></div>').appendTo($div.find('.tableFilters_content'));
+                    var $tragerButton = site_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterTraeger" data-filter="traeger"><a class="formButton" href="javascript:void(0)">Module: Trägerdeck</a></div>').appendTo($div.find('.tableFilters_content'));
+                    var $tarnButton = site_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterTarn" data-filter="tarn"><a class="formButton" href="javascript:void(0)">Module: Tarn</a></div>').appendTo($div.find('.tableFilters_content'));
+                    var $nukButton = site_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterNuk" data-filter="nuk"><a class="formButton" href="javascript:void(0)">Engine: Nuk</a></div>').appendTo($div.find('.tableFilters_content'));
+                    var $hypButton = site_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterHyp" data-filter="hyp"><a class="formButton" href="javascript:void(0)">Engine: Hyp</a></div>').appendTo($div.find('.tableFilters_content'));
+                    var $gtyButton = site_jQuery('<div class="buttonRowInbox" id="lwm_ProdFilterGty" data-filter="gty"><a class="formButton" href="javascript:void(0)">Engine: Gty</a></div>').appendTo($div.find('.tableFilters_content'));
 
-                    $div.find('.buttonRowInbox').click(function () { lwm_jQuery(this).find('.formButton').toggleClass('activeBox'); process(); });
-                    lwm_jQuery('#productionDiv').prepend($div);
+                    $div.find('.buttonRowInbox').click(function () { site_jQuery(this).find('.formButton').toggleClass('activeBox'); process(); });
+                    site_jQuery('#productionDiv').prepend($div);
 
                     return {process: process};
                 }();
 
-                lwm_jQuery.each(config.lwm.productionFilters[config.gameData.playerID][config.gameData.planetCoords.string], function (i, filter) { lwm_jQuery('[data-filter=\''+filter+'\'] .formButton').addClass('activeBox'); });
+                site_jQuery.each(config.lwm.productionFilters[config.gameData.playerID][config.gameData.planetCoords.string], function (i, filter) { site_jQuery('[data-filter=\''+filter+'\'] .formButton').addClass('activeBox'); });
                 productionFilters.process();
 
                 var getShipName = function ($tr) {
@@ -1447,17 +1477,17 @@ function siteManager() {
 
                 //add hide buttons for ships
                 var $showAllButton = function () {
-                    var $button = lwm_jQuery('<div class="inboxDeleteMessageButtons"><div class="buttonRowInbox" id="lwm_ShowHiddenShips"><a class="formButton" href="javascript:void(0)"><span class="count">'+config.lwm.hiddenShips[config.gameData.playerID][config.gameData.planetCoords.string].length+'</span> versteckte(s) anzeigen</a></div></div>');
+                    var $button = site_jQuery('<div class="inboxDeleteMessageButtons"><div class="buttonRowInbox" id="lwm_ShowHiddenShips"><a class="formButton" href="javascript:void(0)"><span class="count">'+config.lwm.hiddenShips[config.gameData.playerID][config.gameData.planetCoords.string].length+'</span> versteckte(s) anzeigen</a></div></div>');
                     $button.click(function () {
                         config.lwm.hiddenShips[config.gameData.playerID][config.gameData.planetCoords.string] = [];
                         GM.setValue('lwm_hiddenShips', JSON.stringify(config.lwm.hiddenShips));
-                        if (GM_config.get('confirm_drive_sync')) driveManager.save();
-                        lwm_jQuery('#productionDiv tr').each(function () { lwm_jQuery(this).data('hide', false); });
+                        if (GM_config.get('confirm_drive_sync')) googleManager.save();
+                        site_jQuery('#productionDiv tr').each(function () { site_jQuery(this).data('hide', false); });
                         setCurrentHiddenCount();
                         productionFilters.process();
                     });
 
-                    lwm_jQuery('#productionDiv').append($button);
+                    site_jQuery('#productionDiv').append($button);
 
                     var setCurrentHiddenCount = function () {
                         $button.find('.count').text(config.lwm.hiddenShips[config.gameData.playerID][config.gameData.planetCoords.string].length);
@@ -1465,27 +1495,27 @@ function siteManager() {
 
                     return {setCurrentHiddenCount: setCurrentHiddenCount};
                 }();
-                lwm_jQuery.each(config.lwm.hiddenShips[config.gameData.playerID][config.gameData.planetCoords.string], function (k, shipName) {
-                    var shipClass = helper.getFirstClassNameFromElement(lwm_jQuery('.shipNameProduction:contains(\''+shipName+' (\')').parents('tr'));
-                    lwm_jQuery('.'+shipClass).hide();
-                    lwm_jQuery('.'+shipClass).data('hide', true);
+                site_jQuery.each(config.lwm.hiddenShips[config.gameData.playerID][config.gameData.planetCoords.string], function (k, shipName) {
+                    var shipClass = helper.getFirstClassNameFromElement(site_jQuery('.shipNameProduction:contains(\''+shipName+' (\')').parents('tr'));
+                    site_jQuery('.'+shipClass).hide();
+                    site_jQuery('.'+shipClass).data('hide', true);
                 });
 
-                lwm_jQuery('.shipNameProduction').each(function () {
-                    var $icon = lwm_jQuery('<i class="fas fa-times"></i>');
+                site_jQuery('.shipNameProduction').each(function () {
+                    var $icon = site_jQuery('<i class="fas fa-times"></i>');
                     $icon.click(function () {
                         //ship name goes into config, but we're using classNames for the hide process
-                        var $tr = lwm_jQuery(this).parents('tr');
+                        var $tr = site_jQuery(this).parents('tr');
                         var shipName = getShipName($tr);
                         var shipClass = helper.getFirstClassNameFromElement($tr);
                         config.lwm.hiddenShips[config.gameData.playerID][config.gameData.planetCoords.string].push(shipName);
                         GM.setValue('lwm_hiddenShips', JSON.stringify(config.lwm.hiddenShips));
-                        if (GM_config.get('confirm_drive_sync')) driveManager.save();
+                        if (GM_config.get('confirm_drive_sync')) googleManager.save();
                         $showAllButton.setCurrentHiddenCount();
-                        lwm_jQuery('.'+shipClass).hide();
-                        lwm_jQuery('.'+shipClass).data('hide', true);
+                        site_jQuery('.'+shipClass).hide();
+                        site_jQuery('.'+shipClass).data('hide', true);
                     });
-                    lwm_jQuery(this).append($icon);
+                    site_jQuery(this).append($icon);
                 });
 
                 config.loadStates.content = false;
@@ -1499,11 +1529,11 @@ function siteManager() {
             config.promises.content = getPromise('#upgradeShipsDiv');
             config.promises.content.then(function () {
                 //add confirm to recycle buttons
-                lwm_jQuery('button[onclick*=\'upgradeShipsFunction\']').each(function () {
-                    if (GM_config.get('confirm_production')) helper.addConfirm(lwm_jQuery(this));
+                site_jQuery('button[onclick*=\'upgradeShipsFunction\']').each(function () {
+                    if (GM_config.get('confirm_production')) helper.addConfirm(site_jQuery(this));
                 });
 
-                helper.addIconToHtmlElements(lwm_jQuery('button[onclick*=\'upgradeShipsFunction\']'), 'fas fa-2x fa-arrow-alt-circle-up');
+                helper.addIconToHtmlElements(site_jQuery('button[onclick*=\'upgradeShipsFunction\']'), 'fas fa-2x fa-arrow-alt-circle-up');
 
                 config.loadStates.content = false;
             }).catch(function (e) {
@@ -1516,11 +1546,11 @@ function siteManager() {
             config.promises.content = getPromise('#recyclingAngleDiv');
             config.promises.content.then(function () {
                 //add confirm to recycle buttons
-                lwm_jQuery('button[onclick*=\'RecycleShips\']').each(function () {
-                    if (GM_config.get('confirm_production')) helper.addConfirm(lwm_jQuery(this));
+                site_jQuery('button[onclick*=\'RecycleShips\']').each(function () {
+                    if (GM_config.get('confirm_production')) helper.addConfirm(site_jQuery(this));
                 });
 
-                helper.replaceElementsHtmlWithIcon(lwm_jQuery('button[onclick*=\'RecycleShips\']'), 'fas fa-2x fa-plus-circle');
+                helper.replaceElementsHtmlWithIcon(site_jQuery('button[onclick*=\'RecycleShips\']'), 'fas fa-2x fa-plus-circle');
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
@@ -1531,12 +1561,12 @@ function siteManager() {
         construction: function() {
             config.promises.content = getPromise('.hauptgebaude');
             config.promises.content.then(function () {
-                helper.addResMemory(lwm_jQuery('.greenButton'), 'building');
-                lwm_jQuery('.greenButton,.yellowButton,.redButton').each(function () {
-                    var $td = lwm_jQuery(this).parent();
+                helper.addResMemory(site_jQuery('.greenButton'), 'building');
+                site_jQuery('.greenButton,.yellowButton,.redButton').each(function () {
+                    var $td = site_jQuery(this).parent();
                     $td.css('cursor', 'hand');
-                    $td.attr('onclick', lwm_jQuery(this).attr('onclick'));
-                    lwm_jQuery(this).attr('onclick', '');
+                    $td.attr('onclick', site_jQuery(this).attr('onclick'));
+                    site_jQuery(this).attr('onclick', '');
                     if (GM_config.get('confirm_const')) helper.addConfirm($td);
                     if (GM_config.get('addon_clock')) {
                         clearInterval(unsafeWindow.timeinterval_construction);
@@ -1554,11 +1584,11 @@ function siteManager() {
         research: function() {
             config.promises.content = getPromise('.basisForschungen,#researchPage:contains(\'Forschungszentrale benötigt.\')');
             config.promises.content.then(function () {
-                lwm_jQuery('.greenButton,.yellowButton,.redButton').each(function () {
-                    var $td = lwm_jQuery(this).parent();
+                site_jQuery('.greenButton,.yellowButton,.redButton').each(function () {
+                    var $td = site_jQuery(this).parent();
                     $td.css('cursor', 'hand');
-                    $td.attr('onclick', lwm_jQuery(this).attr('onclick'));
-                    lwm_jQuery(this).attr('onclick', '')
+                    $td.attr('onclick', site_jQuery(this).attr('onclick'));
+                    site_jQuery(this).attr('onclick', '')
                     if (GM_config.get('confirm_research')) helper.addConfirm($td);
                     if (GM_config.get('addon_clock')) {
                         clearInterval(unsafeWindow.timeinterval_research);
@@ -1575,11 +1605,11 @@ function siteManager() {
         planeten: function() {
             config.promises.content = getPromise('#planetTable');
             config.promises.content.then(function () {
-                lwm_jQuery('tr').find('.planetButtonTd:gt(0)').remove();
-                lwm_jQuery('#planetTable tbody tr:nth-child(5n-3) td:first-child').each(function () {
-                    var coords = lwm_jQuery(this).html().match(/\d+x\d+x\d+/)[0].split('x');
-                    var button = '<input class="planetButton planetButtonMain" type="button" value="'+lwm_jQuery(this).html()+'" onclick="changeCords('+coords[0]+', '+coords[1]+', '+coords[2]+');">';
-                    lwm_jQuery(this).html(button);
+                site_jQuery('tr').find('.planetButtonTd:gt(0)').remove();
+                site_jQuery('#planetTable tbody tr:nth-child(5n-3) td:first-child').each(function () {
+                    var coords = site_jQuery(this).html().match(/\d+x\d+x\d+/)[0].split('x');
+                    var button = '<input class="planetButton planetButtonMain" type="button" value="'+site_jQuery(this).html()+'" onclick="changeCords('+coords[0]+', '+coords[1]+', '+coords[2]+');">';
+                    site_jQuery(this).html(button);
                 });
                 config.loadStates.content = false;
             }).catch(function (e) {
@@ -1590,29 +1620,29 @@ function siteManager() {
         },
         inbox: function() {
             //clear content so loadStates doesn't fire too early
-            //lwm_jQuery('#inboxContent').html('');
+            //site_jQuery('#inboxContent').html('');
             config.promises.content = getPromise('.inboxDeleteMessageButtons,#messagesListTableInbox');
             config.promises.content.then(function () {
                 config.loadStates.content = false;
 
                 // workaround to bring the submenu in if you come to message from anywhere else than the message menu button
-                if (lwm_jQuery('#veticalLink a.navButton').length !== 0 && lwm_jQuery('.secound_line a.navButton').length === 0) submenu.move();
+                if (site_jQuery('#veticalLink a.navButton').length !== 0 && site_jQuery('.secound_line a.navButton').length === 0) submenu.move();
 
                 // go through messages and add direct link to fight and spy reports
                 // we do this after updating loadstate to not slow down page load
                 var addReportLink = function(message) {
                     var type = message.subject.search(/Kampfbericht/) !== -1 ? 'view_report_attack' : 'planetenscanner_view';
-                    var $link = lwm_jQuery('<a target=\'_blank\' href=\'https://last-war.de/'+type+'.php?id='+message.reportID+'&user='+config.gameData.playerID+'\'><i style=\'margin-left: 5px;\' class=\'fas fa-external-link-alt\'></i></a>');
-                    lwm_jQuery('[onclick*=\''+message.id+'\']').after($link);
+                    var $link = site_jQuery('<a target=\'_blank\' href=\'https://last-war.de/'+type+'.php?id='+message.reportID+'&user='+config.gameData.playerID+'\'><i style=\'margin-left: 5px;\' class=\'fas fa-external-link-alt\'></i></a>');
+                    site_jQuery('[onclick*=\''+message.id+'\']').after($link);
                 };
 
                 //install handler to attach report links on browsing message pages
                 if (!config.pages.inbox.reportHandler) {
-                    lwm_jQuery(document).on('click', function (e) {
-                        var check = lwm_jQuery(e.target).is('.formButton[onclick*=\'nextPage\']') || lwm_jQuery(e.target).is('.formButton[onclick*=\'previousPage\']');
+                    site_jQuery(document).on('click', function (e) {
+                        var check = site_jQuery(e.target).is('.formButton[onclick*=\'nextPage\']') || site_jQuery(e.target).is('.formButton[onclick*=\'previousPage\']');
                         if (!check) return;
                         if (![2,4].includes(unsafeWindow.window.current_view_type)) return;
-                        lwm_jQuery.each(config.gameData.messageData[1], function (i, m) {
+                        site_jQuery.each(config.gameData.messageData[1], function (i, m) {
                             if (m.subject.search(/Kampfbericht|Spionagebericht/) !== -1 && m.user_nickname === 'Systemnachricht') addReportLink(m);
                         });
                     });
@@ -1620,7 +1650,7 @@ function siteManager() {
                 }
 
                 if ([2,4].includes(unsafeWindow.window.current_view_type) && GM_config.get('message_spylinks')) {
-                    lwm_jQuery.each(config.gameData.messageData[1], function (i, m) {
+                    site_jQuery.each(config.gameData.messageData[1], function (i, m) {
                         if (m.subject.search(/Kampfbericht|Spionagebericht/) !== -1 && m.user_nickname === 'Systemnachricht') {
                             site_jQuery.getJSON('/ajax_request/get_message_info.php?id_conversation='+m.id, { lwm_ignoreProcess: 1 }, function (data) {
                                 //add reportID to data for future use
@@ -1655,7 +1685,7 @@ function siteManager() {
                         var incomingRes = helper.getIncomingResArray();
                         $.each(tradeInfo.trade_offers, function (i, offer) {
                             var tradeRunning = offer.accept === "1";
-                            var $tradeDiv = lwm_jQuery('#div_'+offer.trade_id);
+                            var $tradeDiv = site_jQuery('#div_'+offer.trade_id);
                             var isMyPlanet = offer.galaxy == config.gameData.planetCoords.galaxy && offer.system == config.gameData.planetCoords.system && offer.planet == config.gameData.planetCoords.planet;
                             $.each(currentRes, function (i, amount) {
                                 if (GM_config.get('trade_highlights')) {
@@ -1683,8 +1713,8 @@ function siteManager() {
                         });
 
                         //attach events to delete trades
-                        lwm_jQuery('[onclick*=\'declineTradeOffer\']').click(function () {
-                            var id = lwm_jQuery(this).attr('onclick').match(/\d+/)[0];
+                        site_jQuery('[onclick*=\'declineTradeOffer\']').click(function () {
+                            var id = site_jQuery(this).attr('onclick').match(/\d+/)[0];
                             config.gameData.tradeInfo.trade_offers = config.gameData.tradeInfo.trade_offers.filter(function (offer) { return offer.trade_id != id; });
                         });
 
@@ -1699,8 +1729,8 @@ function siteManager() {
                         $html.find('#lwm_trades_accept_all').click(function () {
                             if (confirm('WARNING: This will accept ALL trades!')) {
                                 var acceptPromises = [];
-                                lwm_jQuery.each(lwm_jQuery('[onclick*=acceptTradeOffer]'), function () {
-                                    var trade_offer_id = lwm_jQuery(this).attr('onclick').match(/\d+/)[0];
+                                site_jQuery.each(site_jQuery('[onclick*=acceptTradeOffer]'), function () {
+                                    var trade_offer_id = site_jQuery(this).attr('onclick').match(/\d+/)[0];
                                     var call = site_jQuery.ajax({
                                         type: "POST",
                                         dataType: "json",
@@ -1709,15 +1739,15 @@ function siteManager() {
                                     });
                                     acceptPromises.push(call);
                                 });
-                                lwm_jQuery.when.apply(lwm_jQuery, acceptPromises).then(function () { changeContent('trade_offer', 'first', 'Handel'); });
+                                site_jQuery.when.apply(site_jQuery, acceptPromises).then(function () { changeContent('trade_offer', 'first', 'Handel'); });
                             }
                         });
 
                         $html.find('#lwm_trades_deny_all').click(function () {
                             if (confirm('WARNING: This will cancel/deny ALL trades!')) {
                                 var declinePromises = [];
-                                lwm_jQuery.each(lwm_jQuery('[onclick*=declineTradeOffer]'), function () {
-                                    var trade_offer_id = lwm_jQuery(this).attr('onclick').match(/\d+/)[0];
+                                site_jQuery.each(site_jQuery('[onclick*=declineTradeOffer]'), function () {
+                                    var trade_offer_id = site_jQuery(this).attr('onclick').match(/\d+/)[0];
                                     var call = site_jQuery.ajax({
                                         type: "POST",
                                         dataType: "json",
@@ -1726,8 +1756,8 @@ function siteManager() {
                                     });
                                     declinePromises.push(call);
                                 });
-                                lwm_jQuery.each(lwm_jQuery('[onclick*=cancelTradeOffer]'), function () {
-                                    var trade_offer_id = lwm_jQuery(this).attr('onclick').match(/\d+/)[0];
+                                site_jQuery.each(site_jQuery('[onclick*=cancelTradeOffer]'), function () {
+                                    var trade_offer_id = site_jQuery(this).attr('onclick').match(/\d+/)[0];
                                     var call = site_jQuery.ajax({
                                         type: "POST",
                                         dataType: "json",
@@ -1736,11 +1766,11 @@ function siteManager() {
                                     });
                                     declinePromises.push(call);
                                 });
-                                lwm_jQuery.when.apply(lwm_jQuery, declinePromises).then(function () { changeContent('trade_offer', 'first', 'Handel'); });
+                                site_jQuery.when.apply(site_jQuery, declinePromises).then(function () { changeContent('trade_offer', 'first', 'Handel'); });
                             }
                         });
 
-                        lwm_jQuery('#tradeOfferDiv').before($html);
+                        site_jQuery('#tradeOfferDiv').before($html);
 
                         config.loadStates.content = false;
                     }).catch(function (e) {
@@ -1758,74 +1788,74 @@ function siteManager() {
             config.promises.content = getPromise('#newTradeOfferDiv');
             config.promises.content.then(function () {
                 //move buttons into one row and extend colspan
-                var $lastTR = lwm_jQuery('#newTradeOfferDiv tr').last();
+                var $lastTR = site_jQuery('#newTradeOfferDiv tr').last();
                 $lastTR.find('td:eq(0)').hide();
                 $lastTR.find('td:eq(1)').attr('colspan', '4');
-                lwm_jQuery('.formButtonNewMessage').appendTo($lastTR.find('td:eq(1) .buttonRow'));
+                site_jQuery('.formButtonNewMessage').appendTo($lastTR.find('td:eq(1) .buttonRow'));
 
                 //save coords in lastused config
-                lwm_jQuery('[onclick*=\'submitNewOfferTrade\']').click(function () {
-                    var coords = [parseInt(lwm_jQuery('#galaxyTrade').val()),parseInt(lwm_jQuery('#systemTrade').val()),parseInt(lwm_jQuery('#planetTrade').val())];
-                    var check = lwm_jQuery.grep(config.gameData.planets, function (p) {
+                site_jQuery('[onclick*=\'submitNewOfferTrade\']').click(function () {
+                    var coords = [parseInt(site_jQuery('#galaxyTrade').val()),parseInt(site_jQuery('#systemTrade').val()),parseInt(site_jQuery('#planetTrade').val())];
+                    var check = site_jQuery.grep(config.gameData.planets, function (p) {
                         return parseInt(p.galaxy) === coords[0] && parseInt(p.system) === coords[1] && parseInt(p.planet) === coords[2];
                     });
-                    if (!check.length && lwm_jQuery.inArray(coords[0]+'x'+coords[1]+'x'+coords[2], config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string]) === -1 && helper.checkCoords(coords)) {
+                    if (!check.length && site_jQuery.inArray(coords[0]+'x'+coords[1]+'x'+coords[2], config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string]) === -1 && helper.checkCoords(coords)) {
                         config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string].unshift(coords[0]+'x'+coords[1]+'x'+coords[2]);
                         if (config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string].length > GM_config.get('coords_trades')) {
                             config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string].length = GM_config.get('coords_trades');
                         }
                         GM.setValue('lwm_lastTradeCoords', JSON.stringify(config.lwm.lastTradeCoords));
-                        if (GM_config.get('confirm_drive_sync')) driveManager.save();
+                        if (GM_config.get('confirm_drive_sync')) googleManager.save();
                     }
                 });
 
                 //add div with own chords
-                var $divOwn = lwm_jQuery('<div style=\'width:100%\'></div>');
+                var $divOwn = site_jQuery('<div style=\'width:100%\'></div>');
                 var linksOwn = [];
                 var saveLinksOwn = [];
-                lwm_jQuery(config.gameData.planets).each(function (i, coords) {
+                site_jQuery(config.gameData.planets).each(function (i, coords) {
                     if (coords.galaxy == my_galaxy && coords.system == my_system && coords.planet == my_planet) return true;
-                    var $link = lwm_jQuery('<a href=\'javascript:void(0)\' data-index=\''+i+'\'>'+coords.galaxy+'x'+coords.system+'x'+coords.planet+'</a>');
-                    var $saveLink = lwm_jQuery('<a href=\'javascript:void(0)\' data-index=\''+i+'\'> (SAVE)</a>');
+                    var $link = site_jQuery('<a href=\'javascript:void(0)\' data-index=\''+i+'\'>'+coords.galaxy+'x'+coords.system+'x'+coords.planet+'</a>');
+                    var $saveLink = site_jQuery('<a href=\'javascript:void(0)\' data-index=\''+i+'\'> (SAVE)</a>');
                     $link.click(function () {
-                        lwm_jQuery('#galaxyTrade').val(config.gameData.planets[lwm_jQuery(this).data('index')].galaxy);
-                        lwm_jQuery('#systemTrade').val(config.gameData.planets[lwm_jQuery(this).data('index')].system);
-                        lwm_jQuery('#planetTrade').val(config.gameData.planets[lwm_jQuery(this).data('index')].planet);
+                        site_jQuery('#galaxyTrade').val(config.gameData.planets[site_jQuery(this).data('index')].galaxy);
+                        site_jQuery('#systemTrade').val(config.gameData.planets[site_jQuery(this).data('index')].system);
+                        site_jQuery('#planetTrade').val(config.gameData.planets[site_jQuery(this).data('index')].planet);
                     });
                     $saveLink.click(function () {
-                        lwm_jQuery('#galaxyTrade').val(config.gameData.planets[lwm_jQuery(this).data('index')].galaxy);
-                        lwm_jQuery('#systemTrade').val(config.gameData.planets[lwm_jQuery(this).data('index')].system);
-                        lwm_jQuery('#planetTrade').val(config.gameData.planets[lwm_jQuery(this).data('index')].planet);
+                        site_jQuery('#galaxyTrade').val(config.gameData.planets[site_jQuery(this).data('index')].galaxy);
+                        site_jQuery('#systemTrade').val(config.gameData.planets[site_jQuery(this).data('index')].system);
+                        site_jQuery('#planetTrade').val(config.gameData.planets[site_jQuery(this).data('index')].planet);
                         inputFullResource();
-                        lwm_jQuery('#his_gold').val('999999');
-                        lwm_jQuery('#tradeOfferComment').val('###LWM::SAVE###');
+                        site_jQuery('#his_gold').val('999999');
+                        site_jQuery('#tradeOfferComment').val('###LWM::SAVE###');
                     });
                     linksOwn.push($link);
                     saveLinksOwn.push($saveLink);
                 });
-                lwm_jQuery(linksOwn).each(function (i, l) {
+                site_jQuery(linksOwn).each(function (i, l) {
                     $divOwn.append([l, saveLinksOwn[i], i !== linksOwn.length - 1 ? ' - ' : '']);
                 });
                 $divOwn.appendTo($lastTR.find('td:eq(1)'));
 
                 //put 1 Eisen when saving all res
-                lwm_jQuery('[onclick*=\'inputFullResource\']').click(function () {
-                    if (lwm_jQuery('#his_eisen').val() === "0") lwm_jQuery('#his_eisen').val("1");
+                site_jQuery('[onclick*=\'inputFullResource\']').click(function () {
+                    if (site_jQuery('#his_eisen').val() === "0") site_jQuery('#his_eisen').val("1");
                 });
 
                 //add div with saved coords
-                var $divSave = lwm_jQuery('<div style=\'width:100%\'></div>');
+                var $divSave = site_jQuery('<div style=\'width:100%\'></div>');
                 var linksSave = [];
-                lwm_jQuery(config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string]).each(function (i, coords) {
-                    var $link = lwm_jQuery('<a href=\'javascript:void(0)\'>'+coords+'</a>');
+                site_jQuery(config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string]).each(function (i, coords) {
+                    var $link = site_jQuery('<a href=\'javascript:void(0)\'>'+coords+'</a>');
                     $link.click(function () {
-                        lwm_jQuery('#galaxyTrade').val(coords.split('x')[0]);
-                        lwm_jQuery('#systemTrade').val(coords.split('x')[1]);
-                        lwm_jQuery('#planetTrade').val(coords.split('x')[2]);
+                        site_jQuery('#galaxyTrade').val(coords.split('x')[0]);
+                        site_jQuery('#systemTrade').val(coords.split('x')[1]);
+                        site_jQuery('#planetTrade').val(coords.split('x')[2]);
                     });
                     linksSave.push($link);
                 });
-                lwm_jQuery(linksSave).each(function (i, l) {
+                site_jQuery(linksSave).each(function (i, l) {
                     $divSave.append([l, i !== linksOwn.length - 1 ? ' - ' : '']);
                 });
                 $divSave.appendTo($lastTR.find('td:eq(1)'));
@@ -1841,19 +1871,19 @@ function siteManager() {
             config.promises.content = getPromise('#changeFlottenDiv');
             config.promises.content.then(function () {
                 //button to add all ships
-                var $allShips = lwm_jQuery('<a href="javascript:void(0)" class="lwm_selectAll"> (All)</a>');
-                $allShips.appendTo(lwm_jQuery('#changeFlottenDiv > table th:eq(7)'));
-                $allShips.clone().appendTo(lwm_jQuery('#changeFlottenDiv > table th:eq(8)'));
+                var $allShips = site_jQuery('<a href="javascript:void(0)" class="lwm_selectAll"> (All)</a>');
+                $allShips.appendTo(site_jQuery('#changeFlottenDiv > table th:eq(7)'));
+                $allShips.clone().appendTo(site_jQuery('#changeFlottenDiv > table th:eq(8)'));
 
-                lwm_jQuery('#changeFlottenDiv .lwm_selectAll').click(function () {
-                    var index = lwm_jQuery(this).parent().index('#changeFlottenDiv > table th');
-                    lwm_jQuery('#changeFlottenDiv > table tr').find('td:eq('+(index)+') .arrow-right').each(function () {
+                site_jQuery('#changeFlottenDiv .lwm_selectAll').click(function () {
+                    var index = site_jQuery(this).parent().index('#changeFlottenDiv > table th');
+                    site_jQuery('#changeFlottenDiv > table tr').find('td:eq('+(index)+') .arrow-right').each(function () {
                         var curCount = 0;
                         do {
-                            curCount = parseInt(lwm_jQuery(this).prev().text());
-                            lwm_jQuery(this).click();
+                            curCount = parseInt(site_jQuery(this).prev().text());
+                            site_jQuery(this).click();
 
-                        } while (parseInt(lwm_jQuery(this).prev().text()) !== curCount)
+                        } while (parseInt(site_jQuery(this).prev().text()) !== curCount)
                     });
                 });
 
@@ -1868,9 +1898,9 @@ function siteManager() {
             config.promises.content = getPromise('#flottenBasenPlanetDiv,#fremdeFlottenBasenDiv,#flottenBasenAllDiv,#flottenKommandoDiv,#link');
             config.promises.content.then(function () {
                 //add recall button if applicable
-                var fleets = lwm_jQuery.grep(xhr.responseJSON, function (fleet, i) { return fleet.status_king === "1"; });
-                lwm_jQuery.each(fleets, function (i, fleet) {
-                    var $form = lwm_jQuery('td:contains(\''+fleet.id_fleets+'\')').parents('table').find('form');
+                var fleets = site_jQuery.grep(xhr.responseJSON, function (fleet, i) { return fleet.status_king === "1"; });
+                site_jQuery.each(fleets, function (i, fleet) {
+                    var $form = site_jQuery('td:contains(\''+fleet.id_fleets+'\')').parents('table').find('form');
                     $form.append('<a id="recallFleets" class="formButtonSpionage" href="#" onclick="changeContent(\'flotten_view\', \'third\', \'Flotten-Kommando\', \''+fleet.id_fleets+'\');"><i class="fas fa-wifi faa-flash animated"></i>L-Kom</a>');
                 });
 
@@ -1885,19 +1915,19 @@ function siteManager() {
             config.promises.content = getPromise('.raumdockNameButtonDiv');
             config.promises.content.then(function () {
                 //button to add all ships
-                var $allShips = lwm_jQuery('<button class="createShipButton createFleetRaumdock" id="lwm_selectAllShips">Alle Schiffe</button>');
+                var $allShips = site_jQuery('<button class="createShipButton createFleetRaumdock" id="lwm_selectAllShips">Alle Schiffe</button>');
                 $allShips.click(function () {
-                    lwm_jQuery('[onclick*=\'addNumberRaumdock\']').each(function () {
+                    site_jQuery('[onclick*=\'addNumberRaumdock\']').each(function () {
                         var curCount = 0;
                         do {
-                            curCount = parseInt(lwm_jQuery(this).prev().text() || lwm_jQuery(this).prev().val());
+                            curCount = parseInt(site_jQuery(this).prev().text() || site_jQuery(this).prev().val());
                             if (isNaN(curCount)) break;
-                            lwm_jQuery(this).click();
+                            site_jQuery(this).click();
 
-                        } while (parseInt(lwm_jQuery(this).prev().text() || lwm_jQuery(this).prev().val()) !== curCount)
+                        } while (parseInt(site_jQuery(this).prev().text() || site_jQuery(this).prev().val()) !== curCount)
                     });
                 });
-                $allShips.appendTo(lwm_jQuery('.raumdockNameButtonDiv'));
+                $allShips.appendTo(site_jQuery('.raumdockNameButtonDiv'));
 
                 config.loadStates.content = false;
             }).catch(function (e) {
@@ -1910,10 +1940,10 @@ function siteManager() {
             config.promises.content = getPromise('#folottenbewegungenPageDiv');
             config.promises.content.then(function () {
                 //remove fleet div, we're using our own
-                lwm_jQuery('#folottenbewegungenPageDiv').remove();
+                site_jQuery('#folottenbewegungenPageDiv').remove();
 
                 //add our calendar table
-                var $tableBase = lwm_jQuery(''+
+                var $tableBase = site_jQuery(''+
                     '<div id="calendarDiv">'+
                         '<table><tbody>'+
                             '<tr><th>Player</th>'+
@@ -1925,10 +1955,10 @@ function siteManager() {
                         '</tbody></table>'+
                     '</div>');
 
-                if (!addOns.calendar.truncateData()) driveManager.save();
+                if (!addOns.calendar.truncateData()) googleManager.save();
 
                 var entries = document.createDocumentFragment();
-                lwm_jQuery.each(config.lwm.calendar, function (i, entry) {
+                site_jQuery.each(config.lwm.calendar, function (i, entry) {
                     var tr = document.createElement('tr');tr.setAttribute('data-username', entry.playerName);tr.setAttribute('data-coord', entry.coords);tr.setAttribute('data-type', entry.type);tr.setAttribute('data-ts', entry.ts);
                     var tdName = document.createElement('td');tdName.innerHTML=entry.playerName;
                     var tdCoords = document.createElement('td');tdCoords.innerHTML=entry.coords;
@@ -1943,15 +1973,15 @@ function siteManager() {
 
                 //sort calendar
                 $tableBase.find('table tbody tr:gt(0)').sort(function (a, b) {
-                    var tsA = parseInt(lwm_jQuery(a).data('ts'));
-                    var tsB = parseInt(lwm_jQuery(b).data('ts'));
+                    var tsA = parseInt(site_jQuery(a).data('ts'));
+                    var tsB = parseInt(site_jQuery(b).data('ts'));
                     return tsA - tsB;
                 }).each(function() {
-                    var $elem = lwm_jQuery(this).detach();
-                    lwm_jQuery($elem).appendTo($tableBase.find('table tbody'));
+                    var $elem = site_jQuery(this).detach();
+                    site_jQuery($elem).appendTo($tableBase.find('table tbody'));
                 });
 
-                lwm_jQuery('.pageContent').last().append($tableBase);
+                site_jQuery('.pageContent').last().append($tableBase);
                 helper.setDataForClocks();
 
                 //set up filters
@@ -1964,32 +1994,32 @@ function siteManager() {
                             type: function(v) { $tableBase.find('tr:gt(0)[data-type!=\''+v+'\']').data('hide', true); }
                         };
 
-                        lwm_jQuery.each(lwm_jQuery('.tableFilters_content > div > .activeBox'), function () {
-                            var filterFunction = lwm_jQuery(this).parent().data('filter');
-                            var filterValue    = lwm_jQuery(this).parent().data('value');
+                        site_jQuery.each(site_jQuery('.tableFilters_content > div > .activeBox'), function () {
+                            var filterFunction = site_jQuery(this).parent().data('filter');
+                            var filterValue    = site_jQuery(this).parent().data('value');
                             filterFunctions[filterFunction](filterValue);
                         });
 
-                        lwm_jQuery.each($tableBase.find('tr'), function (i, el) {
-                            if (lwm_jQuery(el).data('hide')) lwm_jQuery(el).hide();
-                            else                             lwm_jQuery(el).show();
+                        site_jQuery.each($tableBase.find('tr'), function (i, el) {
+                            if (site_jQuery(el).data('hide')) site_jQuery(el).hide();
+                            else                             site_jQuery(el).show();
                         });
                     };
 
-                    var usernames = lwm_jQuery.map(config.lwm.calendar, function (el, i) { return el.playerName; }).filter(function (value, index, self) { return self.indexOf(value) === index; });
-                    var coords = lwm_jQuery.map(config.lwm.calendar, function (el, i) { return el.coords; }).filter(function (value, index, self) { return self.indexOf(value) === index; });
-                    var types = lwm_jQuery.map(config.lwm.calendar, function (el, i) { return el.type; }).filter(function (value, index, self) { return self.indexOf(value) === index; });
+                    var usernames = site_jQuery.map(config.lwm.calendar, function (el, i) { return el.playerName; }).filter(function (value, index, self) { return self.indexOf(value) === index; });
+                    var coords = site_jQuery.map(config.lwm.calendar, function (el, i) { return el.coords; }).filter(function (value, index, self) { return self.indexOf(value) === index; });
+                    var types = site_jQuery.map(config.lwm.calendar, function (el, i) { return el.type; }).filter(function (value, index, self) { return self.indexOf(value) === index; });
 
-                    var $div = lwm_jQuery('<div class="tableFilters"><div class="tableFilters_header">Filter</div><div class="tableFilters_content"></div></div>');
-                    lwm_jQuery.each(usernames, function (i, username) { var $button = lwm_jQuery('<div class="buttonRowInbox" data-filter="username" data-value="'+username+'"><a class="formButton" href="javascript:void(0)">'+username+'</a></div>').appendTo($div.find('.tableFilters_content')); });
-                    lwm_jQuery.each(coords, function (i, coord) { var $button = lwm_jQuery('<div class="buttonRowInbox" data-filter="coord" data-value="'+coord+'"><a class="formButton" href="javascript:void(0)">'+coord+'</a></div>').appendTo($div.find('.tableFilters_content')); });
-                    lwm_jQuery.each(types, function (i, type) { var $button = lwm_jQuery('<div class="buttonRowInbox" data-filter="type" data-value="'+type+'"><a class="formButton" href="javascript:void(0)">'+type+'</a></div>').appendTo($div.find('.tableFilters_content')); });
+                    var $div = site_jQuery('<div class="tableFilters"><div class="tableFilters_header">Filter</div><div class="tableFilters_content"></div></div>');
+                    site_jQuery.each(usernames, function (i, username) { var $button = site_jQuery('<div class="buttonRowInbox" data-filter="username" data-value="'+username+'"><a class="formButton" href="javascript:void(0)">'+username+'</a></div>').appendTo($div.find('.tableFilters_content')); });
+                    site_jQuery.each(coords, function (i, coord) { var $button = site_jQuery('<div class="buttonRowInbox" data-filter="coord" data-value="'+coord+'"><a class="formButton" href="javascript:void(0)">'+coord+'</a></div>').appendTo($div.find('.tableFilters_content')); });
+                    site_jQuery.each(types, function (i, type) { var $button = site_jQuery('<div class="buttonRowInbox" data-filter="type" data-value="'+type+'"><a class="formButton" href="javascript:void(0)">'+type+'</a></div>').appendTo($div.find('.tableFilters_content')); });
 
                     $div.find('[data-value=\''+config.gameData.playerName+'\']').find('.formButton').toggleClass('activeBox');
                     $div.find('[data-value=\'fleet\']').find('.formButton').toggleClass('activeBox');
 
-                    $div.find('.buttonRowInbox').click(function () { lwm_jQuery(this).find('.formButton').toggleClass('activeBox'); process(); });
-                    lwm_jQuery('#calendarDiv').prepend($div);
+                    $div.find('.buttonRowInbox').click(function () { site_jQuery(this).find('.formButton').toggleClass('activeBox'); process(); });
+                    site_jQuery('#calendarDiv').prepend($div);
 
                     process();
                 }();
@@ -2008,32 +2038,32 @@ function siteManager() {
             config.promises.content = getPromise('#makeCommandDiv');
             config.promises.content.then(function () {
                 //save coords in lastused config
-                lwm_jQuery('[onclick*=\'makeCommand\']').click(function () {
-                    var coords = [parseInt(lwm_jQuery('#galaxyInput').val()),parseInt(lwm_jQuery('#systemInput').val()),parseInt(lwm_jQuery('#planetInput').val())];
-                    if (lwm_jQuery.inArray(coords[0]+'x'+coords[1]+'x'+coords[2], config.lwm.lastFleetCoords[config.gameData.playerID][config.gameData.planetCoords.string]) === -1 && helper.checkCoords(coords)) {
+                site_jQuery('[onclick*=\'makeCommand\']').click(function () {
+                    var coords = [parseInt(site_jQuery('#galaxyInput').val()),parseInt(site_jQuery('#systemInput').val()),parseInt(site_jQuery('#planetInput').val())];
+                    if (site_jQuery.inArray(coords[0]+'x'+coords[1]+'x'+coords[2], config.lwm.lastFleetCoords[config.gameData.playerID][config.gameData.planetCoords.string]) === -1 && helper.checkCoords(coords)) {
                         config.lwm.lastFleetCoords[config.gameData.playerID][config.gameData.planetCoords.string].unshift(coords[0]+'x'+coords[1]+'x'+coords[2]);
                         if (config.lwm.lastFleetCoords[config.gameData.playerID][config.gameData.planetCoords.string].length > GM_config.get('coords_fleets')) {
                             config.lwm.lastFleetCoords[config.gameData.playerID][config.gameData.planetCoords.string].length = GM_config.get('coords_fleets');
                         }
                         GM.setValue('lwm_lastFleetCoords', JSON.stringify(config.lwm.lastFleetCoords));
-                        if (GM_config.get('confirm_drive_sync')) driveManager.save();
+                        if (GM_config.get('confirm_drive_sync')) googleManager.save();
                     }
                 });
 
                 //add div with saved coords
-                var $lastTR = lwm_jQuery('#makeCommandDiv tr').last();
-                var $divSave = lwm_jQuery('<div style=\'width:100%\'></div>');
+                var $lastTR = site_jQuery('#makeCommandDiv tr').last();
+                var $divSave = site_jQuery('<div style=\'width:100%\'></div>');
                 var linksSave = [];
-                lwm_jQuery(config.lwm.lastFleetCoords[config.gameData.playerID][config.gameData.planetCoords.string]).each(function (i, coords) {
-                    var $link = lwm_jQuery('<a href=\'javascript:void(0)\'>'+coords+'</a>');
+                site_jQuery(config.lwm.lastFleetCoords[config.gameData.playerID][config.gameData.planetCoords.string]).each(function (i, coords) {
+                    var $link = site_jQuery('<a href=\'javascript:void(0)\'>'+coords+'</a>');
                     $link.click(function () {
-                        lwm_jQuery('#galaxyInput').val(coords.split('x')[0]);
-                        lwm_jQuery('#systemInput').val(coords.split('x')[1]);
-                        lwm_jQuery('#planetInput').val(coords.split('x')[2]);
+                        site_jQuery('#galaxyInput').val(coords.split('x')[0]);
+                        site_jQuery('#systemInput').val(coords.split('x')[1]);
+                        site_jQuery('#planetInput').val(coords.split('x')[2]);
                     });
                     linksSave.push($link);
                 });
-                lwm_jQuery(linksSave).each(function (i, l) {
+                site_jQuery(linksSave).each(function (i, l) {
                     $divSave.append(l);
                     if (i !== linksSave.length - 1) $divSave.append(' - ');
                 });
@@ -2043,30 +2073,30 @@ function siteManager() {
                 if (GM_config.get('fleet_saveprios')) {
                     if (config.lwm.raidPrios.length === 6) {
                         //fill fields if we have a saved prio
-                        lwm_jQuery('#roheisen_priority').val(config.lwm.raidPrios[0]);
-                        lwm_jQuery('#kristall_priority').val(config.lwm.raidPrios[1]);
-                        lwm_jQuery('#frubin_priority').val(config.lwm.raidPrios[2]);
-                        lwm_jQuery('#orizin_priority').val(config.lwm.raidPrios[3]);
-                        lwm_jQuery('#frurozin_priority').val(config.lwm.raidPrios[4]);
-                        lwm_jQuery('#gold_priority').val(config.lwm.raidPrios[5]);
+                        site_jQuery('#roheisen_priority').val(config.lwm.raidPrios[0]);
+                        site_jQuery('#kristall_priority').val(config.lwm.raidPrios[1]);
+                        site_jQuery('#frubin_priority').val(config.lwm.raidPrios[2]);
+                        site_jQuery('#orizin_priority').val(config.lwm.raidPrios[3]);
+                        site_jQuery('#frurozin_priority').val(config.lwm.raidPrios[4]);
+                        site_jQuery('#gold_priority').val(config.lwm.raidPrios[5]);
                     }
 
-                    lwm_jQuery('[onclick*=\'makeCommand\']').click(function () {
+                    site_jQuery('[onclick*=\'makeCommand\']').click(function () {
                         //save prios
-                        if (lwm_jQuery('[name=\'type_kommand\']:checked').val() === "1") {
+                        if (site_jQuery('[name=\'type_kommand\']:checked').val() === "1") {
                             var prios = [
-                                lwm_jQuery('#roheisen_priority').val(),
-                                lwm_jQuery('#kristall_priority').val(),
-                                lwm_jQuery('#frubin_priority').val(),
-                                lwm_jQuery('#orizin_priority').val(),
-                                lwm_jQuery('#frurozin_priority').val(),
-                                lwm_jQuery('#gold_priority').val()
+                                site_jQuery('#roheisen_priority').val(),
+                                site_jQuery('#kristall_priority').val(),
+                                site_jQuery('#frubin_priority').val(),
+                                site_jQuery('#orizin_priority').val(),
+                                site_jQuery('#frurozin_priority').val(),
+                                site_jQuery('#gold_priority').val()
                             ];
 
                             if (JSON.stringify(prios) !== JSON.stringify(config.lwm.raidPrios)) {
                                 config.lwm.raidPrios = prios;
                                 GM.setValue('lwm_raidPrios', JSON.stringify(config.lwm.raidPrios));
-                                if (GM_config.get('confirm_drive_sync')) driveManager.save();
+                                if (GM_config.get('confirm_drive_sync')) googleManager.save();
                             }
                         }
                     });
@@ -2096,7 +2126,7 @@ function siteManager() {
                 var maxDate = moment().add(maxTimeInSeconds*2, 'seconds');
 
                 //build time choose select
-                var $select = lwm_jQuery('<select id="lwm_fleet_selecttime"><option value="" selected>Pick Return Hour</option></select>');
+                var $select = site_jQuery('<select id="lwm_fleet_selecttime"><option value="" selected>Pick Return Hour</option></select>');
                 while (minDate.valueOf() < maxDate.valueOf()) {
                     $select.append('<option>'+minDate.format("YYYY-MM-DD HH:mm:ss")+'</option>');
                     //increment minutes for next option
@@ -2104,12 +2134,12 @@ function siteManager() {
                 }
 
                 var disableOptions = function () {
-                    var $oneway = lwm_jQuery('#lwm_fleet_oneway').is(':checked');
+                    var $oneway = site_jQuery('#lwm_fleet_oneway').is(':checked');
                     /* disable options that don't fit speed of fleet */
                     $select.find('option:gt(0)').each(function () {
-                        var timeDiffInSeconds = moment(lwm_jQuery(this).val()).diff(moment(), "seconds") /  ($oneway ? 1 : 2);;
+                        var timeDiffInSeconds = moment(site_jQuery(this).val()).diff(moment(), "seconds") /  ($oneway ? 1 : 2);;
                         var minSpeedInSeconds = (minTimeInSeconds / (2-(maxSpeed/100)) * (2-(20/100)));
-                        lwm_jQuery(this).prop('disabled', minSpeedInSeconds < timeDiffInSeconds || minTimeInSeconds > timeDiffInSeconds);
+                        site_jQuery(this).prop('disabled', minSpeedInSeconds < timeDiffInSeconds || minTimeInSeconds > timeDiffInSeconds);
                     });
                 }
 
@@ -2117,16 +2147,16 @@ function siteManager() {
 
                 var calcFleetTime = function () {
                     disableOptions();
-                    var $val = lwm_jQuery('#lwm_fleet_selecttime').val();
+                    var $val = site_jQuery('#lwm_fleet_selecttime').val();
                     var $momentVal = moment($val);
-                    var $oneway = lwm_jQuery('#lwm_fleet_oneway').is(':checked');
+                    var $oneway = site_jQuery('#lwm_fleet_oneway').is(':checked');
                     if (!$val) {
-                        lwm_jQuery('.changeTime').val(maxSpeed);
+                        site_jQuery('.changeTime').val(maxSpeed);
                         site_jQuery('.changeTime').change();
                         if ($val === null) {
                             //val === null means options disabled
                             alert('WARNING: Choice is not possible due to fleet speed');
-                            lwm_jQuery('.changeTime').val('20');
+                            site_jQuery('.changeTime').val('20');
                             site_jQuery('.changeTime').change();
                             return;
                         }
@@ -2136,16 +2166,16 @@ function siteManager() {
                         var minSpeedInSeconds = (minTimeInSeconds / (2-(maxSpeed/100)) * (2-(20/100)));
                         if (minSpeedInSeconds < timeDiffInSeconds || minTimeInSeconds > timeDiffInSeconds) {
                             alert('WARNING: Choice is not possible due to fleet speed');
-                            lwm_jQuery('.changeTime').val('20');
+                            site_jQuery('.changeTime').val('20');
                             site_jQuery('.changeTime').change();
                             return;
                         }
-                        var type = $oneway ? "0" : lwm_jQuery('#lwm_fleet_type').val();
+                        var type = $oneway ? "0" : site_jQuery('#lwm_fleet_type').val();
                         var sendSpeed,returnSpeed,curSpeed,sendSpeedInSeconds,returnSpeedInSeconds;
                         switch (type) {
                             case "0":
                                 var newSpeed = Math.round((1-((((timeDiffInSeconds-(minTimeInSeconds/(2-(parseInt(maxSpeed)/100))))/((minTimeInSeconds/(2-(parseInt(maxSpeed)/100)))*0.01)))/100))*100);
-                                lwm_jQuery('.changeTime').val(newSpeed);
+                                site_jQuery('.changeTime').val(newSpeed);
                                 break;
                             case "1":
                                 //ignore one way
@@ -2162,8 +2192,8 @@ function siteManager() {
                                     returnSpeed = Math.round((1-((((returnSpeedInSeconds-(minTimeInSeconds/(2-(parseInt(maxSpeed)/100))))/((minTimeInSeconds/(2-(parseInt(maxSpeed)/100)))*0.01)))/100))*100);
                                     curSpeed++;
                                 } while (returnSpeed < 20 || returnSpeed > maxSpeed)
-                                lwm_jQuery('#send').val(returnSpeed);
-                                lwm_jQuery('#back').val(sendSpeed);
+                                site_jQuery('#send').val(returnSpeed);
+                                site_jQuery('#back').val(sendSpeed);
                                 break;
                             case "2":
                                 //ignore one way
@@ -2180,34 +2210,34 @@ function siteManager() {
                                     returnSpeed = Math.round((1-((((returnSpeedInSeconds-(minTimeInSeconds/(2-(parseInt(maxSpeed)/100))))/((minTimeInSeconds/(2-(parseInt(maxSpeed)/100)))*0.01)))/100))*100);
                                     curSpeed++;
                                 } while (returnSpeed < 20 || returnSpeed > maxSpeed)
-                                lwm_jQuery('#send').val(sendSpeed);
-                                lwm_jQuery('#back').val(returnSpeed);
+                                site_jQuery('#send').val(sendSpeed);
+                                site_jQuery('#back').val(returnSpeed);
                                 break;
                         }
                         site_jQuery('.changeTime').change();
-                        lwm_jQuery('.changeTime').change();
+                        site_jQuery('.changeTime').change();
                     }
                 }
 
-                var $selectWrap = lwm_jQuery('<div></div>');
+                var $selectWrap = site_jQuery('<div></div>');
                 $selectWrap.append($select);
-                var $wrapper = lwm_jQuery('<div>');
+                var $wrapper = site_jQuery('<div>');
                 $wrapper.attr('id', 'lwm_fleet_timer_wrapper');
                 $wrapper.append($selectWrap);
                 $wrapper.append('<div><select id="lwm_fleet_type"><option value="0">Send / Return Balanced</option><option value="1">Send Fast/ Return Slow</option><option value="2">Send Slow/Return Fast</option></select></div>');
                 $wrapper.append('<div><label style="display:flex;align-items:center;"><input type="checkbox" id="lwm_fleet_oneway">Oneway</label></div>');
 
                 $select.change(function () { calcFleetTime(); });
-                $wrapper.find('#lwm_fleet_oneway').change(function () { calcFleetTime(); lwm_jQuery('#lwm_fleet_type').prop('disabled', lwm_jQuery(this).is(':checked')); });
+                $wrapper.find('#lwm_fleet_oneway').change(function () { calcFleetTime(); site_jQuery('#lwm_fleet_type').prop('disabled', site_jQuery(this).is(':checked')); });
                 $wrapper.find('#lwm_fleet_type').change(function () { calcFleetTime(); });
 
-                lwm_jQuery('#timeFlote').after($wrapper);
+                site_jQuery('#timeFlote').after($wrapper);
 
                 //when next is clicked, remove wrapper
-                lwm_jQuery('#nextSite').on('click', function () {
+                site_jQuery('#nextSite').on('click', function () {
                     $wrapper.remove();
-                    lwm_jQuery('#nextSite').off('click');
-                    lwm_jQuery('#backSite').on('click', function () {
+                    site_jQuery('#nextSite').off('click');
+                    site_jQuery('#backSite').on('click', function () {
                         pageTweaks.fleetSend();
                         //has to be triggered, otherwise some stuff doesn't work => flotten_information.js
                         var fii = unsafeWindow.flotten_informations_infos;
@@ -2246,7 +2276,7 @@ function siteManager() {
                                 site_jQuery( "#backTime" ).text("Flugzeit: "+data+" Stunden");
                             });
                         });
-                        lwm_jQuery('#backSite').off('click');
+                        site_jQuery('#backSite').off('click');
                     });
                 });
 
@@ -2261,8 +2291,8 @@ function siteManager() {
                     presets.sort(function (a,b) { return (a.time > b.time) ? 1 : ((b.time > a.time) ? -1 : 0); });
 
                     var found = false;
-                    lwm_jQuery.each(lwm_jQuery('#lwm_fleet_selecttime').find('option:gt(0)'), function (i, el) {
-                        var $el = lwm_jQuery(el);
+                    site_jQuery.each(site_jQuery('#lwm_fleet_selecttime').find('option:gt(0)'), function (i, el) {
+                        var $el = site_jQuery(el);
                         var hour = moment($el.text()).hour();
                         var minute = moment($el.text()).minute();
                         var weekday = moment($el.text()).day();
@@ -2286,7 +2316,7 @@ function siteManager() {
 
                             if (hour == preHour && preMinute == minute && weekdaysToValues[preset.days].includes(weekday)) {
                                 if (!found && $el.is(':not(\'[disabled]\')')) {
-                                    lwm_jQuery('#lwm_fleet_selecttime').val($el.val());
+                                    site_jQuery('#lwm_fleet_selecttime').val($el.val());
                                     calcFleetTime();
                                     found = true;
                                 }
@@ -2308,8 +2338,8 @@ function siteManager() {
             else {
                 config.promises.content = getPromise('#spionageDiv');
                 config.promises.content.then(function () {
-                    lwm_jQuery('#spionageDiv tr').each(function () {
-                        if (lwm_jQuery(this).find('td:eq(4)').text() === '0') lwm_jQuery(this).hide();
+                    site_jQuery('#spionageDiv tr').each(function () {
+                        if (site_jQuery(this).find('td:eq(4)').text() === '0') site_jQuery(this).hide();
                     });
 
                     config.loadStates.content = false;
@@ -2321,14 +2351,14 @@ function siteManager() {
             }
         },
         galaxyView: function () {
-            //lwm_jQuery('#galaxyViewInfoTable').html('');
+            //site_jQuery('#galaxyViewInfoTable').html('');
             config.promises.content = getPromise('#galaxyViewInfoTable');
             config.promises.content.then(function () {
-                lwm_jQuery('a.flottenKommandoAction').addClass('fa-stack').append('<i class="far fa-circle fa-stack-2x"></i>').append('<i class="fas fa-fighter-jet fa-stack-1x"></i>');
-                lwm_jQuery('a.newTradeOfferAction').addClass('fa-stack').append('<i class="far fa-circle fa-stack-2x"></i>').append('<i class="fas fa-handshake fa-stack-1x"></i>');
-                lwm_jQuery('a.spionagePlanetenscannerAction').addClass('fa-stack').append('<i class="far fa-circle fa-stack-2x"></i>').append('<i class="fas fa-search fa-stack-1x"></i>');
-                lwm_jQuery('a.spionageObservationsAction').addClass('fa-stack').append('<i class="far fa-circle fa-stack-2x"></i>').append('<i class="fas fa-search-plus fa-stack-1x"></i>');
-                lwm_jQuery('a.changePlanetAction').addClass('fa-stack').append('<i class="far fa-circle fa-stack-2x"></i>').append('<i class="fas fa-exchange-alt fa-stack-1x"></i>');
+                site_jQuery('a.flottenKommandoAction').addClass('fa-stack').append('<i class="far fa-circle fa-stack-2x"></i>').append('<i class="fas fa-fighter-jet fa-stack-1x"></i>');
+                site_jQuery('a.newTradeOfferAction').addClass('fa-stack').append('<i class="far fa-circle fa-stack-2x"></i>').append('<i class="fas fa-handshake fa-stack-1x"></i>');
+                site_jQuery('a.spionagePlanetenscannerAction').addClass('fa-stack').append('<i class="far fa-circle fa-stack-2x"></i>').append('<i class="fas fa-search fa-stack-1x"></i>');
+                site_jQuery('a.spionageObservationsAction').addClass('fa-stack').append('<i class="far fa-circle fa-stack-2x"></i>').append('<i class="fas fa-search-plus fa-stack-1x"></i>');
+                site_jQuery('a.changePlanetAction').addClass('fa-stack').append('<i class="far fa-circle fa-stack-2x"></i>').append('<i class="fas fa-exchange-alt fa-stack-1x"></i>');
 
                 var parseCoords = function (coordsText) {
                     var coords = coordsText.split('x');
@@ -2338,43 +2368,43 @@ function siteManager() {
                     return coords;
                 }
 
-                lwm_jQuery('#galaxyViewInfoTable tr').find('td:eq(3)').each(function () {
-                    var value = lwm_jQuery(this).text();
-                    var coords = parseCoords(lwm_jQuery(this).parents('tr').find('td').first().text());
+                site_jQuery('#galaxyViewInfoTable tr').find('td:eq(3)').each(function () {
+                    var value = site_jQuery(this).text();
+                    var coords = parseCoords(site_jQuery(this).parents('tr').find('td').first().text());
                     var coordData = config.lwm.planetData[coords[0]+'x'+coords[1]+'x'+coords[2]];
                     //add spy buttons for planets that's missing it
                     if (value !== '' && value !== 'false' && value !== '0') {
-                        var spydrones = lwm_jQuery.grep(config.gameData.spionageInfos.planetenscanner_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
-                        var obsdrones = lwm_jQuery.grep(config.gameData.spionageInfos.observations_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
+                        var spydrones = site_jQuery.grep(config.gameData.spionageInfos.planetenscanner_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
+                        var obsdrones = site_jQuery.grep(config.gameData.spionageInfos.observations_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
                         var existingObs = helper.getActiveObs(coords);
-                        var hasSpy =  lwm_jQuery(this).next().find('.spionagePlanetenscannerAction').length > 0;
-                        var hasObs =  lwm_jQuery(this).next().find('.spionageObservationsAction').length > 0;
-                        if (!hasObs && (obsdrones.length > 0 || existingObs.length !== 0)) lwm_jQuery(this).next().append('<a href="#" class="actionClass spionageObservationsAction fa-stack" onclick="javascript:void(0)"><i class="far fa-circle fa-stack-2x"></i><i class="fas fa-search-plus fa-stack-1x"></i></a>');
-                        if (!hasSpy && spydrones.length > 0) lwm_jQuery(this).next().append('<a href="#" class="actionClass spionagePlanetenscannerAction fa-stack" onclick="javascript:void(0)"><i class="far fa-circle fa-stack-2x"></i><i class="fas fa-search fa-stack-1x"></i></a>');
+                        var hasSpy =  site_jQuery(this).next().find('.spionagePlanetenscannerAction').length > 0;
+                        var hasObs =  site_jQuery(this).next().find('.spionageObservationsAction').length > 0;
+                        if (!hasObs && (obsdrones.length > 0 || existingObs.length !== 0)) site_jQuery(this).next().append('<a href="#" class="actionClass spionageObservationsAction fa-stack" onclick="javascript:void(0)"><i class="far fa-circle fa-stack-2x"></i><i class="fas fa-search-plus fa-stack-1x"></i></a>');
+                        if (!hasSpy && spydrones.length > 0) site_jQuery(this).next().append('<a href="#" class="actionClass spionagePlanetenscannerAction fa-stack" onclick="javascript:void(0)"><i class="far fa-circle fa-stack-2x"></i><i class="fas fa-search fa-stack-1x"></i></a>');
                     }
 
                     //add stealth info
                     if (value !== '' && value !== 'false' && value !== '0' && coordData) {
-                        lwm_jQuery(this).next().append('<div title="Tarntechnologie" class="actionClass fa-stack popover" style="color: #3c3ff5;"><i class="far fa-circle fa-stack-2x"></i><span>'+coordData.Tarntechnologie+'</span></div>');
+                        site_jQuery(this).next().append('<div title="Tarntechnologie" class="actionClass fa-stack popover" style="color: #3c3ff5;"><i class="far fa-circle fa-stack-2x"></i><span>'+coordData.Tarntechnologie+'</span></div>');
                     }
 
                 });
 
                 //add spionage actions
-                lwm_jQuery('a.spionagePlanetenscannerAction').each(function () {
-                    lwm_jQuery(this).attr('onclick', 'javascript:void(0)');
-                    var coords = parseCoords(lwm_jQuery(this).parents('tr').find('td').first().text());
-                    lwm_jQuery(this).click(function () { operations.performSpionage(coords) });
+                site_jQuery('a.spionagePlanetenscannerAction').each(function () {
+                    site_jQuery(this).attr('onclick', 'javascript:void(0)');
+                    var coords = parseCoords(site_jQuery(this).parents('tr').find('td').first().text());
+                    site_jQuery(this).click(function () { operations.performSpionage(coords) });
                 });
-                lwm_jQuery('a.spionageObservationsAction').each(function () {
-                    lwm_jQuery(this).attr('onclick', 'javascript:void(0)');
-                    var coords = parseCoords(lwm_jQuery(this).parents('tr').find('td').first().text());
+                site_jQuery('a.spionageObservationsAction').each(function () {
+                    site_jQuery(this).attr('onclick', 'javascript:void(0)');
+                    var coords = parseCoords(site_jQuery(this).parents('tr').find('td').first().text());
 
                     //check for obs
                     var existingObs = helper.getActiveObs(coords);
                     if (existingObs.length !== 0) {
                         //obs found... open!
-                        lwm_jQuery(this).click(function () {
+                        site_jQuery(this).click(function () {
                             if (GM_config.get('obs_opentabs')) {
                                 window.open('view/content/new_window/observationen_view.php?id='+existingObs[0].id);
                             } else {
@@ -2383,15 +2413,15 @@ function siteManager() {
                         }).css('color', '#66f398');
                     } else {
                         //otherwise offer sending one
-                        lwm_jQuery(this).click(function () { operations.performObservation(coords) });
+                        site_jQuery(this).click(function () { operations.performObservation(coords) });
                     }
                 });
 
                 //move observation and search div
-                lwm_jQuery('.headerOfGalaxyViewPage').insertBefore(lwm_jQuery('#tableForChangingPlanet'));
+                site_jQuery('.headerOfGalaxyViewPage').insertBefore(site_jQuery('#tableForChangingPlanet'));
 
                 //add search icons
-                helper.replaceElementsHtmlWithIcon(lwm_jQuery('.formButtonGalaxyView'), 'fas fa-search');
+                helper.replaceElementsHtmlWithIcon(site_jQuery('.formButtonGalaxyView'), 'fas fa-search');
 
                 config.loadStates.content = false;
             }).catch(function (e) {
@@ -2404,9 +2434,9 @@ function siteManager() {
             config.promises.content = getPromise('#observationenDiv');
             config.promises.content.then(function () {
                 // add sort options buttons to obs table
-                var $table = lwm_jQuery('#observationenDiv table').eq(0);
+                var $table = site_jQuery('#observationenDiv table').eq(0);
                 // add initial order to be able to restore it
-                $table.find('tr').each(function (i, tr) { lwm_jQuery(tr).data('order', i); });
+                $table.find('tr').each(function (i, tr) { site_jQuery(tr).data('order', i); });
                 // sort by coords
                 var $thCoord = $table.find('th').eq(1);
                 var $thExpire = $table.find('th').eq(3);
@@ -2414,29 +2444,29 @@ function siteManager() {
                 $thExpire.append('<i class="fas fa-sort" style="float:right;"></i>').css('cursor', 'hand');
                 $thCoord.click(function () {
                     $table.find('tr:gt(0)').sort(function (a, b) {
-                        var coordsA = lwm_jQuery(a).find('td:eq(1)').text().split('x');
+                        var coordsA = site_jQuery(a).find('td:eq(1)').text().split('x');
                         var coordsAValue = parseInt(coordsA[0])*10000 + parseInt(coordsA[1]) * 100 + parseInt(coordsA[2]);
-                        var coordsB = lwm_jQuery(b).find('td:eq(1)').text().split('x');
+                        var coordsB = site_jQuery(b).find('td:eq(1)').text().split('x');
                         var coordsBValue = parseInt(coordsB[0])*10000 + parseInt(coordsB[1]) * 100 + parseInt(coordsB[2]);
                         return coordsAValue - coordsBValue;
                     }).each(function() {
-                        var $elem = lwm_jQuery(this).detach();
-                        lwm_jQuery($elem).appendTo($table);
+                        var $elem = site_jQuery(this).detach();
+                        site_jQuery($elem).appendTo($table);
                     });
                 });
                 $thExpire.click(function () {
                     $table.find('tr:gt(0)').sort(function (a, b) {
-                        return lwm_jQuery(a).data('order') - lwm_jQuery(b).data('order');
+                        return site_jQuery(a).data('order') - site_jQuery(b).data('order');
                     }).each(function() {
-                        var $elem = lwm_jQuery(this).detach();
-                        lwm_jQuery($elem).appendTo($table);
+                        var $elem = site_jQuery(this).detach();
+                        site_jQuery($elem).appendTo($table);
                     });
                 });
 
                 //attach re-send obs button and TT info
-                lwm_jQuery.each(lwm_jQuery('#observationenDiv table').first().find('tr:gt(0)'), function () {
-                    var $td = lwm_jQuery(this).find('td').eq(0);
-                    var coords = lwm_jQuery(this).find('td').eq(1).text().split('x');
+                site_jQuery.each(site_jQuery('#observationenDiv table').first().find('tr:gt(0)'), function () {
+                    var $td = site_jQuery(this).find('td').eq(0);
+                    var coords = site_jQuery(this).find('td').eq(1).text().split('x');
                     var coordData = config.lwm.planetData[coords[0]+'x'+coords[1]+'x'+coords[2]];
                     $td.append(['<a href="#" style="font-size: 0.75em;float: right;" class="fa-stack"><i class="far fa-circle fa-stack-2x"></i><i class="fas fa-search-plus fa-stack-1x"></i></a>',
                                 '<div style="color: #3c3ff5;font-size: 0.75em;float: right;" class="fa-stack"><i class="far fa-circle fa-stack-2x"></i><span>'+(coordData ? coordData.Tarntechnologie : '?')+'</span></div>']);
@@ -2445,8 +2475,8 @@ function siteManager() {
 
                 //replace obs links
                 if (GM_config.get('obs_opentabs')) {
-                    lwm_jQuery.each(lwm_jQuery('#observationenDiv a[onclick*=\'openObservationWindow\']'), function () {
-                        $self = lwm_jQuery(this);
+                    site_jQuery.each(site_jQuery('#observationenDiv a[onclick*=\'openObservationWindow\']'), function () {
+                        $self = site_jQuery(this);
                         var id = $self.attr('onclick').match(/\d+/)[0];
                         $self.attr('onclick', '').attr('target', '_blank').attr('href', 'view/content/new_window/observationen_view.php?id='+id);
                     });
@@ -2464,7 +2494,7 @@ function siteManager() {
         designShips: function () {
             config.promises.content = getPromise('#schiffskomponentenDiv');
             config.promises.content.then(function () {
-                //lwm_jQuery('#create').click(function () { config.gameData.reloads.productionInfos = 'production'; });
+                //site_jQuery('#create').click(function () { config.gameData.reloads.productionInfos = 'production'; });
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
@@ -2476,24 +2506,24 @@ function siteManager() {
             config.promises.content = getPromise('#constructionTreeTable,#researcheTreeTable,#shipTreeTable,#defenseTreeTable');
             config.promises.content.then(function () {
                 //add a button that filters unlocked stuff in the tree
-                var $div = lwm_jQuery('<div class="tableFilters"><div class="tableFilters_header">Filter</div><div class="tableFilters_content"></div></div>');
-                var $filterButton = lwm_jQuery('<div class="buttonRowInbox" id="lwm_filterBuildingTree"><a class="formButton" href="javascript:void(0)">Filter Achieved</a></div>').appendTo($div.find('.tableFilters_content'));
+                var $div = site_jQuery('<div class="tableFilters"><div class="tableFilters_header">Filter</div><div class="tableFilters_content"></div></div>');
+                var $filterButton = site_jQuery('<div class="buttonRowInbox" id="lwm_filterBuildingTree"><a class="formButton" href="javascript:void(0)">Filter Achieved</a></div>').appendTo($div.find('.tableFilters_content'));
                 $filterButton.click(function () {
-                    lwm_jQuery(this).find('.formButton').toggleClass('activeBox');
-                    var hideIds = lwm_jQuery.map(lwm_jQuery('#Tables tr').find('td:eq(1) img[src*=\'green\']').parents('tr'), function (el, i) { return lwm_jQuery(el).attr('id') || lwm_jQuery(el).attr('class') || lwm_jQuery(el).find('td').first().attr('id'); });
-                    if (lwm_jQuery(this).find('.formButton').is('.activeBox')) {
-                        lwm_jQuery('#Tables').find('tr#'+hideIds.join(',tr#')).hide();
-                        lwm_jQuery('#Tables').find('tr#'+hideIds.join(',tr#')).next().hide();
-                        lwm_jQuery('#Tables').find('tr.'+hideIds.join(',tr.')).hide();
-                        lwm_jQuery('#Tables').find('tr.'+hideIds.join(',tr.')).next().hide();
-                        lwm_jQuery('#Tables').find('td#'+hideIds.join(',td#')).parents('tr').hide();
-                        lwm_jQuery('#Tables').find('td#'+hideIds.join(',td#')).parents('tr').next().hide();
-                        lwm_jQuery('#Tables').find('th').parents('tr').show();
+                    site_jQuery(this).find('.formButton').toggleClass('activeBox');
+                    var hideIds = site_jQuery.map(site_jQuery('#Tables tr').find('td:eq(1) img[src*=\'green\']').parents('tr'), function (el, i) { return site_jQuery(el).attr('id') || site_jQuery(el).attr('class') || site_jQuery(el).find('td').first().attr('id'); });
+                    if (site_jQuery(this).find('.formButton').is('.activeBox')) {
+                        site_jQuery('#Tables').find('tr#'+hideIds.join(',tr#')).hide();
+                        site_jQuery('#Tables').find('tr#'+hideIds.join(',tr#')).next().hide();
+                        site_jQuery('#Tables').find('tr.'+hideIds.join(',tr.')).hide();
+                        site_jQuery('#Tables').find('tr.'+hideIds.join(',tr.')).next().hide();
+                        site_jQuery('#Tables').find('td#'+hideIds.join(',td#')).parents('tr').hide();
+                        site_jQuery('#Tables').find('td#'+hideIds.join(',td#')).parents('tr').next().hide();
+                        site_jQuery('#Tables').find('th').parents('tr').show();
                     } else {
-                        lwm_jQuery('#Tables tr').show();
+                        site_jQuery('#Tables tr').show();
                     }
                 });
-                $div.prependTo(lwm_jQuery('#Tables'));
+                $div.prependTo(site_jQuery('#Tables'));
                 config.loadStates.content = false;
             }).catch(function (e) {
                 console.log(e);
@@ -2510,25 +2540,25 @@ function siteManager() {
                 var resValue = [unsafeWindow.Roheisen,unsafeWindow.Kristall,unsafeWindow.Frubin,unsafeWindow.Orizin,unsafeWindow.Frurozin,unsafeWindow.Gold];
                 var incomingRes = helper.getIncomingResArray();
 
-                lwm_jQuery('#rohstoffeDiv > .rohstoffeTableClass > tbody > tr > td > .rohstoffeTableClass').find('> tbody > tr:eq(4)').each(function (i, table) {
+                site_jQuery('#rohstoffeDiv > .rohstoffeTableClass > tbody > tr > td > .rohstoffeTableClass').find('> tbody > tr:eq(4)').each(function (i, table) {
                     if (!resTotal[0][resTypes[i]]) return true;
                     var hoursTillFull = (resourceCapacityArray[i]-resValue[i]-incomingRes[i])/(resTotal[0][resTypes[i]]);
-                    lwm_jQuery(this).after('<tr><td class="second" valign="top" align="right">Time till capacity reached:</td><td class="second" ><span class=\''+(hoursTillFull < 8 ? 'redBackground' : '')+'\' id=\'clock_lwm_'+resTypes[i]+'\'>'+moment.duration(hoursTillFull, "hours").format("HH:mm:ss", { trim: false, forceLength: true })+'</span></td></tr>');
+                    site_jQuery(this).after('<tr><td class="second" valign="top" align="right">Time till capacity reached:</td><td class="second" ><span class=\''+(hoursTillFull < 8 ? 'redBackground' : '')+'\' id=\'clock_lwm_'+resTypes[i]+'\'>'+moment.duration(hoursTillFull, "hours").format("HH:mm:ss", { trim: false, forceLength: true })+'</span></td></tr>');
                 });
 
                 if (config.gameData.planets.length === Object.values(config.lwm.resProd[config.gameData.playerID]).length) {
                     //add resources analysis
 
                     var resTotals = {
-                        fe: lwm_jQuery.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.roheisen; }).reduce(function (total, num) { return total + num; }),
-                        kris: lwm_jQuery.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.kristall; }).reduce(function (total, num) { return total + num; }),
-                        frub: lwm_jQuery.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.frubin; }).reduce(function (total, num) { return total + num; }),
-                        ori: lwm_jQuery.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.orizin; }).reduce(function (total, num) { return total + num; }),
-                        fruro: lwm_jQuery.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.frurozin; }).reduce(function (total, num) { return total + num; }),
-                        gold: lwm_jQuery.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.gold; }).reduce(function (total, num) { return total + num; })
+                        fe: site_jQuery.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.roheisen; }).reduce(function (total, num) { return total + num; }),
+                        kris: site_jQuery.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.kristall; }).reduce(function (total, num) { return total + num; }),
+                        frub: site_jQuery.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.frubin; }).reduce(function (total, num) { return total + num; }),
+                        ori: site_jQuery.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.orizin; }).reduce(function (total, num) { return total + num; }),
+                        fruro: site_jQuery.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.frurozin; }).reduce(function (total, num) { return total + num; }),
+                        gold: site_jQuery.map(config.lwm.resProd[config.gameData.playerID], function (planet, i) { return planet.gold; }).reduce(function (total, num) { return total + num; })
                     };
 
-                    var $table = lwm_jQuery('<table id="lwm_resourceTotal"><tbody>'+
+                    var $table = site_jQuery('<table id="lwm_resourceTotal"><tbody>'+
                         '<tr><th colspan="7">Total Production For All Planets</th></tr>'+
                         '<tr>'+
                         '<th class="sameWith"></td>'+
@@ -2573,20 +2603,20 @@ function siteManager() {
             config.promises.content = getPromise('#kreditinstitutDiv');
             config.promises.content.then(function () {
                 //fix a bug leading to credit institute reporting an error even though you can technically get the credit
-                lwm_jQuery('#hoursKredit').change(function () {
+                site_jQuery('#hoursKredit').change(function () {
                     unsafeWindow.max_resource.forEach(function (value, i) {
                         unsafeWindow.max_resource[i] = parseInt(value.replace('.',''));
                     });
                 });
 
-                lwm_jQuery('[type=\'number\']').after('<i class="fas fa-2x fa-angle-double-left"></i>');
-                lwm_jQuery('.fa-angle-double-left').each(function () {
-                    lwm_jQuery(this).parent().css('display','flex');
-                    lwm_jQuery(this).parent().css('justify-content','space-evenly');
-                    lwm_jQuery(this).parent().css('align-items','center');
-                    lwm_jQuery(this).click(function () {
-                        $input = lwm_jQuery(this).parent().find('input');
-                        $input.val(lwm_jQuery(this).parents('tr').find('[id*=\'max\']').text().replace(/\D/, ''));
+                site_jQuery('[type=\'number\']').after('<i class="fas fa-2x fa-angle-double-left"></i>');
+                site_jQuery('.fa-angle-double-left').each(function () {
+                    site_jQuery(this).parent().css('display','flex');
+                    site_jQuery(this).parent().css('justify-content','space-evenly');
+                    site_jQuery(this).parent().css('align-items','center');
+                    site_jQuery(this).click(function () {
+                        $input = site_jQuery(this).parent().find('input');
+                        $input.val(site_jQuery(this).parents('tr').find('[id*=\'max\']').text().replace(/\D/, ''));
                     });
                 });
 
@@ -2602,8 +2632,8 @@ function siteManager() {
             config.promises.content.then(function () {
                 var calcInterest = parseFloat(responseJSON.interest) < 0 ? 0 : parseFloat(responseJSON.interest)/100;
                 //add button to fill bank minus interest
-                var $wrapper = lwm_jQuery('<div class="buttonRow" style="width: 100%; margin-left: 0;"></div>');
-                var $buttonFill = lwm_jQuery('<a class="formButtonNewMessage" style="float:none;" href="#">Fill Bank</a>');
+                var $wrapper = site_jQuery('<div class="buttonRow" style="width: 100%; margin-left: 0;"></div>');
+                var $buttonFill = site_jQuery('<a class="formButtonNewMessage" style="float:none;" href="#">Fill Bank</a>');
                 $buttonFill.click(function () {
                     alert('WARNING: This function does not respect transactions that are not yet processed. Make sure you do not overflow your bank before submitting!');
                     var maxPossibleRes = {
@@ -2615,17 +2645,17 @@ function siteManager() {
                         gold:     (responseJSON.bank_limit/(1+calcInterest))-parseInt(responseJSON.resource.gold)     < 0 ? 0 : (responseJSON.bank_limit/(1+calcInterest))-parseInt(responseJSON.resource.gold)
                     }
 
-                    lwm_jQuery('#typeTransaction').val('putIn');
-                    lwm_jQuery('#roheisenInputBank').val(parseInt(unsafeWindow.Roheisen > maxPossibleRes.roheisen ? maxPossibleRes.roheisen : unsafeWindow.Roheisen));
-                    lwm_jQuery('#kristallInputBank').val(parseInt(unsafeWindow.Kristall > maxPossibleRes.kristall ? maxPossibleRes.kristall : unsafeWindow.Kristall));
-                    lwm_jQuery('#frubinInputBank').val(parseInt(unsafeWindow.Frubin > maxPossibleRes.frubin ? maxPossibleRes.frubin : unsafeWindow.Frubin));
-                    lwm_jQuery('#orizinInputBank').val(parseInt(unsafeWindow.Orizin > maxPossibleRes.orizin ? maxPossibleRes.orizin : unsafeWindow.Orizin));
-                    lwm_jQuery('#frurozinInputBank').val(parseInt(unsafeWindow.Frurozin > maxPossibleRes.frurozin ? maxPossibleRes.frurozin : unsafeWindow.Frurozin));
-                    lwm_jQuery('#goldInputBank').val(parseInt(unsafeWindow.Gold > maxPossibleRes.gold ? maxPossibleRes.gold : unsafeWindow.Gold));
+                    site_jQuery('#typeTransaction').val('putIn');
+                    site_jQuery('#roheisenInputBank').val(parseInt(unsafeWindow.Roheisen > maxPossibleRes.roheisen ? maxPossibleRes.roheisen : unsafeWindow.Roheisen));
+                    site_jQuery('#kristallInputBank').val(parseInt(unsafeWindow.Kristall > maxPossibleRes.kristall ? maxPossibleRes.kristall : unsafeWindow.Kristall));
+                    site_jQuery('#frubinInputBank').val(parseInt(unsafeWindow.Frubin > maxPossibleRes.frubin ? maxPossibleRes.frubin : unsafeWindow.Frubin));
+                    site_jQuery('#orizinInputBank').val(parseInt(unsafeWindow.Orizin > maxPossibleRes.orizin ? maxPossibleRes.orizin : unsafeWindow.Orizin));
+                    site_jQuery('#frurozinInputBank').val(parseInt(unsafeWindow.Frurozin > maxPossibleRes.frurozin ? maxPossibleRes.frurozin : unsafeWindow.Frurozin));
+                    site_jQuery('#goldInputBank').val(parseInt(unsafeWindow.Gold > maxPossibleRes.gold ? maxPossibleRes.gold : unsafeWindow.Gold));
                 });
 
                 //add button to withdraw interest
-                var $buttonWithdraw = lwm_jQuery('<a class="formButtonNewMessage" style="float:none;" href="#">Withdraw Interest</a>');
+                var $buttonWithdraw = site_jQuery('<a class="formButtonNewMessage" style="float:none;" href="#">Withdraw Interest</a>');
                 $buttonWithdraw.click(function () {
                     var withdrawableInterest = {
                         roheisen: parseInt(responseJSON.resource.roheisen)-(responseJSON.bank_limit/(1+calcInterest)) < 0 ? 0 : parseInt(responseJSON.resource.roheisen)-(responseJSON.bank_limit/(1+calcInterest)),
@@ -2636,17 +2666,17 @@ function siteManager() {
                         gold:     parseInt(responseJSON.resource.gold)    -(responseJSON.bank_limit/(1+calcInterest)) < 0 ? 0 : parseInt(responseJSON.resource.gold)    -(responseJSON.bank_limit/(1+calcInterest))
                     }
 
-                    lwm_jQuery('#typeTransaction').val('takeOut');
-                    lwm_jQuery('#roheisenInputBank').val(parseInt(withdrawableInterest.roheisen));
-                    lwm_jQuery('#kristallInputBank').val(parseInt(withdrawableInterest.kristall));
-                    lwm_jQuery('#frubinInputBank').val(parseInt(withdrawableInterest.frubin));
-                    lwm_jQuery('#orizinInputBank').val(parseInt(withdrawableInterest.orizin));
-                    lwm_jQuery('#frurozinInputBank').val(parseInt(withdrawableInterest.frurozin));
-                    lwm_jQuery('#goldInputBank').val(parseInt(withdrawableInterest.gold));
+                    site_jQuery('#typeTransaction').val('takeOut');
+                    site_jQuery('#roheisenInputBank').val(parseInt(withdrawableInterest.roheisen));
+                    site_jQuery('#kristallInputBank').val(parseInt(withdrawableInterest.kristall));
+                    site_jQuery('#frubinInputBank').val(parseInt(withdrawableInterest.frubin));
+                    site_jQuery('#orizinInputBank').val(parseInt(withdrawableInterest.orizin));
+                    site_jQuery('#frurozinInputBank').val(parseInt(withdrawableInterest.frurozin));
+                    site_jQuery('#goldInputBank').val(parseInt(withdrawableInterest.gold));
                 });
 
                 $wrapper.append([$buttonFill,$buttonWithdraw]);
-                lwm_jQuery('#bankDiv table:eq(0) tr:eq(3) td:eq(0)').append($wrapper);
+                site_jQuery('#bankDiv table:eq(0) tr:eq(3) td:eq(0)').append($wrapper);
 
                 config.loadStates.content = false;
             }).catch(function (e) {
@@ -2660,16 +2690,16 @@ function siteManager() {
     var global = {
         uiChanges: function () {
                 /* delete propassssss*/
-                lwm_jQuery('#propassssss,#loader,.ui-loader').remove();
+                site_jQuery('#propassssss,#loader,.ui-loader').remove();
 
                 //add mobile support
-                lwm_jQuery('head').append('<meta name="viewport" content="width=device-width, initial-scale=1.0">');
+                site_jQuery('head').append('<meta name="viewport" content="width=device-width, initial-scale=1.0">');
 
                 //attach loader for first page load
-                lwm_jQuery('body').append('<div class="loader lwm-firstload"></div><div class="status lwm-firstload"></div>');
+                site_jQuery('body').append('<div class="loader lwm-firstload"></div><div class="status lwm-firstload"></div>');
 
                 //add mobile header collapse menu
-                var $menuToggle = lwm_jQuery('<div id=\'lwm_menu_toggle\'>'+
+                var $menuToggle = site_jQuery('<div id=\'lwm_menu_toggle\'>'+
                                         '<div class=\'lwm_menu-content\'>'+
                                         '<div class=\'lwm_menu-item\'>'+
                                             '<i class="fas fa-home"></i><i class="fas fa-warehouse"></i><i class="fas fa-database"></i><i class="fas fa-shield-alt"></i><i class="fas fa-fighter-jet"></i>'+
@@ -2694,14 +2724,14 @@ function siteManager() {
                 $menuToggle.find('.icon-galaxy').click(function () { unsafeWindow.changeContent('galaxy_view', 'first', 'Galaxieansicht'); });
                 $menuToggle.find('.fa-sign-out-alt').click(function () { unsafeWindow.logoutRequest(); });
                 $menuToggle.find('.toggle').click(function () {
-                    lwm_jQuery('#Header').toggle();
-                    lwm_jQuery(this).toggleClass('fa-plus-circle fa-minus-circle');
+                    site_jQuery('#Header').toggle();
+                    site_jQuery(this).toggleClass('fa-plus-circle fa-minus-circle');
                 });
-                $menuToggle.prependTo(lwm_jQuery('#Main'));
-                lwm_jQuery('.select_box_cordinaten').clone().appendTo($menuToggle.find('.planet-changer'));
+                $menuToggle.prependTo(site_jQuery('#Main'));
+                site_jQuery('.select_box_cordinaten').clone().appendTo($menuToggle.find('.planet-changer'));
                 $menuToggle.find('.planet-changer').click(function (e) { e.stopPropagation(); } );
                 $menuToggle.find('.planet-changer').change(function (e) {
-                    site_jQuery('.profileInfo #allCordinaten').val(lwm_jQuery(this).find('select').val());
+                    site_jQuery('.profileInfo #allCordinaten').val(site_jQuery(this).find('select').val());
                     site_jQuery('.profileInfo #allCordinaten').change();
                 });
 
@@ -2709,45 +2739,45 @@ function siteManager() {
                 // https://codepen.io/ravenous/pen/BgGKA
                 function watchMenuOnWindowResize() {
                     if (window.matchMedia('(max-width: 850px)').matches) {
-                        lwm_jQuery('#Header').hide();
+                        site_jQuery('#Header').hide();
                         $menuToggle.find('i.toggle').addClass('fa-plus-circle').removeClass('fa-minus-circle');
 
-                        lwm_jQuery('.secound_line .navButton').appendTo('#link, #veticalLink');
-                        lwm_jQuery('.secound_line').toggle(lwm_jQuery('.secound_line .navButton').length > 0);
+                        site_jQuery('.secound_line .navButton').appendTo('#link, #veticalLink');
+                        site_jQuery('.secound_line').toggle(site_jQuery('.secound_line .navButton').length > 0);
                     } else {
-                        lwm_jQuery('#Header').show();
+                        site_jQuery('#Header').show();
                         $menuToggle.find('i.toggle').addClass('fa-minus-circle').removeClass('fa-plus-circle');
 
-                        lwm_jQuery('#link .navButton, #veticalLink .navButton').appendTo('.secound_line');
-                        lwm_jQuery('.secound_line').toggle(lwm_jQuery('.secound_line .navButton').length > 0);
+                        site_jQuery('#link .navButton, #veticalLink .navButton').appendTo('.secound_line');
+                        site_jQuery('.secound_line').toggle(site_jQuery('.secound_line .navButton').length > 0);
                     }
                 };
                 window.addEventListener('resize', watchMenuOnWindowResize, false);
 
                 //remove unnecessary br
-                lwm_jQuery('.middleContent > br').remove();
+                site_jQuery('.middleContent > br').remove();
 
                 //move menu into same container
-                var divs = lwm_jQuery('.secound_line').find('div');
-                lwm_jQuery.each(divs, function () {
-                    lwm_jQuery(this).appendTo('.first_line');
+                var divs = site_jQuery('.secound_line').find('div');
+                site_jQuery.each(divs, function () {
+                    site_jQuery(this).appendTo('.first_line');
                 });
 
                 //add events to highlight current menus
-                lwm_jQuery(document).on('click', '.menu_box', function (e) {
-                    lwm_jQuery('.menu_box').removeClass('activeBox');
-                    lwm_jQuery(e.target).closest('.menu_box').addClass('activeBox');
+                site_jQuery(document).on('click', '.menu_box', function (e) {
+                    site_jQuery('.menu_box').removeClass('activeBox');
+                    site_jQuery(e.target).closest('.menu_box').addClass('activeBox');
                 });
-                lwm_jQuery(document).on('click', '.secound_line .navButton', function (e) {
-                    lwm_jQuery('.secound_line .navButton').removeClass('activeBox');
-                    lwm_jQuery(e.target).closest('.navButton').addClass('activeBox');
+                site_jQuery(document).on('click', '.secound_line .navButton', function (e) {
+                    site_jQuery('.secound_line .navButton').removeClass('activeBox');
+                    site_jQuery(e.target).closest('.navButton').addClass('activeBox');
                 });
-                lwm_jQuery(document).on('click', '#veticalLink .navButton', function (e) {
-                    lwm_jQuery('#veticalLink .navButton').removeClass('activeBox');
-                    lwm_jQuery(e.target).closest('.navButton').addClass('activeBox');
+                site_jQuery(document).on('click', '#veticalLink .navButton', function (e) {
+                    site_jQuery('#veticalLink .navButton').removeClass('activeBox');
+                    site_jQuery(e.target).closest('.navButton').addClass('activeBox');
                 });
 
-                lwm_jQuery(document).on('click', '.menu_box[onclick*=changeContent],.secound_line .navButton[onclick*=changeContent],#veticalLink .navButton[onclick*=changeContent]', function (e) {
+                site_jQuery(document).on('click', '.menu_box[onclick*=changeContent],.secound_line .navButton[onclick*=changeContent],#veticalLink .navButton[onclick*=changeContent]', function (e) {
                     //override changeContent to avoid multiple page calls
                     //they are re-attached once a page loads or fails
                     unsafeWindow.changeContent = function () {};
@@ -2768,64 +2798,64 @@ function siteManager() {
                 });
 
                 // register events to navigate with arrow keys
-                lwm_jQuery(document).keyup(function (e) {
-                    var isGalaxy = lwm_jQuery('#galaxyViewDiv').length > 0;
-                    var isInbox  = lwm_jQuery('#messagesListTableInbox').length > 0;
-                    var isMessage= lwm_jQuery('.messages').length > 0 && lwm_jQuery('#newMessageInsert').length === 0;
+                site_jQuery(document).keyup(function (e) {
+                    var isGalaxy = site_jQuery('#galaxyViewDiv').length > 0;
+                    var isInbox  = site_jQuery('#messagesListTableInbox').length > 0;
+                    var isMessage= site_jQuery('.messages').length > 0 && site_jQuery('#newMessageInsert').length === 0;
                     if (!isGalaxy && !isInbox && !isMessage) return;
                     if ( event.which == 37 && isGalaxy)   unsafeWindow.goToPrevSystem();
                     if ( event.which == 39 && isGalaxy)   unsafeWindow.goToNextSystem();
                     if ( event.which == 37 && isInbox)    unsafeWindow.previousPage();
                     if ( event.which == 39 && isInbox)    unsafeWindow.nextPage();
-                    if ( event.which == 37 && isMessage)  lwm_jQuery('.controller a:contains(\'<<\')').click();
-                    if ( event.which == 39 && isMessage)  lwm_jQuery('.controller a:contains(\'>>\')').click();
+                    if ( event.which == 37 && isMessage)  site_jQuery('.controller a:contains(\'<<\')').click();
+                    if ( event.which == 39 && isMessage)  site_jQuery('.controller a:contains(\'>>\')').click();
                 });
 
                 //replace the profile image box
-                lwm_jQuery('#profileImageBox').css('background-image', 'url(https://last-war.de/'+lwm_jQuery('#imageAvatarPattern').attr('xlink:href')+')');
+                site_jQuery('#profileImageBox').css('background-image', 'url(https://last-war.de/'+site_jQuery('#imageAvatarPattern').attr('xlink:href')+')');
 
                 //add menu icons
-                lwm_jQuery('#ubersicht').prepend('<i class="fas fa-home"></i>');
-                lwm_jQuery('#construction').prepend('<i class="fas fa-warehouse"></i>');
-                lwm_jQuery('#research').prepend('<i class="fas fa-database"></i>');
-                lwm_jQuery('#verteidigung').prepend('<i class="fas fa-shield-alt"></i>');
-                lwm_jQuery('#produktion').prepend('<i class="fas fa-fighter-jet"></i>');
-                lwm_jQuery('#flottenbewegungen').after(lwm_jQuery('#flottenbewegungen').clone().prepend('<i class="far fa-calendar"></i>').attr('id','calendar'));
-                lwm_jQuery('#calendar span').text('Kalender');
-                lwm_jQuery('#flottenbewegungen').prepend('<i class="fas fa-plane-departure"></i>').attr('id','raumdock').attr('onclick', 'changeContent(\'flottenkommando\', \'second\', \'Flotten-Kommando\');');
-                lwm_jQuery('#trade_offer').prepend('<i class="fas fa-handshake"></i>');
-                lwm_jQuery('#rohstoffe').prepend('<i class="fas fa-gem"></i>');
-                lwm_jQuery('#planeten').prepend('<i class="fas fa-globe"></i>');
-                lwm_jQuery('#building_tree').prepend('<i class="fas fa-th-list"></i>');
-                lwm_jQuery('#highscore_player').prepend('<i class="fas fa-trophy"></i>');
-                lwm_jQuery('#create_new_allianze').prepend('<i class="fas fa-users"></i>');
-                lwm_jQuery('#alliance').prepend('<i class="fas fa-users"></i>');
-                lwm_jQuery('#inbox').prepend('<i class="fas fa-envelope"></i>');
-                lwm_jQuery('#account').prepend('<i class="fas fa-user-circle"></i>');
-                lwm_jQuery('#forum').prepend('<i class="fab fa-wpforms"></i>');
-                lwm_jQuery('#chatMenu').prepend('<i class="fas fa-comments"></i>');
-                lwm_jQuery('#logout').prepend('<i class="fas fa-sign-out-alt"></i>');
+                site_jQuery('#ubersicht').prepend('<i class="fas fa-home"></i>');
+                site_jQuery('#construction').prepend('<i class="fas fa-warehouse"></i>');
+                site_jQuery('#research').prepend('<i class="fas fa-database"></i>');
+                site_jQuery('#verteidigung').prepend('<i class="fas fa-shield-alt"></i>');
+                site_jQuery('#produktion').prepend('<i class="fas fa-fighter-jet"></i>');
+                site_jQuery('#flottenbewegungen').after(site_jQuery('#flottenbewegungen').clone().prepend('<i class="far fa-calendar"></i>').attr('id','calendar'));
+                site_jQuery('#calendar span').text('Kalender');
+                site_jQuery('#flottenbewegungen').prepend('<i class="fas fa-plane-departure"></i>').attr('id','raumdock').attr('onclick', 'changeContent(\'flottenkommando\', \'second\', \'Flotten-Kommando\');');
+                site_jQuery('#trade_offer').prepend('<i class="fas fa-handshake"></i>');
+                site_jQuery('#rohstoffe').prepend('<i class="fas fa-gem"></i>');
+                site_jQuery('#planeten').prepend('<i class="fas fa-globe"></i>');
+                site_jQuery('#building_tree').prepend('<i class="fas fa-th-list"></i>');
+                site_jQuery('#highscore_player').prepend('<i class="fas fa-trophy"></i>');
+                site_jQuery('#create_new_allianze').prepend('<i class="fas fa-users"></i>');
+                site_jQuery('#alliance').prepend('<i class="fas fa-users"></i>');
+                site_jQuery('#inbox').prepend('<i class="fas fa-envelope"></i>');
+                site_jQuery('#account').prepend('<i class="fas fa-user-circle"></i>');
+                site_jQuery('#forum').prepend('<i class="fab fa-wpforms"></i>');
+                site_jQuery('#chatMenu').prepend('<i class="fas fa-comments"></i>');
+                site_jQuery('#logout').prepend('<i class="fas fa-sign-out-alt"></i>');
 
                 //add managerButton
-                var $managerButton = lwm_jQuery('<div class="menu_box"><i class="fas fa-cogs"></i><span style="margin-right:2px;">Manager</span></div>')
+                var $managerButton = site_jQuery('<div class="menu_box"><i class="fas fa-cogs"></i><span style="margin-right:2px;">Manager</span></div>')
                 $managerButton.click(function () { GM_config.open(); });
-                lwm_jQuery('.first_line .menu_box:nth-last-child(2)').after($managerButton);
+                site_jQuery('.first_line .menu_box:nth-last-child(2)').after($managerButton);
 
                 //add manager unload on logout
-                lwm_jQuery('#logout').click(function () { uninstall(); });
+                site_jQuery('#logout').click(function () { uninstall(); });
 
                 //move galaxy view and resources into same container
-                lwm_jQuery('.galaxyView').appendTo('.resourceBoxs');
+                site_jQuery('.galaxyView').appendTo('.resourceBoxs');
 
                 /* loader */
-                lwm_jQuery('#all').before('<div class="loader"></div>');
+                site_jQuery('#all').before('<div class="loader"></div>');
 
                 //tooltips
                 global.tooltips.tweak();
 
                 /* font awesome */
-                lwm_jQuery('head').append('<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">');
-                lwm_jQuery('head').append('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome-animation/0.2.1/font-awesome-animation.min.css">');
+                site_jQuery('head').append('<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">');
+                site_jQuery('head').append('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome-animation/0.2.1/font-awesome-animation.min.css">');
         },
         hotkeySetup: function () {
             hotkeys('ctrl+shift+c,ctrl+shift+r,ctrl+shift+f,ctrl+shift+p,ctrl+shift+o', function(event,handler) {
@@ -2839,7 +2869,7 @@ function siteManager() {
             });
 
             // add hotkeys for planets
-            lwm_jQuery.each(config.gameData.planets, function (i, coords) {
+            site_jQuery.each(config.gameData.planets, function (i, coords) {
                 hotkeys('ctrl+shift+'+(i+1), function(event,handler) {
                     unsafeWindow.changeCords(coords.galaxy, coords.system, coords.planet);
                 });
@@ -2849,23 +2879,23 @@ function siteManager() {
             tweak: function() {
                 /* tooltip manipulation */
                 /* need to work with timeouts here to make sure events fire after original ones */
-                lwm_jQuery(document).on("mouseenter", ".popover,.constructionName" , function(e) {
+                site_jQuery(document).on("mouseenter", ".popover,.constructionName" , function(e) {
                     setTimeout(function () {
-                        lwm_jQuery('.big_img').appendTo('body').attr('class', 'big_img_alt');
+                        site_jQuery('.big_img').appendTo('body').attr('class', 'big_img_alt');
                     }, 50);
                 });
 
-                lwm_jQuery(document).on("mousemove", ".popover,.constructionName" , function(e) {
+                site_jQuery(document).on("mousemove", ".popover,.constructionName" , function(e) {
                     setTimeout(function () {
-                        lwm_jQuery('.big_img_alt').css({
+                        site_jQuery('.big_img_alt').css({
                             top: e.pageY - 50,
                             left: e.pageX + 10
                         });
                     }, 50);
                 });
 
-                lwm_jQuery(document).on("mouseleave", ".popover,.constructionName" , function(e) {
-                    lwm_jQuery('.big_img_alt').remove();
+                site_jQuery(document).on("mouseleave", ".popover,.constructionName" , function(e) {
+                    site_jQuery('.big_img_alt').remove();
                 });
                 /* tooltip manipulation end */
             }
@@ -2935,7 +2965,7 @@ function siteManager() {
             if (!GM_config.get('trade_highlights')) return;
             var tradeInfo = config.gameData.tradeInfo;
             var capacities = unsafeWindow.resourceCapacityArray;
-            var resSpans = [lwm_jQuery('#roheisenAmount'),lwm_jQuery('#kristallAmount'),lwm_jQuery('#frubinAmount'),lwm_jQuery('#orizinAmount'),lwm_jQuery('#frurozinAmount'),lwm_jQuery('#goldAmount')];
+            var resSpans = [site_jQuery('#roheisenAmount'),site_jQuery('#kristallAmount'),site_jQuery('#frubinAmount'),site_jQuery('#orizinAmount'),site_jQuery('#frurozinAmount'),site_jQuery('#goldAmount')];
             var currentRes = [unsafeWindow.Roheisen,unsafeWindow.Kristall,unsafeWindow.Frubin,unsafeWindow.Orizin,unsafeWindow.Frurozin,unsafeWindow.Gold];
             var incomingRes = helper.getIncomingResArray();
 
@@ -2954,17 +2984,17 @@ function siteManager() {
         addClockInterval: function() {
             if (addOns.config.clockInterval !== null) return;
             addOns.config.clockInterval = setInterval(function () {
-                lwm_jQuery('[id*=\'clock\'],[id*=\'Clock\']').each(function () {
+                site_jQuery('[id*=\'clock\'],[id*=\'Clock\']').each(function () {
                     //skip elements that don't have data attribute
-                    if (typeof lwm_jQuery(this).data('clock_seconds') === "undefined") return true;
+                    if (typeof site_jQuery(this).data('clock_seconds') === "undefined") return true;
 
-                    var data = parseInt(lwm_jQuery(this).data('clock_seconds')) - 1;
-                    lwm_jQuery(this).data('clock_seconds', data);
+                    var data = parseInt(site_jQuery(this).data('clock_seconds')) - 1;
+                    site_jQuery(this).data('clock_seconds', data);
                     if (data < 0) {
-                        lwm_jQuery(this).html('--:--:--');
+                        site_jQuery(this).html('--:--:--');
                     } else {
                         var md = moment.duration(data, 'seconds');
-                        lwm_jQuery(this)
+                        site_jQuery(this)
                             .attr('title', moment().add(data, 'seconds').format("YYYY-MM-DD HH:mm:ss"))
                             .addClass('popover')
                             .html(md.format("HH:mm:ss", {
@@ -2993,9 +3023,9 @@ function siteManager() {
                     status: []
                 };
                 var existingValues = {
-                    coords: lwm_jQuery.map(lwm_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_coords option'), function (option, i) { return lwm_jQuery(option).val(); }),
-                    types: lwm_jQuery.map(lwm_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_types option'), function (option, i) { return lwm_jQuery(option).val(); }),
-                    status: lwm_jQuery.map(lwm_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_status option'), function (option, i) { return lwm_jQuery(option).val(); })
+                    coords: site_jQuery.map(site_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_coords option'), function (option, i) { return site_jQuery(option).val(); }),
+                    types: site_jQuery.map(site_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_types option'), function (option, i) { return site_jQuery(option).val(); }),
+                    status: site_jQuery.map(site_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_status option'), function (option, i) { return site_jQuery(option).val(); })
                 };
 
                 //exclude flottenbewegungen here as the only page that should not show fleets even with setting set
@@ -3012,69 +3042,69 @@ function siteManager() {
                     var lang = config.const.lang.fleet;
 
                     var process = function () {
-                        var $tableBase = lwm_jQuery('#lwm_folottenbewegungenPageDiv table');
+                        var $tableBase = site_jQuery('#lwm_folottenbewegungenPageDiv table');
                         $tableBase.find('tr:gt(0)').data('show', false);
-                        var $coords = lwm_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_coords').val();
-                        var $type = lwm_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_types').val();
-                        var $status = lwm_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_status').val();
+                        var $coords = site_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_coords').val();
+                        var $type = site_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_types').val();
+                        var $status = site_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_status').val();
 
-                        lwm_jQuery.each($tableBase.find('tr:gt(0)'), function () {
-                            lwm_jQuery(this).data('show',
-                                (lwm_jQuery(this).attr('data-coords') === $coords || $coords === '') &&
-                                (lwm_jQuery(this).attr('data-type') === $type || $type === '') &&
-                                (lwm_jQuery(this).attr('data-status') === $status || $status === ''));
+                        site_jQuery.each($tableBase.find('tr:gt(0)'), function () {
+                            site_jQuery(this).data('show',
+                                (site_jQuery(this).attr('data-coords') === $coords || $coords === '') &&
+                                (site_jQuery(this).attr('data-type') === $type || $type === '') &&
+                                (site_jQuery(this).attr('data-status') === $status || $status === ''));
                         });
 
                         GM.getValue('lwm_fleetToggled', false).then(function (value) {
-                            lwm_jQuery.each($tableBase.find('tr:gt(0)'), function (i, el) {
-                                if (lwm_jQuery(el).data('show') && !value) lwm_jQuery(el).show();
-                                else                                       lwm_jQuery(el).hide();
+                            site_jQuery.each($tableBase.find('tr:gt(0)'), function (i, el) {
+                                if (site_jQuery(el).data('show') && !value) site_jQuery(el).show();
+                                else                                       site_jQuery(el).hide();
                             });
                         });
                     }
 
                     var add = function (fleetData) {
                         if (typeof fleetData.homePlanet !== "undefined" &&
-                            !lwm_jQuery.map($selectOptions.coords, function (option, i) { return lwm_jQuery(option).val(); }).includes(fleetData.homePlanet) &&
+                            !site_jQuery.map($selectOptions.coords, function (option, i) { return site_jQuery(option).val(); }).includes(fleetData.homePlanet) &&
                             !existingValues.coords.includes(fleetData.homePlanet))
                         {
-                            $selectOptions.coords.push(lwm_jQuery('<option value="'+fleetData.homePlanet+'">'+fleetData.homePlanet+'</option>'));
+                            $selectOptions.coords.push(site_jQuery('<option value="'+fleetData.homePlanet+'">'+fleetData.homePlanet+'</option>'));
                         }
                         if (typeof fleetData.Type !== "undefined" &&
-                            !lwm_jQuery.map($selectOptions.types, function (option, i) { return lwm_jQuery(option).val(); }).includes(fleetData.Type) &&
+                            !site_jQuery.map($selectOptions.types, function (option, i) { return site_jQuery(option).val(); }).includes(fleetData.Type) &&
                             !existingValues.types.includes(fleetData.Type))
                         {
-                            $selectOptions.types.push(lwm_jQuery('<option value="'+fleetData.Type+'">'+lang.types[fleetData.Type]+'</option>'));
+                            $selectOptions.types.push(site_jQuery('<option value="'+fleetData.Type+'">'+lang.types[fleetData.Type]+'</option>'));
                         }
                         if (typeof fleetData.Status !== "undefined" &&
-                            !lwm_jQuery.map($selectOptions.status, function (option, i) { return lwm_jQuery(option).val(); }).includes(fleetData.Status) &&
+                            !site_jQuery.map($selectOptions.status, function (option, i) { return site_jQuery(option).val(); }).includes(fleetData.Status) &&
                             !existingValues.status.includes(fleetData.Status))
                         {
-                            $selectOptions.status.push(lwm_jQuery('<option value="'+fleetData.Status+'">'+lang.status[fleetData.Status]+'</option>'));
+                            $selectOptions.status.push(site_jQuery('<option value="'+fleetData.Status+'">'+lang.status[fleetData.Status]+'</option>'));
                         }
                     }
 
                     var attachSelects = function () {
-                        var $wrapper = lwm_jQuery('<div></div>');
-                        if (lwm_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_coords').length === 0) {
-                            var $selectCoords = lwm_jQuery('<select id="lwm_fleetFilter_coords"><option value="">Pick Coords</option></select>');
+                        var $wrapper = site_jQuery('<div></div>');
+                        if (site_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_coords').length === 0) {
+                            var $selectCoords = site_jQuery('<select id="lwm_fleetFilter_coords"><option value="">Pick Coords</option></select>');
                             $selectCoords.change(function () { process(); })
                             $wrapper.append($selectCoords);
                         }
-                        if (lwm_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_types').length === 0) {
-                            var $selectTypes = lwm_jQuery('<select id="lwm_fleetFilter_types"><option value="">Pick Type</option></select>');
+                        if (site_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_types').length === 0) {
+                            var $selectTypes = site_jQuery('<select id="lwm_fleetFilter_types"><option value="">Pick Type</option></select>');
                             $selectTypes.change(function () { process(); })
                             $wrapper.append($selectTypes);
                         }
-                        if (lwm_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_status').length === 0) {
-                            var $selectStatus = lwm_jQuery('<select id="lwm_fleetFilter_status"><option value="">Pick Status</option></select>');
+                        if (site_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_status').length === 0) {
+                            var $selectStatus = site_jQuery('<select id="lwm_fleetFilter_status"><option value="">Pick Status</option></select>');
                             $selectStatus.change(function () { process(); })
                             $wrapper.append($selectStatus);
                         }
                         GM.getValue('lwm_fleetToggled', false).then(function (value) {
-                            var $toggleIcon = value ? lwm_jQuery('<i class="toggle fas fa-plus-circle"></i>') : lwm_jQuery('<i class="toggle fas fa-minus-circle"></i>');
+                            var $toggleIcon = value ? site_jQuery('<i class="toggle fas fa-plus-circle"></i>') : site_jQuery('<i class="toggle fas fa-minus-circle"></i>');
                             $toggleIcon.click(function () {
-                                lwm_jQuery(this).toggleClass('fa-plus-circle fa-minus-circle');
+                                site_jQuery(this).toggleClass('fa-plus-circle fa-minus-circle');
                                 GM.getValue('lwm_fleetToggled', false).then(function (value) {
                                     GM.setValue('lwm_fleetToggled', !value);
                                     process();
@@ -3082,7 +3112,7 @@ function siteManager() {
                             });
                             $wrapper.prepend($toggleIcon);
                         });
-                        lwm_jQuery('#lwm_folottenbewegungenPageDiv table td').first().append($wrapper);
+                        site_jQuery('#lwm_folottenbewegungenPageDiv table td').first().append($wrapper);
                     }
 
                     return {
@@ -3092,15 +3122,15 @@ function siteManager() {
                     }
                 })();
 
-                if (lwm_jQuery('#lwm_folottenbewegungenPageDiv').length === 0) {
-                    var $div = lwm_jQuery('<div class="pageContent" style="margin-bottom:20px;"><div id="lwm_folottenbewegungenPageDiv"><table><tbody><tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>Ankunft</td><td>Restflugzeit</td></tr></tbody></table></div></div>');
+                if (site_jQuery('#lwm_folottenbewegungenPageDiv').length === 0) {
+                    var $div = site_jQuery('<div class="pageContent" style="margin-bottom:20px;"><div id="lwm_folottenbewegungenPageDiv"><table><tbody><tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>Ankunft</td><td>Restflugzeit</td></tr></tbody></table></div></div>');
                     $div.hide();
                     $div.prependTo('#all');
                     filter.attachSelects();
                     $div.show();
                 }
 
-                lwm_jQuery('#lwm_folottenbewegungenPageDiv table tr:gt(0)').remove();
+                site_jQuery('#lwm_folottenbewegungenPageDiv table tr:gt(0)').remove();
 
                 var iconAtt         = '<i class="fas fa-fighter-jet fa-dimmed"></i>';
                 var iconBack        = '<i class="fas fa-long-arrow-alt-left fa-dimmed"></i>';
@@ -3110,7 +3140,7 @@ function siteManager() {
                 var iconPlanet      = '<i class="fas fa-globe fa-dimmed"></i>';
                 var iconDrone       = '<i class="fas fa-search"></i>';
 
-                lwm_jQuery.each(config.gameData.fleetInfo.send_infos, function(i, fleetData) {
+                site_jQuery.each(config.gameData.fleetInfo.send_infos, function(i, fleetData) {
                     filter.add(fleetData);
                     var trStyle         = '';
                     var fleetInfoString = '';
@@ -3157,32 +3187,32 @@ function siteManager() {
                 });
 
                 if (!GM_config.get('addon_fleet_exclude_drones')) {
-                    lwm_jQuery.each(config.gameData.fleetInfo.all_informations, function(i, fleetData) {
+                    site_jQuery.each(config.gameData.fleetInfo.all_informations, function(i, fleetData) {
                         //add missing info for drones
                         fleetData.Type = '4'; fleetData.Status = '1';
                         filter.add(fleetData);
                         $fleetRows.push("<tr data-type=\""+(fleetData.Type || '')+"\" data-status=\""+(fleetData.Status || '')+"\" data-coords=\""+fleetData.homePlanet+"\"><td>"+iconDrone+"Eigene " + fleetData.name + " von Planet <b>" + fleetData.homePlanet + "</b> ist unterwegs nach ( <b>" + fleetData.galaxy + "x" + fleetData.system + "</b> )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
                     });
 
-                    lwm_jQuery.each(config.gameData.fleetInfo.dron_observationens, function(i, fleetData) {
+                    site_jQuery.each(config.gameData.fleetInfo.dron_observationens, function(i, fleetData) {
                         fleetData.Type = '4'; fleetData.Status = '1';
                         filter.add(fleetData);
                         $fleetRows.push("<tr data-type=\""+(fleetData.Type || '')+"\" data-status=\""+(fleetData.Status || '')+"\" data-coords=\""+fleetData.homePlanet+"\"><td>"+iconDrone+"Eigene " + fleetData.name + " von Planet <b>" + fleetData.homePlanet + "</b> ist unterwegs nach ( <b>" + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.planet + "</b> )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
                     });
 
-                    lwm_jQuery.each(config.gameData.fleetInfo.dron_planetenscanners, function(i, fleetData) {
+                    site_jQuery.each(config.gameData.fleetInfo.dron_planetenscanners, function(i, fleetData) {
                         fleetData.Type = '4'; fleetData.Status = '1';
                         filter.add(fleetData);
                         $fleetRows.push("<tr data-type=\""+(fleetData.Type || '')+"\" data-status=\""+(fleetData.Status || '')+"\" data-coords=\""+fleetData.homePlanet+"\"><td>"+iconDrone+"Eigene " + fleetData.name + " von Planet <b>" + fleetData.homePlanet + "</b> ist unterwegs nach ( <b>" + fleetData.galaxy + "x" + fleetData.system + "x" + fleetData.planet + "</b> )</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
                     });
                 }
 
-                lwm_jQuery.each(config.gameData.fleetInfo.buy_ships_array, function(i, fleetData) {
+                site_jQuery.each(config.gameData.fleetInfo.buy_ships_array, function(i, fleetData) {
                     filter.add(fleetData);
                     $fleetRows.push("<tr data-type=\""+(fleetData.Type || '')+"\" data-status=\""+(fleetData.Status || '')+"\" data-coords=\""+fleetData.homePlanet+"\"><td>"+iconSend+"Flotte vom Handelsposten wird überstellt nach <b>" + fleetData.homePlanet + "</b>.</td><td>" + fleetData.time + "</td><td id='" + 'clock_' + fleetData.clock_id + "'>"+moment.duration(moment(fleetData.time).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+"</td></tr>");
                 });
 
-                lwm_jQuery.each(config.gameData.fleetInfo.fleet_informations, function(i, fleetData) {
+                site_jQuery.each(config.gameData.fleetInfo.fleet_informations, function(i, fleetData) {
                     filter.add(fleetData);
                     var fleetInfoString = '';
                     var fleetTimeString = '';
@@ -3196,7 +3226,7 @@ function siteManager() {
                     switch (fleetData.Type) {
                         case '1':
                             var existingObs = helper.getActiveObs([fleetData.Galaxy_send,fleetData.System_send,fleetData.Planet_send]);
-                            var spydrones = lwm_jQuery.grep(config.gameData.spionageInfos.planetenscanner_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
+                            var spydrones = site_jQuery.grep(config.gameData.spionageInfos.planetenscanner_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
                             var obsLink = existingObs.length ? '<i onclick="'+(GM_config.get('obs_opentabs') ? 'window.open(\'view/content/new_window/observationen_view.php?id='+existingObs[0].id+'\')' : 'openObservationWindow('+existingObs[0].id+')')+'" style="cursor:hand;" class="fas fa-search-plus"></i>' : (spydrones.length ? '<i style="cursor:hand;" class="fas fa-search"></i>' : '');
 
                             fleetInfoString = 'Eigene Flotte vom Planet '+ ownCoords;
@@ -3249,25 +3279,25 @@ function siteManager() {
                 });
 
                 //populate fleets
-                lwm_jQuery('#lwm_folottenbewegungenPageDiv table tbody').append($fleetRows);
-                if ($fleetRows.length === 0) lwm_jQuery('#lwm_folottenbewegungenPageDiv').hide();
-                else                         lwm_jQuery('#lwm_folottenbewegungenPageDiv').show();
+                site_jQuery('#lwm_folottenbewegungenPageDiv table tbody').append($fleetRows);
+                if ($fleetRows.length === 0) site_jQuery('#lwm_folottenbewegungenPageDiv').hide();
+                else                         site_jQuery('#lwm_folottenbewegungenPageDiv').show();
 
                 //add spionage action
-                lwm_jQuery('#lwm_folottenbewegungenPageDiv table tbody tr').find('.fa-search').click(function () { operations.performSpionage(lwm_jQuery(this).parents('tr').attr('data-coords').split("x")); });
+                site_jQuery('#lwm_folottenbewegungenPageDiv table tbody tr').find('.fa-search').click(function () { operations.performSpionage(site_jQuery(this).parents('tr').attr('data-coords').split("x")); });
                 //populate selects
-                lwm_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_coords').append($selectOptions.coords);
-                lwm_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_types').append($selectOptions.types);
-                lwm_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_status').append($selectOptions.status);
+                site_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_coords').append($selectOptions.coords);
+                site_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_types').append($selectOptions.types);
+                site_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_status').append($selectOptions.status);
 
                 //sort table by time
-                lwm_jQuery('#lwm_folottenbewegungenPageDiv table tbody tr:gt(0)').sort(function (a, b) {
-                    var tsA = moment.duration(lwm_jQuery(a).find('td').last().text());
-                    var tsB = moment.duration(lwm_jQuery(b).find('td').last().text());
+                site_jQuery('#lwm_folottenbewegungenPageDiv table tbody tr:gt(0)').sort(function (a, b) {
+                    var tsA = moment.duration(site_jQuery(a).find('td').last().text());
+                    var tsB = moment.duration(site_jQuery(b).find('td').last().text());
                     return tsA.asSeconds() - tsB.asSeconds();
                 }).each(function() {
-                    var $elem = lwm_jQuery(this).detach();
-                    lwm_jQuery($elem).appendTo(lwm_jQuery('#lwm_folottenbewegungenPageDiv table tbody'));
+                    var $elem = site_jQuery(this).detach();
+                    site_jQuery($elem).appendTo(site_jQuery('#lwm_folottenbewegungenPageDiv table tbody'));
                 });
 
                 filter.process();
@@ -3304,7 +3334,7 @@ function siteManager() {
             storeOverview: function (data) {
                 var dataBuildingBefore = JSON.stringify(addOns.calendar.getData('building',config.gameData.playerID));
                 addOns.calendar.deleteCat('building',config.gameData.playerID);
-                lwm_jQuery.each(data.all_planets_for_use, function (i, planet) {
+                site_jQuery.each(data.all_planets_for_use, function (i, planet) {
                     var coords = planet.galaxy_pom + 'x' + planet.system_pom + 'x' + planet.planet_pom;
                     if (planet.BuildingName !== '') addOns.calendar.store({
                         playerID: config.gameData.playerID,
@@ -3345,7 +3375,7 @@ function siteManager() {
                 var dataResearchAfter = JSON.stringify(addOns.calendar.getData('research',config.gameData.playerID));
 
                 GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
-                if (GM_config.get('confirm_drive_sync') && (!addOns.calendar.truncateData() || dataResearchBefore !== dataResearchAfter || dataBuildingBefore !== dataBuildingAfter)) driveManager.save();
+                if (GM_config.get('confirm_drive_sync') && (!addOns.calendar.truncateData() || dataResearchBefore !== dataResearchAfter || dataBuildingBefore !== dataBuildingAfter)) googleManager.save();
 
                 notifications.worker.postMessage({'cmd':'push','calendar':config.lwm.calendar,'config':{'notifications_buildings':GM_config.get('notifications_buildings')}});
             },
@@ -3354,8 +3384,8 @@ function siteManager() {
                 var dataTypes = ['all_informations','buy_ships_array','dron_observationens','dron_planetenscanners','fleet_informations','send_infos'];
                 var dataFleetBefore = JSON.stringify(addOns.calendar.getData('fleet',config.gameData.playerID, config.gameData.planetCoords.string));
                 addOns.calendar.deleteCat('fleet',config.gameData.playerID, config.gameData.planetCoords.string);
-                lwm_jQuery.each(dataTypes, function (i, type) {
-                    lwm_jQuery.each(data[type], function (f, fleetData) {
+                site_jQuery.each(dataTypes, function (i, type) {
+                    site_jQuery.each(data[type], function (f, fleetData) {
                         var time = fleetData.ComeTime || fleetData.DefendingTime || fleetData.time;
                         if (!time) return true;
                         addOns.calendar.store({
@@ -3373,14 +3403,14 @@ function siteManager() {
                 var dataFleetAfter = JSON.stringify(addOns.calendar.getData('fleet',config.gameData.playerID, config.gameData.planetCoords.string));
 
                 GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
-                if (GM_config.get('confirm_drive_sync') && dataFleetBefore !== dataFleetAfter) driveManager.save();
+                if (GM_config.get('confirm_drive_sync') && dataFleetBefore !== dataFleetAfter) googleManager.save();
             },
             storeProd: function (data) {
                 var dataDefenseBefore = JSON.stringify(addOns.calendar.getData('defense',config.gameData.playerID, config.gameData.planetCoords.string));
                 addOns.calendar.deleteCat('defense',config.gameData.playerID, config.gameData.planetCoords.string);
                 var lastEntry = {};
                 var sameEntryCount = 1;
-                lwm_jQuery.each(data.planet_defense, function (i, prodData) {
+                site_jQuery.each(data.planet_defense, function (i, prodData) {
                     var entry = {
                         playerID: config.gameData.playerID,
                         playerName: config.gameData.playerName,
@@ -3408,7 +3438,7 @@ function siteManager() {
                 addOns.calendar.deleteCat('ships',config.gameData.playerID, config.gameData.planetCoords.string);
                 lastEntry = {};
                 sameEntryCount = 1;
-                lwm_jQuery.each(data.ships, function (i, prodData) {
+                site_jQuery.each(data.ships, function (i, prodData) {
                     var entry = {
                         playerID: config.gameData.playerID,
                         playerName: config.gameData.playerName,
@@ -3433,12 +3463,12 @@ function siteManager() {
                 var dataShipsAfter = JSON.stringify(addOns.calendar.getData('ships',config.gameData.playerID, config.gameData.planetCoords.string));
 
                 GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
-                if (GM_config.get('confirm_drive_sync') && (dataDefenseBefore !== dataDefenseAfter || dataShipsBefore !== dataShipsAfter)) driveManager.save();
+                if (GM_config.get('confirm_drive_sync') && (dataDefenseBefore !== dataDefenseAfter || dataShipsBefore !== dataShipsAfter)) googleManager.save();
             },
             storeTrades: function (data) {
                 var dataTradesBefore = JSON.stringify(addOns.calendar.getData('trades',config.gameData.playerID, config.gameData.planetCoords.string));
                 addOns.calendar.deleteCat('trades',config.gameData.playerID, config.gameData.planetCoords.string);
-                lwm_jQuery.each(data.trade_offers, function (i, tradeData) {
+                site_jQuery.each(data.trade_offers, function (i, tradeData) {
                     if (tradeData.galaxy == config.gameData.planetCoords.galaxy && tradeData.system == config.gameData.planetCoords.system && tradeData.planet == config.gameData.planetCoords.planet) return true;
                     addOns.calendar.store({
                         playerID: config.gameData.playerID,
@@ -3452,7 +3482,7 @@ function siteManager() {
                 var dataTradesAfter =  JSON.stringify(addOns.calendar.getData('trades',config.gameData.playerID, config.gameData.planetCoords.string));
 
                 GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
-                if (GM_config.get('confirm_drive_sync') && dataTradesBefore !== dataTradesAfter) driveManager.save();
+                if (GM_config.get('confirm_drive_sync') && dataTradesBefore !== dataTradesAfter) googleManager.save();
             },
             store: function (data) {
                 var check = config.lwm.calendar.filter(function (entry) {
@@ -3492,8 +3522,8 @@ function siteManager() {
                 GM.getValue('lwm_planetData_temp', '{}').then(function (planetData) {
                     planetData = JSON.parse(planetData);
 
-                    if (lwm_jQuery('#buildingsLevel').length === 0) return; //spy not sufficient
-                    var levelTT = lwm_jQuery('#researchLevel').text().match(/Tarntechnologie (\d+)/);
+                    if (site_jQuery('#buildingsLevel').length === 0) return; //spy not sufficient
+                    var levelTT = site_jQuery('#researchLevel').text().match(/Tarntechnologie (\d+)/);
                     if (levelTT === null) levelTT = 0;
                     else                  levelTT = levelTT[1];
 
@@ -3531,7 +3561,7 @@ function siteManager() {
             }
 
             //grab the first eligable drone with IOB and roll with it
-            var drone = lwm_jQuery.grep(data.planetenscanner_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
+            var drone = site_jQuery.grep(data.planetenscanner_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
             if (drone.length === 0) {
                 alert('Unable to find drones to use');
                 return;
@@ -3592,7 +3622,7 @@ function siteManager() {
                                 var r = confirm(message);
                                 if (r == true)
                                 {
-                                    lwm_jQuery.post('/ajax_request/put_planetenscanner_drons.php', {
+                                    site_jQuery.post('/ajax_request/put_planetenscanner_drons.php', {
                                         Units: data.Units,
                                         EngineType_Drone: data.EngineType_Drone,
                                         Speed_Drone: data.Speed_Drone,
@@ -3636,7 +3666,7 @@ function siteManager() {
             }
 
             //grab the first eligable drone with IOB and roll with it
-            var drone = lwm_jQuery.grep(data.observations_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
+            var drone = site_jQuery.grep(data.observations_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
             if (drone.length === 0) {
                 alert('Unable to find drones to use');
                 return;
@@ -3697,7 +3727,7 @@ function siteManager() {
                                 var r = confirm(message);
                                 if (r == true)
                                 {
-                                    lwm_jQuery.post('/ajax_request/put_observationen_drons.php', {
+                                    site_jQuery.post('/ajax_request/put_observationen_drons.php', {
                                         Units: data.Units,
                                         EngineType_Drone: data.EngineType_Drone,
                                         Speed_Drone: data.Speed_Drone,
@@ -3759,29 +3789,29 @@ function siteManager() {
             $el.attr('onclick', 'r = confirm("'+m+'?"); if (r == true) '+onclick);
         },
         addResMemory: function ($list, type) {
-            lwm_jQuery.each($list, function (i, el) {
-                lwm_jQuery(el).click(function () {
-                    config.currentSavedProject.fe = numeral(lwm_jQuery(this).parents('tr').find('.roheisenVariable').text().replace(/\D/, '')).value();
-                    config.currentSavedProject.kris = numeral(lwm_jQuery(this).parents('tr').find('.kristallVariable').text().replace(/\D/, '')).value();
-                    config.currentSavedProject.frub = numeral(lwm_jQuery(this).parents('tr').find('.frubinVariable').text().replace(/\D/, '')).value();
-                    config.currentSavedProject.ori = numeral(lwm_jQuery(this).parents('tr').find('.orizinVariable').text().replace(/\D/, '')).value();
-                    config.currentSavedProject.fruro = numeral(lwm_jQuery(this).parents('tr').find('.frurozinVariable').text().replace(/\D/, '')).value();
-                    config.currentSavedProject.gold = numeral(lwm_jQuery(this).parents('tr').find('.goldVariable').text().replace(/\D/, '')).value();
+            site_jQuery.each($list, function (i, el) {
+                site_jQuery(el).click(function () {
+                    config.currentSavedProject.fe = numeral(site_jQuery(this).parents('tr').find('.roheisenVariable').text().replace(/\D/, '')).value();
+                    config.currentSavedProject.kris = numeral(site_jQuery(this).parents('tr').find('.kristallVariable').text().replace(/\D/, '')).value();
+                    config.currentSavedProject.frub = numeral(site_jQuery(this).parents('tr').find('.frubinVariable').text().replace(/\D/, '')).value();
+                    config.currentSavedProject.ori = numeral(site_jQuery(this).parents('tr').find('.orizinVariable').text().replace(/\D/, '')).value();
+                    config.currentSavedProject.fruro = numeral(site_jQuery(this).parents('tr').find('.frurozinVariable').text().replace(/\D/, '')).value();
+                    config.currentSavedProject.gold = numeral(site_jQuery(this).parents('tr').find('.goldVariable').text().replace(/\D/, '')).value();
                     config.currentSavedProject.ts = moment().unix();
-                    config.currentSavedProject.name = lwm_jQuery(this).parents('tr').find('.constructionName').text();
+                    config.currentSavedProject.name = site_jQuery(this).parents('tr').find('.constructionName').text();
                     config.currentSavedProject.type = type;
                 });
             });
         },
         setDataForClocks: function () {
             if (!GM_config.get('addon_clock')) return true;
-            lwm_jQuery('[id*=\'clock\'],[id*=\'Clock\']').each(function () {
-                if (typeof lwm_jQuery(this).data('clock_seconds') !== "undefined") return true;
+            site_jQuery('[id*=\'clock\'],[id*=\'Clock\']').each(function () {
+                if (typeof site_jQuery(this).data('clock_seconds') !== "undefined") return true;
 
-                var time = lwm_jQuery(this).text().split(':');
+                var time = site_jQuery(this).text().split(':');
                 var seconds = parseInt(time[0])*60*60 + parseInt(time[1])*60 + parseInt(time[2]);
 
-                lwm_jQuery(this).data('clock_seconds', seconds - 1);
+                site_jQuery(this).data('clock_seconds', seconds - 1);
             });
         },
         getFirstClassNameFromElement: function ($el) {
@@ -3791,18 +3821,18 @@ function siteManager() {
         },
         replaceElementsHtmlWithIcon: function($list, iconClass, amount) {
             var amount = parseInt(amount) || 1;
-            lwm_jQuery.each($list, function (i, el) {
+            site_jQuery.each($list, function (i, el) {
                 var html = '';
                 for (var j = 0; j < amount; j++) html += '<i class="'+iconClass+'"></i>';
-                lwm_jQuery(el).html(html);
+                site_jQuery(el).html(html);
             });
         },
         addIconToHtmlElements: function($list, iconClass, amount) {
             var amount = parseInt(amount) || 1;
-            lwm_jQuery.each($list, function (i, el) {
+            site_jQuery.each($list, function (i, el) {
                 var html = '';
                 for (var j = 0; j < amount; j++) html += '<i class="'+iconClass+'"></i>';
-                lwm_jQuery(el).html(html+'&nbsp;'+lwm_jQuery(el).html());
+                site_jQuery(el).html(html+'&nbsp;'+site_jQuery(el).html());
             });
         },
         checkCoords: function (coords) {
@@ -3813,22 +3843,22 @@ function siteManager() {
             if (config.gameData.tradeInfo.trade_offers.length === 0) return [0,0,0,0,0,0];
 
             return [
-                lwm_jQuery.map(config.gameData.tradeInfo.trade_offers, function (trade, i) { return parseInt(trade.accept) * ((parseInt(trade.galaxy) === config.gameData.planetCoords.galaxy && parseInt(trade.system) === config.gameData.planetCoords.system && parseInt(trade.planet) === config.gameData.planetCoords.planet) ? parseInt(trade.resource[12]) : parseInt(trade.resource[6])); }).reduce(function (total, num) { return total + num; }),
-                lwm_jQuery.map(config.gameData.tradeInfo.trade_offers, function (trade, i) { return parseInt(trade.accept) * ((parseInt(trade.galaxy) === config.gameData.planetCoords.galaxy && parseInt(trade.system) === config.gameData.planetCoords.system && parseInt(trade.planet) === config.gameData.planetCoords.planet) ? parseInt(trade.resource[13]) : parseInt(trade.resource[7])); }).reduce(function (total, num) { return total + num; }),
-                lwm_jQuery.map(config.gameData.tradeInfo.trade_offers, function (trade, i) { return parseInt(trade.accept) * ((parseInt(trade.galaxy) === config.gameData.planetCoords.galaxy && parseInt(trade.system) === config.gameData.planetCoords.system && parseInt(trade.planet) === config.gameData.planetCoords.planet) ? parseInt(trade.resource[14]) : parseInt(trade.resource[8])); }).reduce(function (total, num) { return total + num; }),
-                lwm_jQuery.map(config.gameData.tradeInfo.trade_offers, function (trade, i) { return parseInt(trade.accept) * ((parseInt(trade.galaxy) === config.gameData.planetCoords.galaxy && parseInt(trade.system) === config.gameData.planetCoords.system && parseInt(trade.planet) === config.gameData.planetCoords.planet) ? parseInt(trade.resource[15]) : parseInt(trade.resource[9])); }).reduce(function (total, num) { return total + num; }),
-                lwm_jQuery.map(config.gameData.tradeInfo.trade_offers, function (trade, i) { return parseInt(trade.accept) * ((parseInt(trade.galaxy) === config.gameData.planetCoords.galaxy && parseInt(trade.system) === config.gameData.planetCoords.system && parseInt(trade.planet) === config.gameData.planetCoords.planet) ? parseInt(trade.resource[16]) : parseInt(trade.resource[10])); }).reduce(function (total, num) { return total + num; }),
-                lwm_jQuery.map(config.gameData.tradeInfo.trade_offers, function (trade, i) { return parseInt(trade.accept) * ((parseInt(trade.galaxy) === config.gameData.planetCoords.galaxy && parseInt(trade.system) === config.gameData.planetCoords.system && parseInt(trade.planet) === config.gameData.planetCoords.planet) ? parseInt(trade.resource[17]) : parseInt(trade.resource[11])); }).reduce(function (total, num) { return total + num; }),
+                site_jQuery.map(config.gameData.tradeInfo.trade_offers, function (trade, i) { return parseInt(trade.accept) * ((parseInt(trade.galaxy) === config.gameData.planetCoords.galaxy && parseInt(trade.system) === config.gameData.planetCoords.system && parseInt(trade.planet) === config.gameData.planetCoords.planet) ? parseInt(trade.resource[12]) : parseInt(trade.resource[6])); }).reduce(function (total, num) { return total + num; }),
+                site_jQuery.map(config.gameData.tradeInfo.trade_offers, function (trade, i) { return parseInt(trade.accept) * ((parseInt(trade.galaxy) === config.gameData.planetCoords.galaxy && parseInt(trade.system) === config.gameData.planetCoords.system && parseInt(trade.planet) === config.gameData.planetCoords.planet) ? parseInt(trade.resource[13]) : parseInt(trade.resource[7])); }).reduce(function (total, num) { return total + num; }),
+                site_jQuery.map(config.gameData.tradeInfo.trade_offers, function (trade, i) { return parseInt(trade.accept) * ((parseInt(trade.galaxy) === config.gameData.planetCoords.galaxy && parseInt(trade.system) === config.gameData.planetCoords.system && parseInt(trade.planet) === config.gameData.planetCoords.planet) ? parseInt(trade.resource[14]) : parseInt(trade.resource[8])); }).reduce(function (total, num) { return total + num; }),
+                site_jQuery.map(config.gameData.tradeInfo.trade_offers, function (trade, i) { return parseInt(trade.accept) * ((parseInt(trade.galaxy) === config.gameData.planetCoords.galaxy && parseInt(trade.system) === config.gameData.planetCoords.system && parseInt(trade.planet) === config.gameData.planetCoords.planet) ? parseInt(trade.resource[15]) : parseInt(trade.resource[9])); }).reduce(function (total, num) { return total + num; }),
+                site_jQuery.map(config.gameData.tradeInfo.trade_offers, function (trade, i) { return parseInt(trade.accept) * ((parseInt(trade.galaxy) === config.gameData.planetCoords.galaxy && parseInt(trade.system) === config.gameData.planetCoords.system && parseInt(trade.planet) === config.gameData.planetCoords.planet) ? parseInt(trade.resource[16]) : parseInt(trade.resource[10])); }).reduce(function (total, num) { return total + num; }),
+                site_jQuery.map(config.gameData.tradeInfo.trade_offers, function (trade, i) { return parseInt(trade.accept) * ((parseInt(trade.galaxy) === config.gameData.planetCoords.galaxy && parseInt(trade.system) === config.gameData.planetCoords.system && parseInt(trade.planet) === config.gameData.planetCoords.planet) ? parseInt(trade.resource[17]) : parseInt(trade.resource[11])); }).reduce(function (total, num) { return total + num; }),
             ];
         },
         throwError: function (m) {
-            if (lwm_jQuery('#all .lwm-loaderror').length) return;
+            if (site_jQuery('#all .lwm-loaderror').length) return;
             var m = m || 'Something went wrong while loading the page. Not all features might be fully functional!';
-            lwm_jQuery('#all').prepend('<div class="lwm-loaderror" style="margin-bottom: 20px;background-color: #792121;border: 1px solid rgba(124, 243, 241, 0.5);padding: 2px;"><i class="fas fa-exclamation-triangle" style="margin-right: 5px;"></i>'+m+'</div>');
+            site_jQuery('#all').prepend('<div class="lwm-loaderror" style="margin-bottom: 20px;background-color: #792121;border: 1px solid rgba(124, 243, 241, 0.5);padding: 2px;"><i class="fas fa-exclamation-triangle" style="margin-right: 5px;"></i>'+m+'</div>');
         },
         getActiveObs: function (coords) {
             if (!Array.isArray(coords)) coords = coords.split('x');
-            return lwm_jQuery.grep(config.gameData.observationInfo.observationen_informations, function (obsData, i) { return obsData.galaxy == coords[0] && obsData.system == coords[1] && obsData.planet == coords[2]; });
+            return site_jQuery.grep(config.gameData.observationInfo.observationen_informations, function (obsData, i) { return obsData.galaxy == coords[0] && obsData.system == coords[1] && obsData.planet == coords[2]; });
         }
     }
 
@@ -3844,12 +3874,12 @@ function siteManager() {
             var count = 0;
             var interval;
 
-            if (lwm_jQuery(searchSelector).length && lwm_jQuery.map(lwm_jQuery(searchSelector), function (sel, i) { return lwm_jQuery(sel).html(); }).join(' ').search(/\w/) !== -1) {
+            if (site_jQuery(searchSelector).length && site_jQuery.map(site_jQuery(searchSelector), function (sel, i) { return site_jQuery(sel).html(); }).join(' ').search(/\w/) !== -1) {
                 resolve();
             } else {
                 interval = setInterval(() => {
-                    if (lwm_jQuery(searchSelector).length && lwm_jQuery.map(lwm_jQuery(searchSelector), function (sel, i) { return lwm_jQuery(sel).html(); }).join(' ').search(/\w/) !== -1) {
-                        var bla = lwm_jQuery(searchSelector).html();
+                    if (site_jQuery(searchSelector).length && site_jQuery.map(site_jQuery(searchSelector), function (sel, i) { return site_jQuery(sel).html(); }).join(' ').search(/\w/) !== -1) {
+                        var bla = site_jQuery(searchSelector).html();
                         clearInterval(interval);
                         resolve();
                     }
@@ -3910,11 +3940,11 @@ function siteManager() {
             var interval;
 
             //all loadStates must be false for site to finish loading
-            if (lwm_jQuery.map(config.loadStates, function (state) { return state; }).indexOf(true) === -1) {
+            if (site_jQuery.map(config.loadStates, function (state) { return state; }).indexOf(true) === -1) {
                 resolve();
             } else {
                 interval = setInterval(() => {
-                    if (lwm_jQuery.map(config.loadStates, function (state) { return state; }).indexOf(true) === -1) {
+                    if (site_jQuery.map(config.loadStates, function (state) { return state; }).indexOf(true) === -1) {
                         clearInterval(interval);
                         resolve();
                     }
