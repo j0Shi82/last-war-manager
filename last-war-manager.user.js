@@ -54,18 +54,6 @@ var firstLoad = true;
             document.documentElement.appendChild(node);
         }
     }
-
-    //add vendor.js
-    var s = document.createElement("script");
-    s.type = "text/javascript";
-    s.src = "https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@b3ff70fe5987528cf441c6cd7fa0389b1f98e41f/assets/vendor.js";
-    var heads = document.getElementsByTagName("head");
-    if (heads.length > 0) {
-        heads[0].appendChild(s);
-    } else {
-        // no head yet, stick it whereever
-        document.documentElement.appendChild(s);
-    }
 })();
 
 
@@ -916,7 +904,9 @@ function siteManager() {
 
             site_jQuery('.status.lwm-firstload').text('LOADING... Game Data...');
             config.getGameData.all();
-            site_jQuery.getScript('//apis.google.com/js/api.js').then(function () {
+            site_jQuery.getScript('//cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@302db6b2a437abb6c2891f8fee0195f87e021834/assets/vendor.js').then(function () {
+                return site_jQuery.getScript('//apis.google.com/js/api.js');
+            }).then(function () {
                 site_jQuery('.status.lwm-firstload').text('LOADING... Google Drive...');
                 googleManager.init(unsafeWindow.gapi); },function () { site_jQuery('.status.lwm-firstload').text('LOADING... ERROR...'); helper.throwError(); });
             getLoadStatePromise('gdrive').then(function () {
