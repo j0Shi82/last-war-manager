@@ -10,10 +10,13 @@
 // @supportURL    https://github.com/j0Shi82/last-war-manager/issues
 // @match         https://*.last-war.de/*
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
+// @require       https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
 // @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@c1ef11593cff9baf19e2d33cebeb7c1eb8f47bfd/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
 // @grant         GM.setValue
+// @grant         GM_getValue
+// @grant         GM_setValue
 // @grant         GM_getResourceText
 // @grant         GM_notification
 // @grant         GM_addStyle
