@@ -25,9 +25,6 @@
 // ==/UserScript==
 
 var firstLoad = true;
-//var lwm_jQuery = window.jQuery;
-
-// @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e07de5c0a13d416fda88134f999baccfee6f7059/assets/jquery.min.js
 
 // add style
 (function() {
@@ -60,220 +57,6 @@ var firstLoad = true;
 function siteManager() {
     var site_jQuery = null;
 
-    var googleManager = (function() {
-        var gapi = null;
-        var CLIENT_ID = '807071171095-behcr73gjee7hombcia0ikkso7buk9h1.apps.googleusercontent.com';
-        var API_KEY = 'AIzaSyBL5DW-WoI1Y2G7oRR5y58Xeoxbh2LEyA4';
-        var DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
-        var SCOPES = 'https://www.googleapis.com/auth/drive.appfolder https://www.googleapis.com/auth/drive.file';
-        var saveFileID = null;
-
-        //if drive fails to load, set loadstate and use browser config instead
-        var handleError = function () {
-            //reset the google settings
-            if (GM_config.get('confirm_drive_sync')) alert('Couldn\'t sync with Google Drive. Please go to the settings and reconnect the service!');
-            signOut();
-            GM_config.set('confirm_drive_sync', false);
-            GM_config.save();
-
-            //load browser values
-            getLoadStatePromise('gameData').then(function () { config.setGMValues(); },function () { helper.throwError(); });
-        }
-
-        /**
-             *  On load, called to load the auth2 library and API client library.
-             */
-        var handleClientLoad = function(g) {
-            gapi = g;
-            gapi.load('client:auth2', {
-                callback: initClient,
-                onerror: function () {
-                    console.error('gapi.client failed to load!');
-                    handleError();
-                }
-            });
-        }
-
-        /**
-             *  Initializes the API client library and sets up sign-in state
-             *  listeners.
-             */
-        var initClient = function() {
-            console.log('gapi.client.init');
-            gapi.client.init({
-                apiKey: API_KEY,
-                clientId: CLIENT_ID,
-                discoveryDocs: DISCOVERY_DOCS,
-                scope: SCOPES
-            }).then(function () {
-                gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
-                updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
-            }, function (error) {
-                console.error(JSON.stringify(error, null, 2));
-                handleError();
-            });
-        }
-
-        var updateSigninStatus = function(isSignedIn) {
-            if (isSignedIn && GM_config.get('confirm_drive_sync')) {
-                console.log('gapi.client.drive.files.list');
-                //if config file was already loaded, return and resolve gdrive load
-                GM.getValue('lwm_gDriveFileID', null).then(function (ID) {
-                    config.lwm.gDriveFileID = ID;
-                    if (config.lwm.gDriveFileID !== null) {
-                        getLoadStatePromise('gameData').then(function () { config.setGMValues(); },function () { helper.throwError(); });
-                        return;
-                    } else {
-                        gapi.client.drive.files.list({
-                            q: 'name="lwm_config.json"',
-                            spaces: 'appDataFolder',
-                            fields: 'files(id)'
-                        }).then(function(response) {
-                            console.log(response);
-                            if (response.status === 200) {
-                                if (response.result.files.length === 0) {
-                                    createConfig();
-                                } else {
-                                    saveFileID = response.result.files[0].id;
-                                    getConfig();
-                                }
-                            } else {
-                                console.error('files.create: ' + response);
-                                handleError();
-                            }
-                        }, function (error) {
-                            console.error(JSON.stringify(error, null, 2));
-                            handleError();
-                        });
-                    }
-                });
-            } else {
-                handleError();
-            }
-        }
-
-        var createConfig = function () {
-            var fileMetadata = {
-                name: 'lwm_config.json',
-                description: 'Saved config for the Last War Manager',
-                parents: ['appDataFolder'],
-                mimeType: 'application/json',
-                uploadType: 'multipart'
-            };
-            console.log('gapi.client.drive.files.create');
-            gapi.client.drive.files.create({
-                resource: fileMetadata,
-                fields: 'id,name'
-            }).then(function(response) {
-                console.log(response);
-                if (response.status === 200) {
-                    config.lwm.gDriveFileID = response.result.id;
-                    GM.setValue('lwm_gDriveFileID', config.lwm.gDriveFileID);
-                    config.loadStates.gdrive = false;
-                    saveConfig();
-                } else {
-                    console.error('files.create: ' + response);
-                    handleError();
-                }
-            }, function (error) {
-                console.error(JSON.stringify(error, null, 2));
-                handleError();
-            });
-        }
-
-        var saveConfig = function () {
-            // check whether config is ready
-            if (config.loadStates.gdrive) {
-                console.log('gapi.client.request failed due to config.loadStates.gdrive');
-                return;
-            }
-            //save
-            var saveObj = JSON.parse(JSON.stringify(config.lwm));
-            saveObj.menu = {
-                addon_clock: GM_config.get('addon_clock'),
-                addon_fleet: GM_config.get('addon_fleet'),
-                addon_fleet_exclude_drones: GM_config.get('addon_fleet_exclude_drones'),
-                confirm_const: GM_config.get('confirm_const'),
-                overview_planetresources: GM_config.get('overview_planetresources'),
-                overview_planetstatus: GM_config.get('overview_planetstatus'),
-                overview_planetnames: GM_config.get('overview_planetnames'),
-                message_spylinks: GM_config.get('message_spylinks'),
-                trade_highlights: GM_config.get('trade_highlights'),
-                fleet_saveprios: GM_config.get('fleet_saveprios'),
-                obs_opentabs: GM_config.get('obs_opentabs'),
-                fleet_presets_1_active: GM_config.get('fleet_presets_1_active'),fleet_presets_1_weekday: GM_config.get('fleet_presets_1_weekday'),fleet_presets_1_time: GM_config.get('fleet_presets_1_time'),
-                fleet_presets_2_active: GM_config.get('fleet_presets_2_active'),fleet_presets_2_weekday: GM_config.get('fleet_presets_2_weekday'),fleet_presets_2_time: GM_config.get('fleet_presets_2_time'),
-                fleet_presets_3_active: GM_config.get('fleet_presets_3_active'),fleet_presets_3_weekday: GM_config.get('fleet_presets_3_weekday'),fleet_presets_3_time: GM_config.get('fleet_presets_3_time'),
-                fleet_presets_4_active: GM_config.get('fleet_presets_4_active'),fleet_presets_4_weekday: GM_config.get('fleet_presets_4_weekday'),fleet_presets_4_time: GM_config.get('fleet_presets_4_time'),
-                fleet_presets_5_active: GM_config.get('fleet_presets_5_active'),fleet_presets_5_weekday: GM_config.get('fleet_presets_5_weekday'),fleet_presets_5_time: GM_config.get('fleet_presets_5_time'),
-                confirm_production: GM_config.get('confirm_production'),
-                confirm_research: GM_config.get('confirm_research'),
-                coords_fleets: GM_config.get('coords_fleets'),
-                coords_trades: GM_config.get('coords_trades')
-            };
-
-            console.log('gapi.client.request',saveObj);
-            gapi.client.request({
-                path: '/upload/drive/v3/files/' + config.lwm.gDriveFileID,
-                method: 'PATCH',
-                params: {
-                    uploadType: 'media',
-                    mimeType: 'application/json'
-                },
-                body: JSON.stringify(saveObj)
-            }).then(function (response) {
-                console.log(response);
-                if (response.status !== 200) {
-                    console.error('client.request: ' + response);
-                }
-            }, function (error) {
-                console.error(JSON.stringify(error, null, 2));
-            });
-        }
-
-        var getConfig = function () {
-            console.log('gapi.client.drive.files.get');
-            gapi.client.drive.files.get({
-                fileId: saveFileID,
-                alt: 'media'
-            }).then(function (response) {
-                console.log(response);
-                if (response.status === 200) {
-                    config.lwm.gDriveFileID = saveFileID;
-                    GM.setValue('lwm_gDriveFileID', config.lwm.gDriveFileID);
-                    config.lwm.set(response.result);
-                    //config.loadStates.gdrive = false; <-- loadState is updated in config.lwm.set()
-                } else {
-                    console.error('files.create: ' + response);
-                    handleError();
-                }
-            }, function (error) {
-                console.error(JSON.stringify(error, null, 2));
-                handleError();
-            });
-        }
-
-        var signIn = function() {
-            gapi.auth2.getAuthInstance().signIn();
-        }
-
-        var signOut = function() {
-            gapi.auth2.getAuthInstance().signOut();
-        }
-
-        var isSignedIn = function() {
-            return gapi.auth2.getAuthInstance().isSignedIn.get();
-        }
-
-        return {
-            signIn: signIn,
-            signOut: signOut,
-            isSignedIn: isSignedIn,
-            save: saveConfig,
-            init: handleClientLoad
-        };
-    })();
-
     var GM_config_time_array =  ['00:00','00:05','00:10','00:15','00:20','00:25','00:30','00:35','00:40','00:45','00:50','00:55',
                             '01:00','01:05','01:10','01:15','01:20','01:25','01:30','01:35','01:40','01:45','01:50','01:55',
                             '02:00','02:05','02:10','02:15','02:20','02:25','02:30','02:35','02:40','02:45','02:50','02:55',
@@ -299,9 +82,9 @@ function siteManager() {
                             '22:00','22:05','22:10','22:15','22:20','22:25','22:30','22:35','22:40','22:45','22:50','22:55',
                             '23:00','23:05','23:10','23:15','23:20','23:25','23:30','23:35','23:40','23:45','23:50','23:55'];
 
-    GM_config.init(
+    var lwmSettings = new GM_configStruct(
     {
-        'id': 'lwmSettings', // The id used for this instance of GM_config
+        'id': 'lwmSettings',
         'title': 'Last War Manager Settings',
         'fields': // Fields object
         {
@@ -549,11 +332,12 @@ function siteManager() {
         },
         'events':
         {
-            'close': function() {setTimeout(function () { location.reload(); }, 100); },
+            'close': function() { setTimeout(function () { location.reload(); }, 100); },
             'save': function() {
-                if (this.fields.confirm_drive_sync.value) {
-                    if (!googleManager.isSignedIn()) googleManager.signIn();
-                    if (config.lwm.gDriveFileID !== null) googleManager.save();
+                if (lwmSettings.get('confirm_drive_sync')) {
+                    if (!googleManager.isSignedIn()) {
+                        googleManager.signIn();
+                    }
                 } else {
                     if (googleManager.isSignedIn()) googleManager.signOut();
                     config.lwm.gDriveFileID = null;
@@ -563,6 +347,224 @@ function siteManager() {
         },
         'css': '#lwmSettings_addon_fleet_exclude_drones_var { margin-left: 20px !important; } #lwmSettings_section_4 .config_var { width: 33%; display: inline-block;}',
     });
+
+    var googleManager = (function() {
+        var gapi = null;
+        var gmc = lwmSettings;
+        var CLIENT_ID = '807071171095-behcr73gjee7hombcia0ikkso7buk9h1.apps.googleusercontent.com';
+        var API_KEY = 'AIzaSyBL5DW-WoI1Y2G7oRR5y58Xeoxbh2LEyA4';
+        var DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
+        var SCOPES = 'https://www.googleapis.com/auth/drive.appfolder https://www.googleapis.com/auth/drive.file';
+        var saveFileID = null;
+
+        //if drive fails to load, set loadstate and use browser config instead
+        var handleError = function () {
+            //reset the google settings
+            signOut();
+            if (gmc.get('confirm_drive_sync')) {
+                alert('Couldn\'t sync with Google Drive. Please go to the settings and reconnect the service!');
+                gmc.set('confirm_drive_sync', false);
+                gmc.save();
+            }
+
+            //load browser values
+            getLoadStatePromise('gameData').then(function () { config.setGMValues(); },function () { helper.throwError(); });
+        }
+
+        /**
+             *  On load, called to load the auth2 library and API client library.
+             */
+        var handleClientLoad = function(g) {
+            gapi = g;
+            gapi.load('client:auth2', {
+                callback: initClient,
+                onerror: function () {
+                    console.error('gapi.client failed to load!');
+                    handleError();
+                }
+            });
+        }
+
+        /**
+             *  Initializes the API client library and sets up sign-in state
+             *  listeners.
+             */
+        var initClient = function() {
+            console.log('gapi.client.init');
+            gapi.client.init({
+                apiKey: API_KEY,
+                clientId: CLIENT_ID,
+                discoveryDocs: DISCOVERY_DOCS,
+                scope: SCOPES
+            }).then(function () {
+                updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+            }, function (error) {
+                console.error(JSON.stringify(error, null, 2));
+                handleError();
+            });
+        }
+
+        var updateSigninStatus = function(isSignedIn) {
+            if (isSignedIn && gmc.get('confirm_drive_sync')) {
+                console.log('gapi.client.drive.files.list');
+                //if config file was already loaded, return and resolve gdrive load
+                GM.getValue('lwm_gDriveFileID', null).then(function (ID) {
+                    config.lwm.gDriveFileID = ID;
+                    if (config.lwm.gDriveFileID !== null) {
+                        getLoadStatePromise('gameData').then(function () { config.setGMValues(); },function () { helper.throwError(); });
+                        return;
+                    } else {
+                        gapi.client.drive.files.list({
+                            q: 'name="lwm_config.json"',
+                            spaces: 'appDataFolder',
+                            fields: 'files(id)'
+                        }).then(function(response) {
+                            console.log(response);
+                            if (response.status === 200) {
+                                if (response.result.files.length === 0) {
+                                    createConfig();
+                                } else {
+                                    saveFileID = response.result.files[0].id;
+                                    getConfig();
+                                }
+                            } else {
+                                console.error('files.create: ' + response);
+                                handleError();
+                            }
+                        }, function (error) {
+                            console.error(JSON.stringify(error, null, 2));
+                            handleError();
+                        });
+                    }
+                });
+            } else {
+                handleError();
+            }
+        }
+
+        var createConfig = function () {
+            var fileMetadata = {
+                name: 'lwm_config.json',
+                description: 'Saved config for the Last War Manager',
+                parents: ['appDataFolder'],
+                mimeType: 'application/json',
+                uploadType: 'multipart'
+            };
+            console.log('gapi.client.drive.files.create');
+            gapi.client.drive.files.create({
+                resource: fileMetadata,
+                fields: 'id,name'
+            }).then(function(response) {
+                console.log(response);
+                if (response.status === 200) {
+                    config.lwm.gDriveFileID = response.result.id;
+                    GM.setValue('lwm_gDriveFileID', config.lwm.gDriveFileID);
+                    config.loadStates.gdrive = false;
+                    saveConfig();
+                } else {
+                    console.error('files.create: ' + response);
+                    handleError();
+                }
+            }, function (error) {
+                console.error(JSON.stringify(error, null, 2));
+                handleError();
+            });
+        }
+
+        var saveConfig = function () {
+            // check whether config is ready
+            if (config.loadStates.gdrive) {
+                console.log('gapi.client.request failed due to config.loadStates.gdrive');
+                return;
+            }
+            //save
+            var saveObj = JSON.parse(JSON.stringify(config.lwm));
+            saveObj.menu = {
+                addon_clock: gmc.get('addon_clock'),
+                addon_fleet: gmc.get('addon_fleet'),
+                addon_fleet_exclude_drones: gmc.get('addon_fleet_exclude_drones'),
+                confirm_const: gmc.get('confirm_const'),
+                overview_planetresources: gmc.get('overview_planetresources'),
+                overview_planetstatus: gmc.get('overview_planetstatus'),
+                overview_planetnames: gmc.get('overview_planetnames'),
+                message_spylinks: gmc.get('message_spylinks'),
+                trade_highlights: gmc.get('trade_highlights'),
+                fleet_saveprios: gmc.get('fleet_saveprios'),
+                obs_opentabs: gmc.get('obs_opentabs'),
+                fleet_presets_1_active: gmc.get('fleet_presets_1_active'),fleet_presets_1_weekday: gmc.get('fleet_presets_1_weekday'),fleet_presets_1_time: gmc.get('fleet_presets_1_time'),
+                fleet_presets_2_active: gmc.get('fleet_presets_2_active'),fleet_presets_2_weekday: gmc.get('fleet_presets_2_weekday'),fleet_presets_2_time: gmc.get('fleet_presets_2_time'),
+                fleet_presets_3_active: gmc.get('fleet_presets_3_active'),fleet_presets_3_weekday: gmc.get('fleet_presets_3_weekday'),fleet_presets_3_time: gmc.get('fleet_presets_3_time'),
+                fleet_presets_4_active: gmc.get('fleet_presets_4_active'),fleet_presets_4_weekday: gmc.get('fleet_presets_4_weekday'),fleet_presets_4_time: gmc.get('fleet_presets_4_time'),
+                fleet_presets_5_active: gmc.get('fleet_presets_5_active'),fleet_presets_5_weekday: gmc.get('fleet_presets_5_weekday'),fleet_presets_5_time: gmc.get('fleet_presets_5_time'),
+                confirm_production: gmc.get('confirm_production'),
+                confirm_research: gmc.get('confirm_research'),
+                coords_fleets: gmc.get('coords_fleets'),
+                coords_trades: gmc.get('coords_trades')
+            };
+
+            console.log('gapi.client.request',saveObj);
+            gapi.client.request({
+                path: '/upload/drive/v3/files/' + config.lwm.gDriveFileID,
+                method: 'PATCH',
+                params: {
+                    uploadType: 'media',
+                    mimeType: 'application/json'
+                },
+                body: JSON.stringify(saveObj)
+            }).then(function (response) {
+                console.log(response);
+                if (response.status !== 200) {
+                    console.error('client.request: ' + response);
+                }
+            }, function (error) {
+                console.error(JSON.stringify(error, null, 2));
+            });
+        }
+
+        var getConfig = function () {
+            console.log('gapi.client.drive.files.get');
+            gapi.client.drive.files.get({
+                fileId: saveFileID,
+                alt: 'media'
+            }).then(function (response) {
+                console.log(response);
+                if (response.status === 200) {
+                    config.lwm.gDriveFileID = saveFileID;
+                    GM.setValue('lwm_gDriveFileID', config.lwm.gDriveFileID);
+                    config.lwm.set(response.result);
+                    //config.loadStates.gdrive = false; <-- loadState is updated in config.lwm.set()
+                } else {
+                    console.error('files.create: ' + response);
+                    handleError();
+                }
+            }, function (error) {
+                console.error(JSON.stringify(error, null, 2));
+                handleError();
+            });
+        }
+
+        var signIn = function() {
+            gapi.auth2.getAuthInstance().signIn().then(function () {
+                gmc.close();
+            });
+        }
+
+        var signOut = function() {
+            gapi.auth2.getAuthInstance().signOut();
+        }
+
+        var isSignedIn = function() {
+            return gapi.auth2.getAuthInstance().isSignedIn.get();
+        }
+
+        return {
+            signIn: signIn,
+            signOut: signOut,
+            isSignedIn: isSignedIn,
+            save: saveConfig,
+            init: handleClientLoad
+        };
+    })();
 
     var config = {
         const: {
@@ -585,7 +587,6 @@ function siteManager() {
                 }
             }
         },
-        menu: GM_config,
         loadStates: {
             gdrive: false,
             gameData: false,
@@ -655,9 +656,9 @@ function siteManager() {
                 if (typeof data.planetData !== "undefined") config.lwm.planetData = data.planetData;
                 if (typeof data.menu !== "undefined") {
                     Object.keys(data.menu).forEach(function(key) {
-                        if (typeof GM_config.fields[key] !== "undefined") GM_config.set(key, data.menu[key]);
+                        if (typeof lwmSettings.fields[key] !== "undefined") lwmSettings.set(key, data.menu[key]);
                     });
-                    GM_config.save();
+                    lwmSettings.save();
                 }
 
                 //set and get to sync
@@ -705,8 +706,8 @@ function siteManager() {
             GM.getValue('lwm_lastTradeCoords', '{}').then(function (data) {
                 try { config.lwm.lastTradeCoords = JSON.parse(data); } catch (e) { config.lwm.lastTradeCoords = {}; }
                 checkConfigPerCoordsSetup('lastTradeCoords');
-                if (config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string].length > GM_config.get('coords_trades')) {
-                    config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string].length = GM_config.get('coords_trades');
+                if (config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string].length > lwmSettings.get('coords_trades')) {
+                    config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string].length = lwmSettings.get('coords_trades');
                 }
                 GM.setValue('lwm_lastTradeCoords', JSON.stringify(config.lwm.lastTradeCoords));
 
@@ -714,8 +715,8 @@ function siteManager() {
             }).then(function (data) {
                 try { config.lwm.lastFleetCoords = JSON.parse(data); } catch (e) { config.lwm.lastFleetCoords = {}; }
                 checkConfigPerCoordsSetup('lastFleetCoords');
-                if (config.lwm.lastFleetCoords[config.gameData.playerID][config.gameData.planetCoords.string].length > GM_config.get('coords_fleets')) {
-                    config.lwm.lastFleetCoords[config.gameData.playerID][config.gameData.planetCoords.string].length = GM_config.get('coords_fleets');
+                if (config.lwm.lastFleetCoords[config.gameData.playerID][config.gameData.planetCoords.string].length > lwmSettings.get('coords_fleets')) {
+                    config.lwm.lastFleetCoords[config.gameData.playerID][config.gameData.planetCoords.string].length = lwmSettings.get('coords_fleets');
                 }
                 GM.setValue('lwm_lastFleetCoords', JSON.stringify(config.lwm.lastFleetCoords));
 
@@ -771,7 +772,7 @@ function siteManager() {
                 GM.setValue('lwm_planetData', JSON.stringify(config.lwm.planetData));
 
                 config.loadStates.gdrive = false; // <-- this ends gdrive setup on first load
-                if (GM_config.get('confirm_drive_sync')) googleManager.save();
+                if (lwmSettings.get('confirm_drive_sync')) googleManager.save();
             }).finally(function () {
                 config.loadStates.gdrive = false; // <-- this ends gdrive setup on first load
             });
@@ -796,7 +797,7 @@ function siteManager() {
 
                 // spionage is not needed initially and can be loaded later
                 getLoadStatePromise('gdrive').then(function () {
-                    if (!GM_config.get('addon_fleet')) {
+                    if (!lwmSettings.get('addon_fleet')) {
                         //only load here in case fleet addon isn't active
                         //otherwise the data gets loaded with the fleet addon
                         requests.get_spionage_info();
@@ -913,7 +914,7 @@ function siteManager() {
                 site_jQuery('.status.lwm-firstload').text('LOADING... Page Setup...');
                 //wait for gameData and google because some stuff depends on it
                 global.hotkeySetup();
-                if (!GM_config.get('confirm_drive_sync')) config.setGMValues();
+                if (!lwmSettings.get('confirm_drive_sync')) config.setGMValues();
 
                 // the first ubersicht load is sometimes not caught by our ajax wrapper, so do manually
                 process('ubersicht');
@@ -1252,7 +1253,7 @@ function siteManager() {
                 });
 
                 //add resources
-                if (GM_config.get('overview_planetresources')) {
+                if (lwmSettings.get('overview_planetresources')) {
                     site_jQuery.each(config.gameData.planetInformation, function (i, d) {
                         var $Posle = site_jQuery('.Posle[data-coords=\''+d.Galaxy+'x'+d.System+'x'+d.Planet+'\']');
                         var $tr = site_jQuery('<tr></tr>');
@@ -1268,7 +1269,7 @@ function siteManager() {
                 }
 
                 //replace planet type (main, colony) with planet name
-                if (GM_config.get('overview_planetnames')) {
+                if (lwmSettings.get('overview_planetnames')) {
                     site_jQuery.each(config.gameData.planetInformation, function (i, d) {
                         var $Posle = site_jQuery('.Posle[data-coords=\''+d.Galaxy+'x'+d.System+'x'+d.Planet+'\']');
                         var $val = $Posle.find('.planetButton').val();
@@ -1278,7 +1279,7 @@ function siteManager() {
                 }
 
                 //add energy and slots
-                if (GM_config.get('overview_planetstatus')) {
+                if (lwmSettings.get('overview_planetstatus')) {
                     site_jQuery.each(config.lwm.planetInfo[config.gameData.playerID], function (coords, data) {
                         var $Posle = site_jQuery('.Posle[data-coords=\''+coords+'\']');
                         $Posle.find('td:first input').val($Posle.find('td:first input').val()+' '+data.energy + ' TW - ' + data.slots + ' Free Slot(s)');
@@ -1288,7 +1289,7 @@ function siteManager() {
                 // save overview times to calendar
                 addOns.calendar.storeOverview(config.gameData.overviewInfo);
 
-                if (GM_config.get('addon_clock')) {
+                if (lwmSettings.get('addon_clock')) {
                     clearInterval(unsafeWindow.timeinterval_uber);
                 }
 
@@ -1307,8 +1308,8 @@ function siteManager() {
             config.promises.content.then(function () {
                 site_jQuery('#aktuelleProduktionPageDiv td[onclick]').each(function () {
                     site_jQuery(this).css('cursor', 'hand');
-                    if (GM_config.get('confirm_production')) helper.addConfirm(site_jQuery(this));
-                    if (GM_config.get('addon_clock')) {
+                    if (lwmSettings.get('confirm_production')) helper.addConfirm(site_jQuery(this));
+                    if (lwmSettings.get('addon_clock')) {
                         clearInterval(unsafeWindow.timeinterval_aktuelle_produktion);
                         helper.setDataForClocks();
                     }
@@ -1326,7 +1327,7 @@ function siteManager() {
             config.promises.content = getPromise('#verteidigungDiv');
             config.promises.content.then(function () {
                 site_jQuery('button[onclick*=\'makeDefence\']').each(function () {
-                    if (GM_config.get('confirm_production')) helper.addConfirm(site_jQuery(this));
+                    if (lwmSettings.get('confirm_production')) helper.addConfirm(site_jQuery(this));
                 });
 
                 helper.replaceElementsHtmlWithIcon(site_jQuery('button[onclick*=\'makeDefence\']'), 'fas fa-2x fa-plus-circle');
@@ -1344,7 +1345,7 @@ function siteManager() {
                 site_jQuery('.arrow-left,.arrow-right').css('margin-top',0);
 
                 site_jQuery('button[onclick*=\'buyHandeslpostenShips\']').each(function () {
-                    if (GM_config.get('confirm_production')) helper.addConfirm(site_jQuery(this));
+                    if (lwmSettings.get('confirm_production')) helper.addConfirm(site_jQuery(this));
                 });
 
                 helper.replaceElementsHtmlWithIcon(site_jQuery('button[onclick*=\'buyHandeslpostenShips\']'), 'fas fa-2x fa-plus-circle');
@@ -1360,7 +1361,7 @@ function siteManager() {
             config.promises.content.then(function () {
                 //add confirm to recycle buttons
                 site_jQuery('button[onclick*=\'recycleDefence\']').each(function () {
-                    if (GM_config.get('confirm_production')) helper.addConfirm(site_jQuery(this));
+                    if (lwmSettings.get('confirm_production')) helper.addConfirm(site_jQuery(this));
                 });
 
                 helper.replaceElementsHtmlWithIcon(site_jQuery('button[onclick*=\'recycleDefence\']'), 'fas fa-2x fa-plus-circle');
@@ -1376,7 +1377,7 @@ function siteManager() {
             config.promises.content.then(function () {
                 //add confirm to recycle buttons
                 site_jQuery('button[onclick*=\'upgradeDefenceFunction\']').each(function () {
-                    if (GM_config.get('confirm_production')) helper.addConfirm(site_jQuery(this));
+                    if (lwmSettings.get('confirm_production')) helper.addConfirm(site_jQuery(this));
                 });
 
                 helper.addIconToHtmlElements(site_jQuery('button[onclick*=\'upgradeDefenceFunction\']'), 'fas fa-2x fa-arrow-alt-circle-up');
@@ -1392,13 +1393,13 @@ function siteManager() {
             config.promises.content = getPromise('#productionDiv');
             config.promises.content.then(function () {
                 site_jQuery('button[onclick*=\'delete\']').each(function () {
-                    if (GM_config.get('confirm_production')) helper.addConfirm(site_jQuery(this));
+                    if (lwmSettings.get('confirm_production')) helper.addConfirm(site_jQuery(this));
                 });
 
                 helper.replaceElementsHtmlWithIcon(site_jQuery('button[onclick*=\'delete\']'), 'fas fa-ban');
 
                 site_jQuery('button[onclick*=\'makeShip\']').each(function () {
-                    if (GM_config.get('confirm_production')) helper.addConfirm(site_jQuery(this));
+                    if (lwmSettings.get('confirm_production')) helper.addConfirm(site_jQuery(this));
                 });
 
                 helper.replaceElementsHtmlWithIcon(site_jQuery('button[onclick*=\'makeShip\']'), 'fas fa-2x fa-plus-circle');
@@ -1409,7 +1410,7 @@ function siteManager() {
                         //write setting
                         config.lwm.productionFilters[config.gameData.playerID][config.gameData.planetCoords.string] = site_jQuery.map(site_jQuery('.tableFilters_content > div > .activeBox'), function (el, i) { return site_jQuery(el).parent().data('filter'); });
                         GM.setValue('lwm_productionFilters', JSON.stringify(config.lwm.productionFilters));
-                        if (GM_config.get('confirm_drive_sync')) googleManager.save();
+                        if (lwmSettings.get('confirm_drive_sync')) googleManager.save();
 
                         var filterFunctions = {
                             all: function() {
@@ -1474,7 +1475,7 @@ function siteManager() {
                     $button.click(function () {
                         config.lwm.hiddenShips[config.gameData.playerID][config.gameData.planetCoords.string] = [];
                         GM.setValue('lwm_hiddenShips', JSON.stringify(config.lwm.hiddenShips));
-                        if (GM_config.get('confirm_drive_sync')) googleManager.save();
+                        if (lwmSettings.get('confirm_drive_sync')) googleManager.save();
                         site_jQuery('#productionDiv tr').each(function () { site_jQuery(this).data('hide', false); });
                         setCurrentHiddenCount();
                         productionFilters.process();
@@ -1503,7 +1504,7 @@ function siteManager() {
                         var shipClass = helper.getFirstClassNameFromElement($tr);
                         config.lwm.hiddenShips[config.gameData.playerID][config.gameData.planetCoords.string].push(shipName);
                         GM.setValue('lwm_hiddenShips', JSON.stringify(config.lwm.hiddenShips));
-                        if (GM_config.get('confirm_drive_sync')) googleManager.save();
+                        if (lwmSettings.get('confirm_drive_sync')) googleManager.save();
                         $showAllButton.setCurrentHiddenCount();
                         site_jQuery('.'+shipClass).hide();
                         site_jQuery('.'+shipClass).data('hide', true);
@@ -1523,7 +1524,7 @@ function siteManager() {
             config.promises.content.then(function () {
                 //add confirm to recycle buttons
                 site_jQuery('button[onclick*=\'upgradeShipsFunction\']').each(function () {
-                    if (GM_config.get('confirm_production')) helper.addConfirm(site_jQuery(this));
+                    if (lwmSettings.get('confirm_production')) helper.addConfirm(site_jQuery(this));
                 });
 
                 helper.addIconToHtmlElements(site_jQuery('button[onclick*=\'upgradeShipsFunction\']'), 'fas fa-2x fa-arrow-alt-circle-up');
@@ -1540,7 +1541,7 @@ function siteManager() {
             config.promises.content.then(function () {
                 //add confirm to recycle buttons
                 site_jQuery('button[onclick*=\'RecycleShips\']').each(function () {
-                    if (GM_config.get('confirm_production')) helper.addConfirm(site_jQuery(this));
+                    if (lwmSettings.get('confirm_production')) helper.addConfirm(site_jQuery(this));
                 });
 
                 helper.replaceElementsHtmlWithIcon(site_jQuery('button[onclick*=\'RecycleShips\']'), 'fas fa-2x fa-plus-circle');
@@ -1560,8 +1561,8 @@ function siteManager() {
                     $td.css('cursor', 'hand');
                     $td.attr('onclick', site_jQuery(this).attr('onclick'));
                     site_jQuery(this).attr('onclick', '');
-                    if (GM_config.get('confirm_const')) helper.addConfirm($td);
-                    if (GM_config.get('addon_clock')) {
+                    if (lwmSettings.get('confirm_const')) helper.addConfirm($td);
+                    if (lwmSettings.get('addon_clock')) {
                         clearInterval(unsafeWindow.timeinterval_construction);
                         clearInterval(unsafeWindow.timeinterval_construction2);
                         helper.setDataForClocks();
@@ -1582,8 +1583,8 @@ function siteManager() {
                     $td.css('cursor', 'hand');
                     $td.attr('onclick', site_jQuery(this).attr('onclick'));
                     site_jQuery(this).attr('onclick', '')
-                    if (GM_config.get('confirm_research')) helper.addConfirm($td);
-                    if (GM_config.get('addon_clock')) {
+                    if (lwmSettings.get('confirm_research')) helper.addConfirm($td);
+                    if (lwmSettings.get('addon_clock')) {
                         clearInterval(unsafeWindow.timeinterval_research);
                         helper.setDataForClocks();
                     }
@@ -1642,7 +1643,7 @@ function siteManager() {
                     config.pages.inbox.reportHandler = true;
                 }
 
-                if ([2,4].includes(unsafeWindow.window.current_view_type) && GM_config.get('message_spylinks')) {
+                if ([2,4].includes(unsafeWindow.window.current_view_type) && lwmSettings.get('message_spylinks')) {
                     site_jQuery.each(config.gameData.messageData[1], function (i, m) {
                         if (m.subject.search(/Kampfbericht|Spionagebericht/) !== -1 && m.user_nickname === 'Systemnachricht') {
                             site_jQuery.getJSON('/ajax_request/get_message_info.php?id_conversation='+m.id, { lwm_ignoreProcess: 1 }, function (data) {
@@ -1681,7 +1682,7 @@ function siteManager() {
                             var $tradeDiv = site_jQuery('#div_'+offer.trade_id);
                             var isMyPlanet = offer.galaxy == config.gameData.planetCoords.galaxy && offer.system == config.gameData.planetCoords.system && offer.planet == config.gameData.planetCoords.planet;
                             $.each(currentRes, function (i, amount) {
-                                if (GM_config.get('trade_highlights')) {
+                                if (lwmSettings.get('trade_highlights')) {
                                     if (offer.my === 1 && parseInt(offer.resource[i+6]) > 0 && (incomingRes[i] + amount + (!tradeRunning ? parseInt(offer.resource[i+6]) : 0)) > capacities[i]) {
                                         $tradeDiv.find('tr:eq('+(i+5)+') td').last().addClass('redBackground');
                                         $tradeDiv.find('tr:eq(4) th').addClass('redBackground').html('Denying or accepting this trade would exceed your storage capacities for the marked resource type!');
@@ -1794,11 +1795,11 @@ function siteManager() {
                     });
                     if (!check.length && site_jQuery.inArray(coords[0]+'x'+coords[1]+'x'+coords[2], config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string]) === -1 && helper.checkCoords(coords)) {
                         config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string].unshift(coords[0]+'x'+coords[1]+'x'+coords[2]);
-                        if (config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string].length > GM_config.get('coords_trades')) {
-                            config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string].length = GM_config.get('coords_trades');
+                        if (config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string].length > lwmSettings.get('coords_trades')) {
+                            config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string].length = lwmSettings.get('coords_trades');
                         }
                         GM.setValue('lwm_lastTradeCoords', JSON.stringify(config.lwm.lastTradeCoords));
-                        if (GM_config.get('confirm_drive_sync')) googleManager.save();
+                        if (lwmSettings.get('confirm_drive_sync')) googleManager.save();
                     }
                 });
 
@@ -2059,11 +2060,11 @@ function siteManager() {
                     var coords = [parseInt(site_jQuery('#galaxyInput').val()),parseInt(site_jQuery('#systemInput').val()),parseInt(site_jQuery('#planetInput').val())];
                     if (site_jQuery.inArray(coords[0]+'x'+coords[1]+'x'+coords[2], config.lwm.lastFleetCoords[config.gameData.playerID][config.gameData.planetCoords.string]) === -1 && helper.checkCoords(coords)) {
                         config.lwm.lastFleetCoords[config.gameData.playerID][config.gameData.planetCoords.string].unshift(coords[0]+'x'+coords[1]+'x'+coords[2]);
-                        if (config.lwm.lastFleetCoords[config.gameData.playerID][config.gameData.planetCoords.string].length > GM_config.get('coords_fleets')) {
-                            config.lwm.lastFleetCoords[config.gameData.playerID][config.gameData.planetCoords.string].length = GM_config.get('coords_fleets');
+                        if (config.lwm.lastFleetCoords[config.gameData.playerID][config.gameData.planetCoords.string].length > lwmSettings.get('coords_fleets')) {
+                            config.lwm.lastFleetCoords[config.gameData.playerID][config.gameData.planetCoords.string].length = lwmSettings.get('coords_fleets');
                         }
                         GM.setValue('lwm_lastFleetCoords', JSON.stringify(config.lwm.lastFleetCoords));
-                        if (GM_config.get('confirm_drive_sync')) googleManager.save();
+                        if (lwmSettings.get('confirm_drive_sync')) googleManager.save();
                     }
                 });
 
@@ -2087,7 +2088,7 @@ function siteManager() {
                 $divSave.appendTo($lastTR.find('td').first());
 
                 //save raid prio on submit
-                if (GM_config.get('fleet_saveprios')) {
+                if (lwmSettings.get('fleet_saveprios')) {
                     if (config.lwm.raidPrios.length === 6) {
                         //fill fields if we have a saved prio
                         site_jQuery('#roheisen_priority').val(config.lwm.raidPrios[0]);
@@ -2113,7 +2114,7 @@ function siteManager() {
                             if (JSON.stringify(prios) !== JSON.stringify(config.lwm.raidPrios)) {
                                 config.lwm.raidPrios = prios;
                                 GM.setValue('lwm_raidPrios', JSON.stringify(config.lwm.raidPrios));
-                                if (GM_config.get('confirm_drive_sync')) googleManager.save();
+                                if (lwmSettings.get('confirm_drive_sync')) googleManager.save();
                             }
                         }
                     });
@@ -2300,8 +2301,8 @@ function siteManager() {
                 //pre-select defined sets
                 var presets = [];
                 [1,2,3,4,5].forEach(function (i) {
-                    if (GM_config.get('fleet_presets_'+i+'_active')) {
-                        presets.push({time: GM_config.get('fleet_presets_'+i+'_time'), days: GM_config.get('fleet_presets_'+i+'_weekday')});
+                    if (lwmSettings.get('fleet_presets_'+i+'_active')) {
+                        presets.push({time: lwmSettings.get('fleet_presets_'+i+'_time'), days: lwmSettings.get('fleet_presets_'+i+'_weekday')});
                     }
                 });
                 if (presets.length) {
@@ -2422,7 +2423,7 @@ function siteManager() {
                     if (existingObs.length !== 0) {
                         //obs found... open!
                         site_jQuery(this).click(function () {
-                            if (GM_config.get('obs_opentabs')) {
+                            if (lwmSettings.get('obs_opentabs')) {
                                 window.open('view/content/new_window/observationen_view.php?id='+existingObs[0].id);
                             } else {
                                 unsafeWindow.openObservationWindow(existingObs[0].id);
@@ -2491,7 +2492,7 @@ function siteManager() {
                 });
 
                 //replace obs links
-                if (GM_config.get('obs_opentabs')) {
+                if (lwmSettings.get('obs_opentabs')) {
                     site_jQuery.each(site_jQuery('#observationenDiv a[onclick*=\'openObservationWindow\']'), function () {
                         $self = site_jQuery(this);
                         var id = $self.attr('onclick').match(/\d+/)[0];
@@ -2855,7 +2856,7 @@ function siteManager() {
 
                 //add managerButton
                 var $managerButton = site_jQuery('<div class="menu_box"><i class="fas fa-cogs"></i><span style="margin-right:2px;">Manager</span></div>')
-                $managerButton.click(function () { GM_config.open(); });
+                $managerButton.click(function () { lwmSettings.open(); });
                 site_jQuery('.first_line .menu_box:nth-last-child(2)').after($managerButton);
 
                 //add manager unload on logout
@@ -2928,7 +2929,7 @@ function siteManager() {
             fleetCompleteHandlerAdded: false
         },
         load: function () {
-            if (GM_config.get('addon_fleet') && unsafeWindow.active_page !== 'flottenbewegungen') {
+            if (lwmSettings.get('addon_fleet') && unsafeWindow.active_page !== 'flottenbewegungen') {
                 if (!Object.keys(config.gameData.spionageInfos).length || !Object.keys(config.gameData.observationInfo).length) {
                     requests.get_obs_info()
                         .then(function () { return requests.get_spionage_info(); })
@@ -2939,7 +2940,7 @@ function siteManager() {
             }
 
             addOns.refreshTrades();
-            if (GM_config.get('addon_clock')) addOns.addClockInterval();
+            if (lwmSettings.get('addon_clock')) addOns.addClockInterval();
         },
         unload: function () {
             if (addOns.config.fleetRefreshInterval !== null) { clearInterval(addOns.config.fleetRefreshInterval); addOns.config.fleetRefreshInterval = null; }
@@ -2979,7 +2980,7 @@ function siteManager() {
         },
         //checks whether trades would surpass resource capacities and highlights a warning
         checkCapacities: function () {
-            if (!GM_config.get('trade_highlights')) return;
+            if (!lwmSettings.get('trade_highlights')) return;
             var tradeInfo = config.gameData.tradeInfo;
             var capacities = unsafeWindow.resourceCapacityArray;
             var resSpans = [site_jQuery('#roheisenAmount'),site_jQuery('#kristallAmount'),site_jQuery('#frubinAmount'),site_jQuery('#orizinAmount'),site_jQuery('#frurozinAmount'),site_jQuery('#goldAmount')];
@@ -3025,9 +3026,9 @@ function siteManager() {
         showFleetActivityGlobally: function(page) {
             //no fleet config set, return
             if (
-                (GM_config.get('addon_fleet') && page === 'flottenbewegungen')
+                (lwmSettings.get('addon_fleet') && page === 'flottenbewegungen')
                     ||
-                (!GM_config.get('addon_fleet') && page !== 'flottenbewegungen')
+                (!lwmSettings.get('addon_fleet') && page !== 'flottenbewegungen')
             ) {
                 return;
             }
@@ -3047,9 +3048,9 @@ function siteManager() {
 
                 //exclude flottenbewegungen here as the only page that should not show fleets even with setting set
                 if (
-                    (GM_config.get('addon_fleet') && page === 'flottenbewegungen')
+                    (lwmSettings.get('addon_fleet') && page === 'flottenbewegungen')
                         ||
-                    (!GM_config.get('addon_fleet') && page !== 'flottenbewegungen')
+                    (!lwmSettings.get('addon_fleet') && page !== 'flottenbewegungen')
                 ) {
                     return;
                 }
@@ -3203,7 +3204,7 @@ function siteManager() {
                     $fleetRows.push('<tr data-type="'+(fleetData.Type || '')+'" data-status="'+(fleetData.Status || '')+'" data-coords="'+(fleetData.Galaxy_send + "x" + fleetData.System_send + "x" + fleetData.Planet_send)+'" style='+trStyle+'><td><div class="lwm_fleetinfowrapper">'+fleetInfoString+'</div></td><td>'+fleetTimeString+'</td><td id=\''+fleetClock+'\'>'+moment.duration(moment(fleetTimeString).diff(moment(),'seconds'), 'seconds').format("HH:mm:ss", { trim: false, forceLength: true })+'</td></tr>');
                 });
 
-                if (!GM_config.get('addon_fleet_exclude_drones')) {
+                if (!lwmSettings.get('addon_fleet_exclude_drones')) {
                     site_jQuery.each(config.gameData.fleetInfo.all_informations, function(i, fleetData) {
                         //add missing info for drones
                         fleetData.Type = '4'; fleetData.Status = '1';
@@ -3244,7 +3245,7 @@ function siteManager() {
                         case '1':
                             var existingObs = helper.getActiveObs([fleetData.Galaxy_send,fleetData.System_send,fleetData.Planet_send]);
                             var spydrones = site_jQuery.grep(config.gameData.spionageInfos.planetenscanner_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
-                            var obsLink = existingObs.length ? '<i onclick="'+(GM_config.get('obs_opentabs') ? 'window.open(\'view/content/new_window/observationen_view.php?id='+existingObs[0].id+'\')' : 'openObservationWindow('+existingObs[0].id+')')+'" style="cursor:hand;" class="fas fa-search-plus"></i>' : (spydrones.length ? '<i style="cursor:hand;" class="fas fa-search"></i>' : '');
+                            var obsLink = existingObs.length ? '<i onclick="'+(lwmSettings.get('obs_opentabs') ? 'window.open(\'view/content/new_window/observationen_view.php?id='+existingObs[0].id+'\')' : 'openObservationWindow('+existingObs[0].id+')')+'" style="cursor:hand;" class="fas fa-search-plus"></i>' : (spydrones.length ? '<i style="cursor:hand;" class="fas fa-search"></i>' : '');
 
                             fleetInfoString = 'Eigene Flotte vom Planet '+ ownCoords;
                             if (fleetData.Status == 1) fleetInfoString = '<div class="lwm_fleeticonwrapper">'+iconAtt+obsLink+lkomSendLink+'</div><div class="lwm_fleetinfo">'+fleetInfoString+" greift Planet ";
@@ -3319,7 +3320,7 @@ function siteManager() {
 
                 filter.process();
 
-                if (GM_config.get('addon_clock')) {
+                if (lwmSettings.get('addon_clock')) {
                     clearInterval(unsafeWindow.timeinterval_flottenbewegungen);
                     helper.setDataForClocks();
                 }
@@ -3392,9 +3393,9 @@ function siteManager() {
                 var dataResearchAfter = JSON.stringify(addOns.calendar.getData('research',config.gameData.playerID));
 
                 GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
-                if (GM_config.get('confirm_drive_sync') && (!addOns.calendar.truncateData() || dataResearchBefore !== dataResearchAfter || dataBuildingBefore !== dataBuildingAfter)) googleManager.save();
+                if (lwmSettings.get('confirm_drive_sync') && (!addOns.calendar.truncateData() || dataResearchBefore !== dataResearchAfter || dataBuildingBefore !== dataBuildingAfter)) googleManager.save();
 
-                notifications.worker.postMessage({'cmd':'push','calendar':config.lwm.calendar,'config':{'notifications_buildings':GM_config.get('notifications_buildings')}});
+                notifications.worker.postMessage({'cmd':'push','calendar':config.lwm.calendar,'config':{'notifications_buildings':lwmSettings.get('notifications_buildings')}});
             },
             storeFleets: function (data) {
                 var lang = config.const.lang.fleet;
@@ -3420,7 +3421,7 @@ function siteManager() {
                 var dataFleetAfter = JSON.stringify(addOns.calendar.getData('fleet',config.gameData.playerID, config.gameData.planetCoords.string));
 
                 GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
-                if (GM_config.get('confirm_drive_sync') && dataFleetBefore !== dataFleetAfter) googleManager.save();
+                if (lwmSettings.get('confirm_drive_sync') && dataFleetBefore !== dataFleetAfter) googleManager.save();
             },
             storeProd: function (data) {
                 var dataDefenseBefore = JSON.stringify(addOns.calendar.getData('defense',config.gameData.playerID, config.gameData.planetCoords.string));
@@ -3480,7 +3481,7 @@ function siteManager() {
                 var dataShipsAfter = JSON.stringify(addOns.calendar.getData('ships',config.gameData.playerID, config.gameData.planetCoords.string));
 
                 GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
-                if (GM_config.get('confirm_drive_sync') && (dataDefenseBefore !== dataDefenseAfter || dataShipsBefore !== dataShipsAfter)) googleManager.save();
+                if (lwmSettings.get('confirm_drive_sync') && (dataDefenseBefore !== dataDefenseAfter || dataShipsBefore !== dataShipsAfter)) googleManager.save();
             },
             storeTrades: function (data) {
                 var dataTradesBefore = JSON.stringify(addOns.calendar.getData('trades',config.gameData.playerID, config.gameData.planetCoords.string));
@@ -3499,7 +3500,7 @@ function siteManager() {
                 var dataTradesAfter =  JSON.stringify(addOns.calendar.getData('trades',config.gameData.playerID, config.gameData.planetCoords.string));
 
                 GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
-                if (GM_config.get('confirm_drive_sync') && dataTradesBefore !== dataTradesAfter) googleManager.save();
+                if (lwmSettings.get('confirm_drive_sync') && dataTradesBefore !== dataTradesAfter) googleManager.save();
             },
             store: function (data) {
                 var check = config.lwm.calendar.filter(function (entry) {
@@ -3792,7 +3793,7 @@ function siteManager() {
                                 'Last War Manager Notification', notifications.imgUrl, function () { window.open('https://last-war.de/main.php'); });
             });
             GM.getValue('lwm_calendar', '[]').then(function (data) {
-                notifications.worker.postMessage({'cmd':'push','calendar':JSON.parse(data),'config':{'notifications_buildings':GM_config.get('notifications_buildings')}});
+                notifications.worker.postMessage({'cmd':'push','calendar':JSON.parse(data),'config':{'notifications_buildings':lwmSettings.get('notifications_buildings')}});
             });
         }
     };
@@ -3821,7 +3822,7 @@ function siteManager() {
             });
         },
         setDataForClocks: function () {
-            if (!GM_config.get('addon_clock')) return true;
+            if (!lwmSettings.get('addon_clock')) return true;
             site_jQuery('[id*=\'clock\'],[id*=\'Clock\']').each(function () {
                 if (typeof site_jQuery(this).data('clock_seconds') !== "undefined") return true;
 
