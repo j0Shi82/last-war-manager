@@ -323,11 +323,19 @@ function siteManager() {
             },
             'confirm_drive_sync':
             {
-                'section': [GM_config.create('Sync'), 'Options to sync settings across your different browsers.'],
-                'label': 'Use Google Drive to sync settings (recommended). WARNING: Any existing cloud configs will override local configs. This option is per device and not saved globally.',
+                'section': [GM_config.create('Sync'), 'Options to sync settings across your different browsers. Options are per device and not saved globally.'],
+                'label': 'Use Google Drive to sync settings (recommended). WARNING: Any existing cloud configs will override local configs.',
                 'labelPos': 'right',
                 'type': 'checkbox',
                 'default': false
+            },
+            'drive_sync_interval':
+            {
+                'label': 'When should Google Drive load the settings from the cloud? Loading settings more frequently reduces overall load speed, but allows you to sync options while operating on two devices simultaniously.',
+                'labelPos': 'left',
+                'type': 'select',
+                'options': ['On Login','On Planet Change'],
+                'default': 'On Login'
             }
         },
         'events':
@@ -885,7 +893,7 @@ function siteManager() {
 
     var installMain = function() {
         // coming from login, invalidate gDrive settings
-        if (document.referrer.search(/index\.php\?page=Login$/) !== -1) {
+        if (document.referrer.search(/index\.php\?page=Login$/) !== -1 || lwmSettings.get('drive_sync_interval') === 'On Planet Change') {
             config.lwm.gDriveFileID = null;
             GM.setValue('lwm_gDriveFileID', null);
         }
@@ -917,7 +925,7 @@ function siteManager() {
                 if (!lwmSettings.get('confirm_drive_sync')) config.setGMValues();
 
                 // the first ubersicht load is sometimes not caught by our ajax wrapper, so do manually
-                process('ubersicht');
+                getLoadStatePromise('gameData').then(function () { process('ubersicht'); });
             },function () { site_jQuery('.status.lwm-firstload').text('LOADING... ERROR...'); helper.throwError(); });
 
             //we're hooking into ajax requests to figure out on which page we are and fire our own stuff
