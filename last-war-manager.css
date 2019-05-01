@@ -173,6 +173,10 @@ div[data-role="page"] {
     margin-top: 5px !important;
   }
 }
+select {
+  color: #7cf3fd;
+  background-color: rgb(12, 48, 70);
+}
 #Main {
   display: none;
   justify-content: center;
@@ -416,6 +420,7 @@ th {
   background-color: #4290a157;
   font-size: 18px;
   font-weight: bold;
+  white-space: normal;
 }
 .wordBreak {
   word-break: normal;
@@ -724,11 +729,12 @@ th.resursiUnos {
 #constructionPageDiv th,
 td.constructionName,
 #researchPageDiv th,
+#tradeOfferDiv th,
 #newTradeOfferDiv th,
 #raumdockDiv th,
 #changeFlottenDiv th,
 #messagesListTableInbox > tbody > tr:first-child,
-#folottenbewegungenPageDiv table tr:first-child,
+#lwm_folottenbewegungenPageDiv table tr:first-child,
 #galaxyViewInfoTable th,
 #observationenDiv th,
 #calendarDiv th,
@@ -754,10 +760,23 @@ td.constructionName,
 #galaxyViewDiv {
   margin-top: 5px;
 }
-#folottenbewegungenPageDiv
+#lwm_folottenbewegungenPageDiv
   tr
   > td:not(:nth-last-child(1)):not(:nth-last-child(2)):not(:first-child) {
   display: none;
+}
+#lwm_folottenbewegungenPageDiv select {
+  width: 30%;
+  margin-left: 1.5%;
+  margin-right: 1.5%;
+}
+#lwm_folottenbewegungenPageDiv b {
+  text-decoration: underline;
+}
+#lwm_folottenbewegungenPageDiv i {
+  float: left;
+  margin-top: 2px;
+  width: 1.5em;
 }
 #planetTable > tbody > tr:nth-child(1) > td:nth-child(4),
 #planetTable > tbody > tr:nth-child(1) > td:nth-child(5),
@@ -916,7 +935,7 @@ td.constructionName,
   margin-top: 3%;
   margin-right: 0;
 }
-#upgradeDefenceDiv [onclick*="upgradeDefenceFunction"] {
+#upgradeDefenceDiv button[onclick*="upgradeDefenceFunction"] {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -949,6 +968,10 @@ td.constructionName,
   height: 120px;
   animation: spin 2s linear infinite;
   margin: 0 auto;
+}
+.lwm-firstload.status {
+  width: 100%;
+  text-align: center;
 }
 @keyframes spin {
   0% {
@@ -995,6 +1018,24 @@ td.constructionName,
 .flottenViewDiv a:hover {
   color: #fff;
   background-color: #242d6f8f;
+}
+#lwm_fleet_timer_wrapper {
+  margin-top: 20px;
+  border: 1px solid rgba(124, 243, 241, 0.5);
+  padding: 5px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+#lwm_fleet_timer_wrapper div,
+#lwm_fleet_timer_wrapper select,
+#lwm_fleet_timer_wrapper input {
+  height: 20px;
+}
+#lwm_fleet_timer_wrapper .lwm_preselect {
+  font-weight: bold;
+  background-color: #7cf3fd;
+  color: #0c3046;
 }
 /* FLEET END */
 /* SETTINGS */
@@ -1134,6 +1175,12 @@ body#lwmSettings .section_desc {
   background-color: #4290a157;
   border-bottom: 1px solid #7cf3f1;
 }
+[id*="ProductionButtonShip"] button {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
 /* PRODUCTION END */
 /* ROHSTOFFE START */
 #rohstoffeDiv > .rohstoffeTableClass > tbody > tr {
@@ -1188,3 +1235,8 @@ body#lwmSettings .section_desc {
   }
 }
 /* CALENDAR END*/
+/* UEBERSICHT */
+#uberPageDiv table {
+  overflow: hidden;
+}
+/* UEBERSICHT END */
