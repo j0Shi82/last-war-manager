@@ -11,6 +11,7 @@
 // @match         https://*.last-war.de/*
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
 // @require       https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
+// @require       https://browser.sentry-cdn.com/5.1.1/bundle.min.js
 // @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@c1ef11593cff9baf19e2d33cebeb7c1eb8f47bfd/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
@@ -25,6 +26,11 @@
 // ==/UserScript==
 
 var firstLoad = true;
+
+Sentry.init({
+    dsn: 'https://a26d8eec21664f969f5962a60313da95@sentry.io/1450111',
+    release: 'last-war-manager@next-version'
+});
 
 // add style
 (function() {
@@ -407,6 +413,7 @@ function siteManager() {
             }).then(function () {
                 updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
             }, function (error) {
+                Sentry.captureException(error);
                 console.error(JSON.stringify(error, null, 2));
                 handleError();
             });
@@ -440,6 +447,7 @@ function siteManager() {
                                 handleError();
                             }
                         }, function (error) {
+                            Sentry.captureException(error);
                             console.error(JSON.stringify(error, null, 2));
                             handleError();
                         });
@@ -474,6 +482,7 @@ function siteManager() {
                     handleError();
                 }
             }, function (error) {
+                Sentry.captureException(error);
                 console.error(JSON.stringify(error, null, 2));
                 handleError();
             });
@@ -525,6 +534,7 @@ function siteManager() {
                     console.error('client.request: ' + response);
                 }
             }, function (error) {
+                Sentry.captureException(error);
                 console.error(JSON.stringify(error, null, 2));
             });
         }
@@ -546,6 +556,7 @@ function siteManager() {
                     handleError();
                 }
             }, function (error) {
+                Sentry.captureException(error);
                 console.error(JSON.stringify(error, null, 2));
                 handleError();
             });
@@ -1051,6 +1062,7 @@ function siteManager() {
                 site_jQuery("html, body").animate({ scrollTop: site_jQuery(document).height() }, 250);
             }
         }).catch(function (e) {
+            Sentry.captureException(e);
             console.log(e);
             helper.throwError();
             site_jQuery('.loader').hide();
@@ -1190,6 +1202,7 @@ function siteManager() {
 
                 config.loadStates.submenu = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.submenu = false;
@@ -1207,6 +1220,7 @@ function siteManager() {
             config.promises.content.then(function () {
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1245,6 +1259,7 @@ function siteManager() {
                     });
                 });
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
             });
@@ -1306,6 +1321,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1326,6 +1342,7 @@ function siteManager() {
                 helper.replaceElementsHtmlWithIcon(site_jQuery('td[onclick*=\'deleteAktuelleProduktion\']'), 'fas fa-ban');
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1341,6 +1358,7 @@ function siteManager() {
                 helper.replaceElementsHtmlWithIcon(site_jQuery('button[onclick*=\'makeDefence\']'), 'fas fa-2x fa-plus-circle');
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1359,6 +1377,7 @@ function siteManager() {
                 helper.replaceElementsHtmlWithIcon(site_jQuery('button[onclick*=\'buyHandeslpostenShips\']'), 'fas fa-2x fa-plus-circle');
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1375,6 +1394,7 @@ function siteManager() {
                 helper.replaceElementsHtmlWithIcon(site_jQuery('button[onclick*=\'recycleDefence\']'), 'fas fa-2x fa-plus-circle');
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1392,6 +1412,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1522,6 +1543,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1539,6 +1561,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1555,6 +1578,7 @@ function siteManager() {
                 helper.replaceElementsHtmlWithIcon(site_jQuery('button[onclick*=\'RecycleShips\']'), 'fas fa-2x fa-plus-circle');
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1578,6 +1602,7 @@ function siteManager() {
                 });
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1599,6 +1624,7 @@ function siteManager() {
                 });
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1615,6 +1641,7 @@ function siteManager() {
                 });
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1664,6 +1691,7 @@ function siteManager() {
                     });
                 }
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1776,11 +1804,13 @@ function siteManager() {
 
                         config.loadStates.content = false;
                     }).catch(function (e) {
+                        Sentry.captureException(e);
                         console.log(e);
                         config.loadStates.content = false;
                     });
                 }
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1864,6 +1894,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1891,6 +1922,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1908,6 +1940,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1933,6 +1966,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -2055,6 +2089,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -2130,6 +2165,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -2354,6 +2390,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -2370,6 +2407,7 @@ function siteManager() {
 
                     config.loadStates.content = false;
                 }).catch(function (e) {
+                    Sentry.captureException(e);
                     console.log(e);
                     helper.throwError();
                     config.loadStates.content = false;
@@ -2451,6 +2489,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -2512,6 +2551,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -2523,6 +2563,7 @@ function siteManager() {
                 //site_jQuery('#create').click(function () { config.gameData.reloads.productionInfos = 'production'; });
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -2552,6 +2593,7 @@ function siteManager() {
                 $div.prependTo(site_jQuery('#Tables'));
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -2620,6 +2662,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -2648,6 +2691,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -2706,6 +2750,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -2817,6 +2862,7 @@ function siteManager() {
                         unsafeWindow.changeInboxContent = config.unsafeWindow.changeInboxContent;
                         $button.attr('onclick', $button.attr('data-onclick'));
                     }).catch(function (e) {
+                        Sentry.captureException(e);
                         unsafeWindow.changeContent = config.unsafeWindow.changeContent;
                         unsafeWindow.changeInboxContent = config.unsafeWindow.changeInboxContent;
                         $button.attr('onclick', $button.attr('data-onclick'));
