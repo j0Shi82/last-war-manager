@@ -80,7 +80,7 @@ function siteManager() {
             GM_config.save();
 
             //load browser values
-            getLoadStatePromise('gameData').then(function () { config.setGMValues(); },function () { helper.throwError(); });
+            getLoadStatePromise('gameData').then(function () { config.setGMValues(); },function () { Sentry.captureMessage('gameData promise rejected'); helper.throwError(); });
         }
 
         /**
@@ -125,7 +125,7 @@ function siteManager() {
                 GM.getValue('lwm_gDriveFileID', null).then(function (ID) {
                     config.lwm.gDriveFileID = ID;
                     if (config.lwm.gDriveFileID !== null) {
-                        getLoadStatePromise('gameData').then(function () { config.setGMValues(); },function () { helper.throwError(); });
+                        getLoadStatePromise('gameData').then(function () { config.setGMValues(); },function () { Sentry.captureMessage('gameData promise rejected'); helper.throwError(); });
                         return;
                     } else {
                         gapi.client.drive.files.list({
@@ -656,7 +656,7 @@ function siteManager() {
                 GM.setValue('lwm_planetData', JSON.stringify(config.lwm.planetData));
 
                 // wait for gameData, then process
-                getLoadStatePromise('gameData').then(function () { config.setGMValues() },function () { helper.throwError(); });
+                getLoadStatePromise('gameData').then(function () { config.setGMValues() },function () { Sentry.captureMessage('gameData promise rejected'); helper.throwError(); });
             },
         },
         pages: {
@@ -776,7 +776,7 @@ function siteManager() {
                 lwm_jQuery.when(
                     config.getGameData.overviewInfos(),
                     config.getGameData.planetInformation()
-                ).then(function () { config.loadStates.gameData = false; },function () { helper.throwError(); });
+                ).then(function () { config.loadStates.gameData = false; },function () { Sentry.captureMessage('fetching gameData all failed'); helper.throwError(); });
 
                 // spionage is not needed initially and can be loaded later
                 getLoadStatePromise('gdrive').then(function () {
@@ -885,7 +885,7 @@ function siteManager() {
             config.getGameData.all();
             site_jQuery.getScript('//apis.google.com/js/api.js').then(function () {
                 lwm_jQuery('.status.lwm-firstload').text('LOADING... Google Drive...');
-                driveManager.init(unsafeWindow.gapi); },function () { lwm_jQuery('.status.lwm-firstload').text('LOADING... ERROR...'); helper.throwError(); });
+                driveManager.init(unsafeWindow.gapi); },function () { lwm_jQuery('.status.lwm-firstload').text('LOADING... ERROR...'); Sentry.captureMessage('Google API fetch failed'); helper.throwError(); });
             getLoadStatePromise('gdrive').then(function () {
                 lwm_jQuery('.status.lwm-firstload').text('LOADING... Page Setup...');
                 //wait for gameData and google because some stuff depends on it
@@ -894,7 +894,7 @@ function siteManager() {
 
                 // the first ubersicht load is sometimes not caught by our ajax wrapper, so do manually
                 process('ubersicht');
-            },function () { lwm_jQuery('.status.lwm-firstload').text('LOADING... ERROR...'); helper.throwError(); });
+            },function () { lwm_jQuery('.status.lwm-firstload').text('LOADING... ERROR...'); Sentry.captureMessage('gDrive promise rejected'); helper.throwError(); });
 
             //we're hooking into ajax requests to figure out on which page we are and fire our own stuff
             var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
