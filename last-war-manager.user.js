@@ -14,6 +14,7 @@
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e07de5c0a13d416fda88134f999baccfee6f7059/assets/jquery.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js
+// @require       https://browser.sentry-cdn.com/5.1.1/bundle.min.js
 // @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@b164a5ae015ac13e40d94290c485074cad9d68f6/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
@@ -23,6 +24,11 @@
 // @run-at        document-start
 // @version       0.8
 // ==/UserScript==
+
+Sentry.init({
+    dsn: 'https://a26d8eec21664f969f5962a60313da95@sentry.io/1450111',
+    release: 'last-war-manager@v0.8.0'
+});
 
 var firstLoad = true;
 var lwm_jQuery = window.jQuery;
@@ -106,6 +112,7 @@ function siteManager() {
                 gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
                 updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
             }, function (error) {
+                Sentry.captureException(error);
                 console.error(JSON.stringify(error, null, 2));
                 handleError();
             });
@@ -139,6 +146,7 @@ function siteManager() {
                                 handleError();
                             }
                         }, function (error) {
+                            Sentry.captureException(error);
                             console.error(JSON.stringify(error, null, 2));
                             handleError();
                         });
@@ -173,6 +181,7 @@ function siteManager() {
                     handleError();
                 }
             }, function (error) {
+                Sentry.captureException(error);
                 console.error(JSON.stringify(error, null, 2));
                 handleError();
             });
@@ -224,6 +233,7 @@ function siteManager() {
                     console.error('client.request: ' + response);
                 }
             }, function (error) {
+                Sentry.captureException(error);
                 console.error(JSON.stringify(error, null, 2));
             });
         }
@@ -245,6 +255,7 @@ function siteManager() {
                     handleError();
                 }
             }, function (error) {
+                Sentry.captureException(error);
                 console.error(JSON.stringify(error, null, 2));
                 handleError();
             });
@@ -1008,6 +1019,7 @@ function siteManager() {
                 lwm_jQuery("html, body").animate({ scrollTop: lwm_jQuery(document).height() }, 250);
             }
         }).catch(function (e) {
+            Sentry.captureException(e);
             //console.log(e);
             helper.throwError();
             lwm_jQuery('.loader').hide();
@@ -1147,6 +1159,7 @@ function siteManager() {
 
                 config.loadStates.submenu = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.submenu = false;
@@ -1164,6 +1177,7 @@ function siteManager() {
             config.promises.content.then(function () {
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1202,6 +1216,7 @@ function siteManager() {
                     });
                 });
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
             });
@@ -1263,6 +1278,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1283,6 +1299,7 @@ function siteManager() {
                 helper.replaceElementsHtmlWithIcon(lwm_jQuery('td[onclick*=\'deleteAktuelleProduktion\']'), 'fas fa-ban');
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1298,6 +1315,7 @@ function siteManager() {
                 helper.replaceElementsHtmlWithIcon(lwm_jQuery('button[onclick*=\'makeDefence\']'), 'fas fa-2x fa-plus-circle');
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1316,6 +1334,7 @@ function siteManager() {
                 helper.replaceElementsHtmlWithIcon(lwm_jQuery('button[onclick*=\'buyHandeslpostenShips\']'), 'fas fa-2x fa-plus-circle');
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1332,6 +1351,7 @@ function siteManager() {
                 helper.replaceElementsHtmlWithIcon(lwm_jQuery('button[onclick*=\'recycleDefence\']'), 'fas fa-2x fa-plus-circle');
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1349,6 +1369,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1479,6 +1500,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1496,6 +1518,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1512,6 +1535,7 @@ function siteManager() {
                 helper.replaceElementsHtmlWithIcon(lwm_jQuery('button[onclick*=\'RecycleShips\']'), 'fas fa-2x fa-plus-circle');
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1534,6 +1558,7 @@ function siteManager() {
                 });
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1555,6 +1580,7 @@ function siteManager() {
                 });
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1571,6 +1597,7 @@ function siteManager() {
                 });
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1620,6 +1647,7 @@ function siteManager() {
                     });
                 }
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1732,11 +1760,13 @@ function siteManager() {
 
                         config.loadStates.content = false;
                     }).catch(function (e) {
+                        Sentry.captureException(e);
                         //console.log(e);
                         config.loadStates.content = false;
                     });
                 }
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1820,6 +1850,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1847,6 +1878,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1864,6 +1896,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1889,6 +1922,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -1987,6 +2021,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -2062,6 +2097,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -2286,6 +2322,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -2302,6 +2339,7 @@ function siteManager() {
 
                     config.loadStates.content = false;
                 }).catch(function (e) {
+                    Sentry.captureException(e);
                     //console.log(e);
                     helper.throwError();
                     config.loadStates.content = false;
@@ -2383,6 +2421,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -2444,6 +2483,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -2455,6 +2495,7 @@ function siteManager() {
                 //lwm_jQuery('#create').click(function () { config.gameData.reloads.productionInfos = 'production'; });
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -2484,6 +2525,7 @@ function siteManager() {
                 $div.prependTo(lwm_jQuery('#Tables'));
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -2552,6 +2594,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -2580,6 +2623,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -2638,6 +2682,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
+                Sentry.captureException(e);
                 //console.log(e);
                 helper.throwError();
                 config.loadStates.content = false;
@@ -2749,6 +2794,7 @@ function siteManager() {
                         unsafeWindow.changeInboxContent = config.unsafeWindow.changeInboxContent;
                         $button.attr('onclick', $button.attr('data-onclick'));
                     }).catch(function (e) {
+                        Sentry.captureException(e);
                         unsafeWindow.changeContent = config.unsafeWindow.changeContent;
                         unsafeWindow.changeInboxContent = config.unsafeWindow.changeInboxContent;
                         $button.attr('onclick', $button.attr('data-onclick'));
