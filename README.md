@@ -45,11 +45,6 @@ A German feedback thread can be found on the [official message board](http://for
 - **UPGRADE & RECYCLE**
   - Buttons to bulk add ships to fleets
 - **FLEETS**
-<<<<<<< HEAD
-  - Callback button added to the fleet pages
-  - Buttons to bulk add ships to fleets
-  - Ability to store last used coords
-=======
   - The fleet movement page turned into a calendar page that lists all running tasks
     - The page groups similar entries to avoid too many rows
   - Callback button added to the fleet pages
@@ -57,7 +52,6 @@ A German feedback thread can be found on the [official message board](http://for
   - Ability to store last used coords
   - While sending fleets, you can choose a return time and the script automatically adjusts speeds
   - Save raid priorities
->>>>>>> v0.8.0
 - **TRADE**
    - Ability to store last used coords
    - Two-click save to own planets
