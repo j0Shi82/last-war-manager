@@ -382,7 +382,7 @@ function siteManager() {
             }
 
             //load browser values
-            getLoadStatePromise('gameData').then(function () { config.setGMValues(); },function () { helper.throwError(); });
+            getLoadStatePromise('gameData').then(function () { config.setGMValues(); },function (e) { helper.throwError(e); });
         }
 
         /**
@@ -426,7 +426,7 @@ function siteManager() {
                 GM.getValue('lwm_gDriveFileID', null).then(function (ID) {
                     config.lwm.gDriveFileID = ID;
                     if (config.lwm.gDriveFileID !== null) {
-                        getLoadStatePromise('gameData').then(function () { config.setGMValues(); },function () { helper.throwError(); });
+                        getLoadStatePromise('gameData').then(function () { config.setGMValues(); },function (e) { helper.throwError(e); });
                         return;
                     } else {
                         gapi.client.drive.files.list({
@@ -489,6 +489,14 @@ function siteManager() {
         }
 
         var saveConfig = function () {
+            //check whether sync is on
+            if (!lwmSettings.get('confirm_drive_sync')) return;
+
+            //check whether user is still logged in
+            if (!isSignedIn()) {
+                handleError();
+                return;
+            }
             // check whether config is ready
             if (config.loadStates.gdrive) {
                 console.log('gapi.client.request failed due to config.loadStates.gdrive');
@@ -692,7 +700,7 @@ function siteManager() {
                 GM.setValue('lwm_planetData', JSON.stringify(config.lwm.planetData));
 
                 // wait for gameData, then process
-                getLoadStatePromise('gameData').then(function () { config.setGMValues() },function () { helper.throwError(); });
+                getLoadStatePromise('gameData').then(function () { config.setGMValues() },function (e) { helper.throwError(e); });
             },
         },
         pages: {
@@ -791,7 +799,7 @@ function siteManager() {
                 GM.setValue('lwm_planetData', JSON.stringify(config.lwm.planetData));
 
                 config.loadStates.gdrive = false; // <-- this ends gdrive setup on first load
-                if (lwmSettings.get('confirm_drive_sync')) googleManager.save();
+                googleManager.save();
             }).finally(function () {
                 config.loadStates.gdrive = false; // <-- this ends gdrive setup on first load
             });
@@ -812,7 +820,7 @@ function siteManager() {
                 site_jQuery.when(
                     config.getGameData.overviewInfos(),
                     config.getGameData.planetInformation()
-                ).then(function () { config.loadStates.gameData = false; },function () { helper.throwError(); });
+                ).then(function () { config.loadStates.gameData = false; },function (e) { helper.throwError(e); });
 
                 // spionage is not needed initially and can be loaded later
                 getLoadStatePromise('gdrive').then(function () {
@@ -928,7 +936,7 @@ function siteManager() {
                 return site_jQuery.getScript('//apis.google.com/js/api.js');
             }).then(function () {
                 site_jQuery('.status.lwm-firstload').text('LOADING... Google Drive...');
-                googleManager.init(unsafeWindow.gapi); },function () { site_jQuery('.status.lwm-firstload').text('LOADING... ERROR...'); helper.throwError(); });
+                googleManager.init(unsafeWindow.gapi); },function (e) { site_jQuery('.status.lwm-firstload').text('LOADING... ERROR...'); helper.throwError(e); });
             getLoadStatePromise('gdrive').then(function () {
                 site_jQuery('.status.lwm-firstload').text('LOADING... Page Setup...');
                 //wait for gameData and google because some stuff depends on it
@@ -937,7 +945,7 @@ function siteManager() {
 
                 // the first ubersicht load is sometimes not caught by our ajax wrapper, so do manually
                 getLoadStatePromise('gameData').then(function () { process('ubersicht'); });
-            },function () { site_jQuery('.status.lwm-firstload').text('LOADING... ERROR...'); helper.throwError(); });
+            },function (e) { site_jQuery('.status.lwm-firstload').text('LOADING... ERROR...'); helper.throwError(e); });
 
             //we're hooking into ajax requests to figure out on which page we are and fire our own stuff
             var processPages = ['get_inbox_message','get_message_info','get_galaxy_view_info','get_inbox_load_info','get_make_command_info',
@@ -1040,10 +1048,11 @@ function siteManager() {
         config.loadStates.lastLoadedPage = page;
 
         //reject current promises to cancel pending loads
-        if (config.promises.content !== null) config.promises.content.reject();
+        if (config.promises.content !== null) config.promises.content.reject(new Error("rejected current promises to cancel pending loads"));
+        if (config.promises.submenu !== null) config.promises.submenu.reject(new Error("rejected current promises to cancel pending loads"));
 
         //figure out whether or not to process submenu and reject ongoing load in case
-        if (preserveSubmenu && config.promises.submenu !== null) config.promises.submenu.reject();
+        //if (preserveSubmenu && config.promises.submenu !== null) config.promises.submenu.reject(); //<--- miight no longer be needed
 
         getPageLoadPromise().then(function () {
             site_jQuery('.loader').hide();
@@ -1062,9 +1071,7 @@ function siteManager() {
                 site_jQuery("html, body").animate({ scrollTop: site_jQuery(document).height() }, 250);
             }
         }).catch(function (e) {
-            Sentry.captureException(e);
-            console.log(e);
-            helper.throwError();
+            helper.throwError(e);
             site_jQuery('.loader').hide();
             site_jQuery('#all').show();
             if (firstLoad) {
@@ -1202,9 +1209,7 @@ function siteManager() {
 
                 config.loadStates.submenu = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.submenu = false;
             });
         },
@@ -1220,9 +1225,7 @@ function siteManager() {
             config.promises.content.then(function () {
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -1259,9 +1262,7 @@ function siteManager() {
                     });
                 });
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
             });
         },
         uebersicht: function() {
@@ -1321,9 +1322,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -1342,9 +1341,7 @@ function siteManager() {
                 helper.replaceElementsHtmlWithIcon(site_jQuery('td[onclick*=\'deleteAktuelleProduktion\']'), 'fas fa-ban');
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -1358,9 +1355,7 @@ function siteManager() {
                 helper.replaceElementsHtmlWithIcon(site_jQuery('button[onclick*=\'makeDefence\']'), 'fas fa-2x fa-plus-circle');
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -1377,9 +1372,7 @@ function siteManager() {
                 helper.replaceElementsHtmlWithIcon(site_jQuery('button[onclick*=\'buyHandeslpostenShips\']'), 'fas fa-2x fa-plus-circle');
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -1394,9 +1387,7 @@ function siteManager() {
                 helper.replaceElementsHtmlWithIcon(site_jQuery('button[onclick*=\'recycleDefence\']'), 'fas fa-2x fa-plus-circle');
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -1412,9 +1403,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -1439,7 +1428,7 @@ function siteManager() {
                         //write setting
                         config.lwm.productionFilters[config.gameData.playerID][config.gameData.planetCoords.string] = site_jQuery.map(site_jQuery('.tableFilters_content > div > .activeBox'), function (el, i) { return site_jQuery(el).parent().data('filter'); });
                         GM.setValue('lwm_productionFilters', JSON.stringify(config.lwm.productionFilters));
-                        if (lwmSettings.get('confirm_drive_sync')) googleManager.save();
+                        googleManager.save();
 
                         var filterFunctions = {
                             all: function() {
@@ -1504,7 +1493,7 @@ function siteManager() {
                     $button.click(function () {
                         config.lwm.hiddenShips[config.gameData.playerID][config.gameData.planetCoords.string] = [];
                         GM.setValue('lwm_hiddenShips', JSON.stringify(config.lwm.hiddenShips));
-                        if (lwmSettings.get('confirm_drive_sync')) googleManager.save();
+                        googleManager.save();
                         site_jQuery('#productionDiv tr').each(function () { site_jQuery(this).data('hide', false); });
                         setCurrentHiddenCount();
                         productionFilters.process();
@@ -1533,7 +1522,7 @@ function siteManager() {
                         var shipClass = helper.getFirstClassNameFromElement($tr);
                         config.lwm.hiddenShips[config.gameData.playerID][config.gameData.planetCoords.string].push(shipName);
                         GM.setValue('lwm_hiddenShips', JSON.stringify(config.lwm.hiddenShips));
-                        if (lwmSettings.get('confirm_drive_sync')) googleManager.save();
+                        googleManager.save();
                         $showAllButton.setCurrentHiddenCount();
                         site_jQuery('.'+shipClass).hide();
                         site_jQuery('.'+shipClass).data('hide', true);
@@ -1543,9 +1532,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -1561,9 +1548,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -1578,9 +1563,7 @@ function siteManager() {
                 helper.replaceElementsHtmlWithIcon(site_jQuery('button[onclick*=\'RecycleShips\']'), 'fas fa-2x fa-plus-circle');
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -1602,9 +1585,7 @@ function siteManager() {
                 });
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -1624,9 +1605,7 @@ function siteManager() {
                 });
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -1641,9 +1620,7 @@ function siteManager() {
                 });
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -1691,9 +1668,7 @@ function siteManager() {
                     });
                 }
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -1810,9 +1785,7 @@ function siteManager() {
                     });
                 }
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -1837,7 +1810,7 @@ function siteManager() {
                             config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string].length = lwmSettings.get('coords_trades');
                         }
                         GM.setValue('lwm_lastTradeCoords', JSON.stringify(config.lwm.lastTradeCoords));
-                        if (lwmSettings.get('confirm_drive_sync')) googleManager.save();
+                        googleManager.save();
                     }
                 });
 
@@ -1894,9 +1867,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -1922,9 +1893,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -1940,9 +1909,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -1966,9 +1933,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -2089,9 +2054,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -2107,7 +2070,7 @@ function siteManager() {
                             config.lwm.lastFleetCoords[config.gameData.playerID][config.gameData.planetCoords.string].length = lwmSettings.get('coords_fleets');
                         }
                         GM.setValue('lwm_lastFleetCoords', JSON.stringify(config.lwm.lastFleetCoords));
-                        if (lwmSettings.get('confirm_drive_sync')) googleManager.save();
+                        googleManager.save();
                     }
                 });
 
@@ -2157,7 +2120,7 @@ function siteManager() {
                             if (JSON.stringify(prios) !== JSON.stringify(config.lwm.raidPrios)) {
                                 config.lwm.raidPrios = prios;
                                 GM.setValue('lwm_raidPrios', JSON.stringify(config.lwm.raidPrios));
-                                if (lwmSettings.get('confirm_drive_sync')) googleManager.save();
+                                googleManager.save();
                             }
                         }
                     });
@@ -2165,9 +2128,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -2390,9 +2351,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -2407,9 +2366,7 @@ function siteManager() {
 
                     config.loadStates.content = false;
                 }).catch(function (e) {
-                    Sentry.captureException(e);
-                    console.log(e);
-                    helper.throwError();
+                    helper.throwError(e);
                     config.loadStates.content = false;
                 });
             }
@@ -2489,9 +2446,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -2551,9 +2506,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -2563,9 +2516,7 @@ function siteManager() {
                 //site_jQuery('#create').click(function () { config.gameData.reloads.productionInfos = 'production'; });
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -2593,9 +2544,7 @@ function siteManager() {
                 $div.prependTo(site_jQuery('#Tables'));
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -2662,9 +2611,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -2691,9 +2638,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -2750,9 +2695,7 @@ function siteManager() {
 
                 config.loadStates.content = false;
             }).catch(function (e) {
-                Sentry.captureException(e);
-                console.log(e);
-                helper.throwError();
+                helper.throwError(e);
                 config.loadStates.content = false;
             });
         },
@@ -3018,7 +2961,7 @@ function siteManager() {
                         unsafeWindow.Frurozin = parseInt(data.resource['Frurozin']);
                         unsafeWindow.Gold = parseInt(data.resource['Gold']);
                     },
-                    error: function () { helper.throwError(); },
+                    error: function (e) { helper.throwError(e); },
                     dataType: 'json'
                 });
             }
@@ -3447,7 +3390,7 @@ function siteManager() {
                 var dataResearchAfter = JSON.stringify(addOns.calendar.getData('research',config.gameData.playerID));
 
                 GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
-                if (lwmSettings.get('confirm_drive_sync') && (!addOns.calendar.truncateData() || dataResearchBefore !== dataResearchAfter || dataBuildingBefore !== dataBuildingAfter)) googleManager.save();
+                if ((!addOns.calendar.truncateData() || dataResearchBefore !== dataResearchAfter || dataBuildingBefore !== dataBuildingAfter)) googleManager.save();
 
                 notifications.worker.postMessage({'cmd':'push','calendar':config.lwm.calendar,'config':{'notifications_buildings':lwmSettings.get('notifications_buildings')}});
             },
@@ -3475,7 +3418,7 @@ function siteManager() {
                 var dataFleetAfter = JSON.stringify(addOns.calendar.getData('fleet',config.gameData.playerID, config.gameData.planetCoords.string));
 
                 GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
-                if (lwmSettings.get('confirm_drive_sync') && dataFleetBefore !== dataFleetAfter) googleManager.save();
+                if (dataFleetBefore !== dataFleetAfter) googleManager.save();
             },
             storeProd: function (data) {
                 var dataDefenseBefore = JSON.stringify(addOns.calendar.getData('defense',config.gameData.playerID, config.gameData.planetCoords.string));
@@ -3535,7 +3478,7 @@ function siteManager() {
                 var dataShipsAfter = JSON.stringify(addOns.calendar.getData('ships',config.gameData.playerID, config.gameData.planetCoords.string));
 
                 GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
-                if (lwmSettings.get('confirm_drive_sync') && (dataDefenseBefore !== dataDefenseAfter || dataShipsBefore !== dataShipsAfter)) googleManager.save();
+                if ((dataDefenseBefore !== dataDefenseAfter || dataShipsBefore !== dataShipsAfter)) googleManager.save();
             },
             storeTrades: function (data) {
                 var dataTradesBefore = JSON.stringify(addOns.calendar.getData('trades',config.gameData.playerID, config.gameData.planetCoords.string));
@@ -3554,7 +3497,7 @@ function siteManager() {
                 var dataTradesAfter =  JSON.stringify(addOns.calendar.getData('trades',config.gameData.playerID, config.gameData.planetCoords.string));
 
                 GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
-                if (lwmSettings.get('confirm_drive_sync') && dataTradesBefore !== dataTradesAfter) googleManager.save();
+                if (dataTradesBefore !== dataTradesAfter) googleManager.save();
             },
             store: function (data) {
                 var check = config.lwm.calendar.filter(function (entry) {
@@ -3923,9 +3866,17 @@ function siteManager() {
                 site_jQuery.map(config.gameData.tradeInfo.trade_offers, function (trade, i) { return parseInt(trade.accept) * ((parseInt(trade.galaxy) === config.gameData.planetCoords.galaxy && parseInt(trade.system) === config.gameData.planetCoords.system && parseInt(trade.planet) === config.gameData.planetCoords.planet) ? parseInt(trade.resource[17]) : parseInt(trade.resource[11])); }).reduce(function (total, num) { return total + num; }),
             ];
         },
-        throwError: function (m) {
+        throwError: function (e) {
+            //skip lesser errors
+            if (e.message === "rejected current promises to cancel pending loads") return;
+
+            //log and sentry
+            Sentry.captureException(e);
+            console.log(e);
+
+            //add user error feedback
             if (site_jQuery('#all .lwm-loaderror').length) return;
-            var m = m || 'Something went wrong while loading the page. Not all features might be fully functional!';
+            var m = 'Something went wrong while loading the page. Not all features might be fully functional!';
             site_jQuery('#all').prepend('<div class="lwm-loaderror" style="margin-bottom: 20px;background-color: #792121;border: 1px solid rgba(124, 243, 241, 0.5);padding: 2px;"><i class="fas fa-exclamation-triangle" style="margin-right: 5px;"></i>'+m+'</div>');
         },
         getActiveObs: function (coords) {
@@ -3941,7 +3892,7 @@ function siteManager() {
             res = resolve;
             rej = reject;
 
-            if (!searchSelector) reject();
+            if (!searchSelector) reject(new Error("did not provide searchSelector in getPromise()"));
 
             var count = 0;
             var interval;
@@ -3958,7 +3909,7 @@ function siteManager() {
                     count += 1;
                     if (count > config.promises.interval.count - 1) {
                         clearInterval(interval);
-                        reject();
+                        reject(new Error("getPromise() timeout for "+searchSelector));
                     }
                 }, config.promises.interval.ms);
             }
@@ -3977,7 +3928,7 @@ function siteManager() {
             res = resolve;
             rej = reject;
 
-            if (typeof config.loadStates[type] === "undefined") reject();
+            if (typeof config.loadStates[type] === "undefined") reject(new Error("couldn't find loadState "+type+" in getLoadStatePrmise()"));
 
             var count = 0;
             var interval;
@@ -3993,7 +3944,7 @@ function siteManager() {
                     count += 1;
                     if (count > config.promises.interval.count - 1) {
                         clearInterval(interval);
-                        reject();
+                        reject(new Error("getLoadstatePromise() timeout for "+type));
                     }
                 }, config.promises.interval.ms);
             }
@@ -4023,7 +3974,7 @@ function siteManager() {
                     count += 1;
                     if (count > config.promises.interval.count - 1) {
                         clearInterval(interval);
-                        reject();
+                        reject(new Error("getPageLoadPromise() timeout"));
                     }
                 }, config.promises.interval.ms);
             }
