@@ -492,16 +492,18 @@ function siteManager() {
             //check whether sync is on
             if (!lwmSettings.get('confirm_drive_sync')) return;
 
-            //check whether user is still logged in
-            if (!isSignedIn()) {
-                handleError();
-                return;
-            }
             // check whether config is ready
             if (config.loadStates.gdrive) {
                 console.log('gapi.client.request failed due to config.loadStates.gdrive');
                 return;
             }
+
+            //check whether user is still logged in
+            if (!isSignedIn()) {
+                handleError();
+                return;
+            }
+
             //save
             var saveObj = JSON.parse(JSON.stringify(config.lwm));
             saveObj.menu = {
@@ -1253,7 +1255,7 @@ function siteManager() {
                 //listen to enter key on production pages
                 site_jQuery.each(site_jQuery('.inputNumberDiv input,[id*=\'InputNumber\'] input'), function () {
                     var $self = site_jQuery(this);
-                    var id = $self.attr('id').match(/\d+/)[0];
+                    var id = $self.attr('id').match(/\d+/); if (id === null) return; else id = id[0];
                     var $button = $self.parents('table').find('[id*=\''+id+'\']').find('button').not('[onclick*=\'deleteDesign\']');
                     $self.on('keyup', function (e) {
                         if (event.keyCode === 13) {
@@ -2360,8 +2362,24 @@ function siteManager() {
             else {
                 config.promises.content = getPromise('#spionageDiv');
                 config.promises.content.then(function () {
+                    //hide unused sky drones
                     site_jQuery('#spionageDiv tr').each(function () {
                         if (site_jQuery(this).find('td:eq(4)').text() === '0') site_jQuery(this).hide();
+                    });
+
+                    //listen to enter key on inputs
+                    site_jQuery.each(site_jQuery('.inputNumberDiv input'), function () {
+                        var $self = site_jQuery(this);
+                        var id = $self.attr('id');
+                        var type = 0; if (id.match(/observations/) !== null) type = 1; if (id.match(/planetenscanner/) !== null) type = 2;
+                        var $button = site_jQuery('.formButtonSpionage[onclick*=\''+type+'\']');
+                        $self.on('keyup', function (e) {
+                            if (event.keyCode === 13) {
+                                //work around last-war bug that expects a localStorage value here
+                                unsafeWindow.localStorage.setItem('spionage-cords', '0, 0, 0');
+                                $button.click();
+                            }
+                        });
                     });
 
                     config.loadStates.content = false;
