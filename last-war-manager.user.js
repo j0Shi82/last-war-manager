@@ -9,9 +9,7 @@
 // @downloadURL   https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/last-war-manager.user.js
 // @supportURL    https://github.com/j0Shi82/last-war-manager/issues
 // @match         https://*.last-war.de/*
-// @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
-// @require       https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
-// @require       https://browser.sentry-cdn.com/5.1.1/bundle.min.js
+// @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@d2aa6b9336f98e3c0f9c1ddce322bd52003246dc/assets/gm_vendor.js
 // @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@c1ef11593cff9baf19e2d33cebeb7c1eb8f47bfd/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
