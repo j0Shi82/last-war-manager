@@ -27,7 +27,9 @@ var firstLoad = true;
 
 Sentry.init({
     dsn: 'https://a26d8eec21664f969f5962a60313da95@sentry.io/1450111',
-    release: 'last-war-manager@next-version'
+    release: 'last-war-manager@next-version',
+    attachStacktrace: 'on',
+    debug: true
 });
 
 // add style
