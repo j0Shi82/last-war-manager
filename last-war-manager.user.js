@@ -14,7 +14,7 @@
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e07de5c0a13d416fda88134f999baccfee6f7059/assets/jquery.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js
-// @require       https://browser.sentry-cdn.com/5.1.1/bundle.min.js
+// @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@8840c8c3f1f7c6e3776c6da640877665070fed57/assets/sentry.bundle.min.js
 // @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@b164a5ae015ac13e40d94290c485074cad9d68f6/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
@@ -22,7 +22,7 @@
 // @grant         GM_getResourceText
 // @grant         GM_addStyle
 // @run-at        document-start
-// @version       0.8
+// @version       0.8.1
 // ==/UserScript==
 
 Sentry.init({
