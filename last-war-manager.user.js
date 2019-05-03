@@ -22,12 +22,16 @@
 // @grant         GM_getResourceText
 // @grant         GM_addStyle
 // @run-at        document-start
-// @version       0.8.1
+// @version       0.8.2
 // ==/UserScript==
 
 Sentry.init({
     dsn: 'https://a26d8eec21664f969f5962a60313da95@sentry.io/1450111',
-    release: 'last-war-manager@v0.8.0'
+    release: 'last-war-manager@v0.8.0',
+    attachStacktrace: 'on',
+    beforeSend(event) {
+        if (event.breadcrumbs.filter(function (el) { return el.category === 'sentry'; }).length > 0) return null;
+    },
 });
 
 var firstLoad = true;
