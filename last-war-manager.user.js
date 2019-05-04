@@ -29,7 +29,7 @@ Sentry.init({
     dsn: 'https://a26d8eec21664f969f5962a60313da95@sentry.io/1450111',
     release: 'last-war-manager@next-version',
     attachStacktrace: 'on',
-    debug: true
+    //debug: true
 });
 
 // add style
@@ -207,6 +207,20 @@ function siteManager() {
                 'type': 'checkbox',
                 'default': false
             },
+            'obs_windowwidth':
+            {
+                'label': 'OBS: Set observation window popup size.',
+                'labelPos': 'left',
+                'type': 'number',
+                'default': 900
+            },
+            'obs_windowheight':
+            {
+                'label': 'x',
+                'labelPos': 'left',
+                'type': 'number',
+                'default': 550
+            },
             'fleet_presets_1_active':
             {
                 'section': [GM_config.create('Fleet Timing Presets'), 'Define timing presets for sending fleets.'],
@@ -359,7 +373,9 @@ function siteManager() {
                 }
             }
         },
-        'css': '#lwmSettings_addon_fleet_exclude_drones_var { margin-left: 20px !important; } #lwmSettings_section_4 .config_var { width: 33%; display: inline-block;}',
+        'css': '#lwmSettings_addon_fleet_exclude_drones_var { margin-left: 20px !important; } #lwmSettings_section_4 .config_var { width: 33%; display: inline-block;} '+
+               '#lwmSettings_obs_windowheight_var, #lwmSettings_obs_windowwidth_var { display: inline; } '+
+               '#lwmSettings_field_obs_windowwidth, #lwmSettings_field_obs_windowheight { width: 50px; }',
     });
 
     var googleManager = (function() {
@@ -518,6 +534,8 @@ function siteManager() {
                 trade_highlights: gmc.get('trade_highlights'),
                 fleet_saveprios: gmc.get('fleet_saveprios'),
                 obs_opentabs: gmc.get('obs_opentabs'),
+                obs_windowwidth: gmc.get('obs_windowwidth'),
+                obs_windowheight: gmc.get('obs_windowheight'),
                 fleet_presets_1_active: gmc.get('fleet_presets_1_active'),fleet_presets_1_weekday: gmc.get('fleet_presets_1_weekday'),fleet_presets_1_time: gmc.get('fleet_presets_1_time'),
                 fleet_presets_2_active: gmc.get('fleet_presets_2_active'),fleet_presets_2_weekday: gmc.get('fleet_presets_2_weekday'),fleet_presets_2_time: gmc.get('fleet_presets_2_time'),
                 fleet_presets_3_active: gmc.get('fleet_presets_3_active'),fleet_presets_3_weekday: gmc.get('fleet_presets_3_weekday'),fleet_presets_3_time: gmc.get('fleet_presets_3_time'),
@@ -785,9 +803,9 @@ function siteManager() {
                 try { config.lwm.calendar = JSON.parse(data); } catch (e) { config.lwm.calendar = []; }
                 GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
 
-                return GM.getValue('lwm_planetData', '[]');
+                return GM.getValue('lwm_planetData', '{}');
             }).then(function (data) {
-                try { config.lwm.planetData = JSON.parse(data); } catch (e) { config.lwm.planetData = []; }
+                try { if (data === '[]') data = '{}'; config.lwm.planetData = JSON.parse(data); } catch (e) { config.lwm.planetData = {}; }
 
                 return GM.getValue('lwm_planetData_temp', '{}');
             }).then(function (data) {
@@ -900,7 +918,7 @@ function siteManager() {
 
     var install = function () {
         if (location.href.match(/planetenscanner_view/) !== null || location.href.match(/observationen_view/) !== null) {
-            site_jQuery(document).ready(function() {
+            window.addEventListener('load', function() {
                 addOns.planetData.storeDataFromSpio();
             });
         }
@@ -927,6 +945,7 @@ function siteManager() {
             site_jQuery.ajaxSetup({ cache: true });
 
             global.uiChanges();
+            global.rewriteLastWarFuncs();
 
             //set google drive load state to true here so other can listen to it
             config.loadStates.gdrive = true;
@@ -2890,6 +2909,13 @@ function siteManager() {
                 site_jQuery('head').append('<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">');
                 site_jQuery('head').append('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome-animation/0.2.1/font-awesome-animation.min.css">');
         },
+        rewriteLastWarFuncs: function () {
+            var obsWidth = lwmSettings.get('obs_windowwidth');
+            var obsHeight = lwmSettings.get('obs_windowheight');
+            unsafeWindow.openObservationWindow = function (id) {
+                window.open('view/content/new_window/observationen_view.php?id=' + id, 'newwindow', 'scrollbars=yes, width='+obsWidth+'px, height='+obsHeight+'px');
+            }
+        },
         hotkeySetup: function () {
             hotkeys('ctrl+shift+c,ctrl+shift+r,ctrl+shift+f,ctrl+shift+p,ctrl+shift+o', function(event,handler) {
                 switch(handler.key){
@@ -3121,17 +3147,26 @@ function siteManager() {
                         var $wrapper = site_jQuery('<div></div>');
                         if (site_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_coords').length === 0) {
                             var $selectCoords = site_jQuery('<select id="lwm_fleetFilter_coords"><option value="">Pick Coords</option></select>');
-                            $selectCoords.change(function () { process(); })
+                            $selectCoords.change(function () {
+                                GM.setValue('lwm_fleetCoords', $selectCoords.val());
+                                process();
+                            })
                             $wrapper.append($selectCoords);
                         }
                         if (site_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_types').length === 0) {
                             var $selectTypes = site_jQuery('<select id="lwm_fleetFilter_types"><option value="">Pick Type</option></select>');
-                            $selectTypes.change(function () { process(); })
+                            $selectTypes.change(function () {
+                                GM.setValue('lwm_fleetTypes', $selectTypes.val());
+                                process();
+                            })
                             $wrapper.append($selectTypes);
                         }
                         if (site_jQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_status').length === 0) {
                             var $selectStatus = site_jQuery('<select id="lwm_fleetFilter_status"><option value="">Pick Status</option></select>');
-                            $selectStatus.change(function () { process(); })
+                            $selectStatus.change(function () {
+                                GM.setValue('lwm_fleetStatus', $selectStatus.val());
+                                process();
+                            })
                             $wrapper.append($selectStatus);
                         }
                         GM.getValue('lwm_fleetToggled', false).then(function (value) {
@@ -3148,10 +3183,31 @@ function siteManager() {
                         site_jQuery('#lwm_folottenbewegungenPageDiv table td').first().append($wrapper);
                     }
 
+                    var setSavedStates = function () {
+                        var $selectCoords = site_jQuery('#lwm_fleetFilter_coords');
+                        var $selectTypes = site_jQuery('#lwm_fleetFilter_types');
+                        var $selectStatus = site_jQuery('#lwm_fleetFilter_status');
+
+                        GM.getValue('lwm_fleetCoords', '').then(function (value) {
+                            if (site_jQuery.map($selectOptions.coords, function (option, i) { return site_jQuery(option).val(); }).includes(value)) $selectCoords.val(value);
+
+                            return GM.getValue('lwm_fleetTypes', '');
+                        }).then(function (value) {
+                            if (site_jQuery.map($selectOptions.types, function (option, i) { return site_jQuery(option).val(); }).includes(value)) $selectTypes.val(value);
+
+                            return GM.getValue('lwm_fleetStatus', '');
+                        }).then(function (value) {
+                            if (site_jQuery.map($selectOptions.status, function (option, i) { return site_jQuery(option).val(); }).includes(value)) $selectStatus.val(value);
+
+                            process();
+                        });
+                    }
+
                     return {
                         add: add,
                         attachSelects: attachSelects,
-                        process: process
+                        process: process,
+                        setSavedStates: setSavedStates
                     }
                 })();
 
@@ -3333,7 +3389,7 @@ function siteManager() {
                     site_jQuery($elem).appendTo(site_jQuery('#lwm_folottenbewegungenPageDiv table tbody'));
                 });
 
-                filter.process();
+                filter.setSavedStates(); //<-- this also processes filters
 
                 if (lwmSettings.get('addon_clock')) {
                     clearInterval(unsafeWindow.timeinterval_flottenbewegungen);
@@ -3552,11 +3608,12 @@ function siteManager() {
         },
         planetData: {
             storeDataFromSpio: function () {
+                //warning: can't use jQuery in this function
                 GM.getValue('lwm_planetData_temp', '{}').then(function (planetData) {
                     planetData = JSON.parse(planetData);
 
-                    if (site_jQuery('#buildingsLevel').length === 0) return; //spy not sufficient
-                    var levelTT = site_jQuery('#researchLevel').text().match(/Tarntechnologie (\d+)/);
+                    if (document.querySelector('#buildingsLevel') === null) return; //spy not sufficient
+                    var levelTT = document.querySelector('#researchLevel').textContent.match(/Tarntechnologie (\d+)/);
                     if (levelTT === null) levelTT = 0;
                     else                  levelTT = levelTT[1];
 
