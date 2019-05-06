@@ -22,7 +22,7 @@
 // @grant         GM_getResourceText
 // @grant         GM_addStyle
 // @run-at        document-start
-// @version       0.8.2
+// @version       0.8.3
 // ==/UserScript==
 
 Sentry.init({
@@ -30,7 +30,7 @@ Sentry.init({
     release: 'last-war-manager@v0.8.0',
     attachStacktrace: 'on',
     beforeSend(event) {
-        if (event.breadcrumbs.filter(function (el) { return el.category === 'sentry'; }).length > 0) return null;
+        if (event.breadcrumbs.filter(function (el) { return el.category === 'sentry'; }).length > 4) return null;
     },
 });
 
