@@ -2566,6 +2566,7 @@ function siteManager() {
                 $filterButton.click(function () {
                     site_jQuery(this).find('.formButton').toggleClass('activeBox');
                     var hideIds = site_jQuery.map(site_jQuery('#Tables tr').find('td:eq(1) img[src*=\'green\']').parents('tr'), function (el, i) { return site_jQuery(el).attr('id') || site_jQuery(el).attr('class') || site_jQuery(el).find('td').first().attr('id'); });
+                    if (hideIds.length === 0) return; // see sentry issue 1011927466
                     if (site_jQuery(this).find('.formButton').is('.activeBox')) {
                         site_jQuery('#Tables').find('tr#'+hideIds.join(',tr#')).hide();
                         site_jQuery('#Tables').find('tr#'+hideIds.join(',tr#')).next().hide();
@@ -3930,6 +3931,7 @@ function siteManager() {
             return Number.isInteger(parseInt(coords[0])) && Number.isInteger(parseInt(coords[1])) && Number.isInteger(parseInt(coords[2]));
         },
         getIncomingResArray: function () {
+            if (typeof config.gameData.tradeInfo === "undefined")    return [0,0,0,0,0,0]; //see sentry issue 1011354499
             if (config.gameData.tradeInfo.trade_offers.length === 0) return [0,0,0,0,0,0];
 
             return [
