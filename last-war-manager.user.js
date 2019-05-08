@@ -1000,7 +1000,7 @@ function siteManager() {
             site_jQuery(document).ajaxComplete(function( event, xhr, settings ) {
                 var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
-                if (xhr.responseJSON == '500' || xhr.readyState === 0) return;
+                if (xhr.responseJSON == '500' || xhr.readyState !== 4 || xhr.status !== 200) return;
 
                 // save specific responses for later use
                 var saveRequest = ['get_production_info', 'get_aktuelle_production_info', 'get_ubersicht_info',
@@ -1039,7 +1039,7 @@ function siteManager() {
             site_jQuery(document).ajaxComplete(function( event, xhr, settings ) {
                 var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
-                if (xhr.responseJSON == '500' || xhr.readyState === 0) return;
+                if (xhr.responseJSON == '500' || xhr.readyState !== 4 || xhr.status !== 200) return;
 
                 if (settings.url.search(/lwm_ignoreProcess/) !== -1) {
                     console.log('lwm_ignoreProcess... skipping');
@@ -2975,7 +2975,8 @@ function siteManager() {
                 if (!Object.keys(config.gameData.spionageInfos).length || !Object.keys(config.gameData.observationInfo).length) {
                     requests.get_obs_info()
                         .then(function () { return requests.get_spionage_info(); })
-                        .then(function () { requests.get_flottenbewegungen_info(); });
+                        .then(function () { requests.get_flottenbewegungen_info(); })
+                        .catch(function (e) { helper.throwError(e); });
                 } else {
                     requests.get_flottenbewegungen_info();
                 }
@@ -3403,7 +3404,7 @@ function siteManager() {
                 site_jQuery(document).ajaxComplete(function( event, xhr, settings ) {
                     var page = settings.url.match(/\/(\w*).php(\?.*)?$/)[1];
 
-                    if (xhr.responseJSON == '500') return;
+                    if (xhr.responseJSON == '500' || xhr.readyState !== 4 || xhr.status !== 200) return;
 
                     if (page === 'get_flottenbewegungen_info') {
                         addFleetDiv(unsafeWindow.active_page);
@@ -3467,7 +3468,11 @@ function siteManager() {
                 GM.setValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
                 if ((!addOns.calendar.truncateData() || dataResearchBefore !== dataResearchAfter || dataBuildingBefore !== dataBuildingAfter)) googleManager.save();
 
-                notifications.worker.postMessage({'cmd':'push','calendar':config.lwm.calendar,'config':{'notifications_buildings':lwmSettings.get('notifications_buildings')}});
+                notifications.worker.postMessage({'cmd':'push','calendar':config.lwm.calendar,'config':{
+                    'notifications_buildings':lwmSettings.get('notifications_buildings'),
+                    'notifications_fleets':lwmSettings.get('notifications_fleets'),
+                    'notifications_fleets_min':lwmSettings.get('notifications_fleets_min')
+                }});
             },
             storeFleets: function (data) {
                 var lang = config.const.lang.fleet;
@@ -3862,11 +3867,27 @@ function siteManager() {
             notifications.worker = new Worker(notificationsWorkerBlobUrl);
             notifications.worker.addEventListener('message', function(e) {
                 var entry = e.data;
-                GM_notification(entry.text+' just finished on '+entry.coords+' ('+entry.playerName+')',
-                                'Last War Manager Notification', notifications.imgUrl, function () { window.open('https://last-war.de/main.php'); });
+                switch (entry.type) {
+                    case "building":
+                        GM_notification(entry.text+' just finished on '+entry.coords+' ('+entry.playerName+')',
+                                        'Last War Manager Notification', notifications.imgUrl, function () { window.open('https://last-war.de/main.php'); });
+                        break;
+                    case "research":
+                        GM_notification(entry.text+' just finished on '+entry.coords+' ('+entry.playerName+')',
+                                        'Last War Manager Notification', notifications.imgUrl, function () { window.open('https://last-war.de/main.php'); });
+                        break;
+                    case "fleet":
+                        GM_notification(entry.text+' from '+entry.coords+' ('+entry.playerName+') arrives in '+GM_config('notifications_fleet_min')+' minutes.',
+                                        'Last War Manager Notification', notifications.imgUrl, function () { window.open('https://last-war.de/main.php'); });
+                        break;
+                }
             });
             GM.getValue('lwm_calendar', '[]').then(function (data) {
-                notifications.worker.postMessage({'cmd':'push','calendar':JSON.parse(data),'config':{'notifications_buildings':lwmSettings.get('notifications_buildings')}});
+                notifications.worker.postMessage({'cmd':'push','calendar':JSON.parse(data),'config':{
+                    'notifications_buildings':lwmSettings.get('notifications_buildings'),
+                    'notifications_fleets':lwmSettings.get('notifications_fleets'),
+                    'notifications_fleets_min':lwmSettings.get('notifications_fleets_min')
+                }});
             });
         }
     };
@@ -4082,6 +4103,16 @@ function notificationsWorker() {
                 self.timeouts.push(setTimeout(function () {
                     self.postMessage(entry);
                 }, entry.ts - new Date().valueOf()));
+            });
+        };
+
+        if (self.config.notifications_fleets) {
+            self.calendar.filter(function (entry) {
+                return (entry.type === 'building' || entry.type === 'research') && entry.ts > ( new Date().valueOf() + ( self.config.notifications_fleets_min * 60 * 1000 ) );
+            }).forEach(function (entry) {
+                self.timeouts.push(setTimeout(function () {
+                    self.postMessage(entry);
+                }, entry.ts - ( new Date().valueOf() + ( self.config.notifications_fleets_min * 60 * 1000 ) )));
             });
         };
     }
