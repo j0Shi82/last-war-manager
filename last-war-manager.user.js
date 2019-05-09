@@ -3898,7 +3898,7 @@ function siteManager() {
                                         'Last War Manager Notification', notifications.imgUrl, function () { window.open('https://last-war.de/main.php'); });
                         break;
                     case "fleet":
-                        GM_notification(entry.text+' from '+entry.coords+' ('+entry.playerName+') arrives in '+GM_config('notifications_fleet_min')+' minutes.',
+                        GM_notification(entry.text+' from '+entry.coords+' ('+entry.playerName+') arrives in '+lwmSettings.get('notifications_fleet_min')+' minutes.',
                                         'Last War Manager Notification', notifications.imgUrl, function () { window.open('https://last-war.de/main.php'); });
                         break;
                 }
@@ -4130,7 +4130,7 @@ function notificationsWorker() {
 
         if (self.config.notifications_fleets) {
             self.calendar.filter(function (entry) {
-                return (entry.type === 'building' || entry.type === 'research') && entry.ts > ( new Date().valueOf() + ( self.config.notifications_fleets_min * 60 * 1000 ) );
+                return (entry.type === 'fleet') && entry.ts > ( new Date().valueOf() + ( self.config.notifications_fleets_min * 60 * 1000 ) );
             }).forEach(function (entry) {
                 self.timeouts.push(setTimeout(function () {
                     self.postMessage(entry);
