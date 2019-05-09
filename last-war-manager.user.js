@@ -673,7 +673,7 @@ function siteManager() {
             spionageInfos: {},
             productionInfos: [],
             overviewInfo: {},
-            messageData: {},
+            messageData: [],
             fleetInfo: {},
             fleetSendData: {},
             observationInfo: {},
@@ -1298,7 +1298,7 @@ function siteManager() {
                 });
 
                 //add resources
-                if (lwmSettings.get('overview_planetresources')) {
+                if (lwmSettings.get('overview_planetresources') && Object.keys(config.gameData.planetInformation).length !== 0) {
                     site_jQuery.each(config.gameData.planetInformation, function (i, d) {
                         var $Posle = site_jQuery('.Posle[data-coords=\''+d.Galaxy+'x'+d.System+'x'+d.Planet+'\']');
                         var $tr = site_jQuery('<tr></tr>');
@@ -1314,7 +1314,7 @@ function siteManager() {
                 }
 
                 //replace planet type (main, colony) with planet name
-                if (lwmSettings.get('overview_planetnames')) {
+                if (lwmSettings.get('overview_planetnames') && Object.keys(config.gameData.planetInformation).length !== 0) {
                     site_jQuery.each(config.gameData.planetInformation, function (i, d) {
                         var $Posle = site_jQuery('.Posle[data-coords=\''+d.Galaxy+'x'+d.System+'x'+d.Planet+'\']');
                         var $val = $Posle.find('.planetButton').val();
@@ -1324,7 +1324,7 @@ function siteManager() {
                 }
 
                 //add energy and slots
-                if (lwmSettings.get('overview_planetstatus')) {
+                if (lwmSettings.get('overview_planetstatus') && Object.keys(config.lwm.planetInfo[config.gameData.playerID]).length !== 0) {
                     site_jQuery.each(config.lwm.planetInfo[config.gameData.playerID], function (coords, data) {
                         var $Posle = site_jQuery('.Posle[data-coords=\''+coords+'\']');
                         $Posle.find('td:first input').val($Posle.find('td:first input').val()+' '+data.energy + ' TW - ' + data.slots + ' Free Slot(s)');
@@ -1650,7 +1650,11 @@ function siteManager() {
             //site_jQuery('#inboxContent').html('');
             config.promises.content = getPromise('.inboxDeleteMessageButtons,#messagesListTableInbox');
             config.promises.content.then(function () {
-                config.loadStates.content = false;
+                if (config.gameData.messageData.length === 0) {
+                    helper.throwError(new Error('no message data for inbox'));
+                    config.loadStates.content = false;
+                    return;
+                }
 
                 // workaround to bring the submenu in if you come to message from anywhere else than the message menu button
                 if (site_jQuery('#veticalLink a.navButton').length !== 0 && site_jQuery('.secound_line a.navButton').length === 0) submenu.move();
@@ -1688,6 +1692,8 @@ function siteManager() {
                         }
                     });
                 }
+
+                config.loadStates.content = false;
             }).catch(function (e) {
                 helper.throwError(e);
                 config.loadStates.content = false;
@@ -1701,6 +1707,12 @@ function siteManager() {
             //we additionally have to tweak tradeInfo config as soon as trade get declined
             config.promises.content = getPromise('#link');
             config.promises.content.then(function () {
+                if (Object.keys(config.gameData.tradeInfo).length === 0) {
+                    helper.throwError(new Error('no trade data for trades()'));
+                    config.loadStates.content = false;
+                    return;
+                }
+
                 if (config.gameData.tradeInfo.trade_offers.length === 0) config.loadStates.content = false;
                 else {
                     getPromise('#tradeOfferDiv').then(function () {
@@ -2974,9 +2986,8 @@ function siteManager() {
             if (lwmSettings.get('addon_fleet') && unsafeWindow.active_page !== 'flottenbewegungen') {
                 if (!Object.keys(config.gameData.spionageInfos).length || !Object.keys(config.gameData.observationInfo).length) {
                     requests.get_obs_info()
-                        .then(function () { return requests.get_spionage_info(); })
-                        .then(function () { requests.get_flottenbewegungen_info(); })
-                        .catch(function (e) { helper.throwError(e); });
+                        .then(function () { return requests.get_spionage_info(); }, function (e) { helper.throwError(e); })
+                        .then(function () { requests.get_flottenbewegungen_info(); }, function (e) { helper.throwError(e); });
                 } else {
                     requests.get_flottenbewegungen_info();
                 }
@@ -3096,6 +3107,16 @@ function siteManager() {
                     (!lwmSettings.get('addon_fleet') && page !== 'flottenbewegungen')
                 ) {
                     return;
+                }
+
+                //check for data and return error if stuff isn't there
+                if (
+                        Object.keys(config.gameData.fleetInfo).length === 0 ||
+                        Object.keys(config.gameData.spionageInfos).length === 0 ||
+                        Object.keys(config.gameData.observationInfo).length === 0
+                   )
+                {
+                    helper.throwError(new Error("not all data present for showFleetActivityGlobally"));
                 }
 
                 //filter function
@@ -3979,6 +4000,7 @@ function siteManager() {
         },
         getActiveObs: function (coords) {
             if (!Array.isArray(coords)) coords = coords.split('x');
+            if (Object.keys(config.gameData.observationInfo).length === 0) return [];
             return site_jQuery.grep(config.gameData.observationInfo.observationen_informations, function (obsData, i) { return obsData.galaxy == coords[0] && obsData.system == coords[1] && obsData.planet == coords[2]; });
         }
     }
