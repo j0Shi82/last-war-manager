@@ -22,7 +22,7 @@
 // @grant         GM_getResourceText
 // @grant         GM_addStyle
 // @run-at        document-start
-// @version       0.8.3
+// @version       0.8.4
 // ==/UserScript==
 
 Sentry.init({
@@ -671,7 +671,8 @@ function siteManager() {
         promises: {
             interval: {
                 ms: 200,
-                count: 75
+                count: 150,
+                ajaxTimeout: 3000
             },
             submenu: null,
             content: null
@@ -780,7 +781,10 @@ function siteManager() {
                 lwm_jQuery.when(
                     config.getGameData.overviewInfos(),
                     config.getGameData.planetInformation()
-                ).then(function () { config.loadStates.gameData = false; },function () { Sentry.captureMessage('fetching gameData all failed'); helper.throwError(); });
+                ).then(function () { config.loadStates.gameData = false; },function () {
+                    config.loadStates.gameData = false; //still resolve load to be able to continue
+                    Sentry.captureMessage('fetching gameData all failed');
+                });
 
                 // spionage is not needed initially and can be loaded later
                 getLoadStatePromise('gdrive').then(function () {
@@ -811,19 +815,29 @@ function siteManager() {
                 };
                 GM.setValue('lwm_planetInfo', JSON.stringify(config.lwm.planetInfo));
             },
-            planetInformation: function(data) {
-                return site_jQuery.getJSON('/ajax_request/get_all_planets_information.php', function (data) {
-                    config.gameData.planetInformation = data;
-                    config.gameData.planets = [];
-                    lwm_jQuery.each(data, function (i, d) {
-                        config.gameData.planets.push({galaxy:d.Galaxy,system:d.System,planet:d.Planet,string:d.Galaxy+'x'+d.System+'x'+d.Planet});
-                    });
+            planetInformation: function() {
+                return site_jQuery.ajax({
+                    url: '/ajax_request/get_all_planets_information.php',
+                    dataType: 'json',
+                    success: function (data) {
+                        config.gameData.planetInformation = data;
+                        config.gameData.planets = [];
+                        lwm_jQuery.each(data, function (i, d) {
+                            config.gameData.planets.push({galaxy:d.Galaxy,system:d.System,planet:d.Planet,string:d.Galaxy+'x'+d.System+'x'+d.Planet});
+                        });
+                    },
+                    timeout: config.promises.interval.ajaxTimeout
                 });
             },
-            overviewInfos: function(data) {
+            overviewInfos: function() {
                 var uriData = 'galaxy_check='+config.gameData.planetCoords.galaxy+'&system_check='+config.gameData.planetCoords.system+'&planet_check='+config.gameData.planetCoords.planet;
-                return site_jQuery.getJSON('/ajax_request/get_ubersicht_info.php?'+uriData, function (data) {
-                    config.gameData.overviewInfo = data;
+                return site_jQuery.ajax({
+                    url: '/ajax_request/get_ubersicht_info.php?'+uriData,
+                    dataType: 'json',
+                    success: function (data) {
+                        config.gameData.overviewInfo = data;
+                    },
+                    timeout: config.promises.interval.ajaxTimeout
                 });
             },
             addFleetInfo: function (fleetData) {
@@ -1646,11 +1660,17 @@ function siteManager() {
                 if ([2,4].includes(unsafeWindow.window.current_view_type) && GM_config.get('message_spylinks')) {
                     lwm_jQuery.each(config.gameData.messageData[1], function (i, m) {
                         if (m.subject.search(/Kampfbericht|Spionagebericht/) !== -1 && m.user_nickname === 'Systemnachricht') {
-                            site_jQuery.getJSON('/ajax_request/get_message_info.php?id_conversation='+m.id, { lwm_ignoreProcess: 1 }, function (data) {
-                                //add reportID to data for future use
-                                config.gameData.messageData[1][i].reportID = data[0][0].text.match(/id=(\d*)/)[1];
+                            site_jQuery.ajax({
+                                url: '/ajax_request/get_message_info.php?id_conversation='+m.id,
+                                dataType: 'json',
+                                data: { lwm_ignoreProcess: 1 },
+                                success: function (data) {
+                                    //add reportID to data for future use
+                                    config.gameData.messageData[1][i].reportID = data[0][0].text.match(/id=(\d*)/)[1];
 
-                                addReportLink(config.gameData.messageData[1][i]);
+                                    addReportLink(config.gameData.messageData[1][i]);
+                                },
+                                timeout: config.promises.interval.ajaxTimeout
                             });
                         }
                     });
@@ -2960,6 +2980,7 @@ function siteManager() {
                 site_jQuery.ajax({
                     url: '/ajax_request/get_trade_offers.php?'+uriData,
                     data: { lwm_ignoreProcess: 1 },
+                    timeout: config.promises.interval.ajaxTimeout,
                     success: function(data) {
                         if (data == '500') return;
                         unsafeWindow.Roheisen = parseInt(data.resource['Roheisen']);
@@ -3548,13 +3569,27 @@ function siteManager() {
 
     var requests = {
         get_flottenbewegungen_info: function () {
-            return site_jQuery.getJSON('/ajax_request/get_flottenbewegungen_info.php?galaxy='+config.gameData.planetCoords.galaxy+'&system='+config.gameData.planetCoords.system+'&planet='+config.gameData.planetCoords.planet);
+            return site_jQuery.ajax({
+                url: '/ajax_request/get_flottenbewegungen_info.php?galaxy='+config.gameData.planetCoords.galaxy+'&system='+config.gameData.planetCoords.system+'&planet='+config.gameData.planetCoords.planet,
+                dataType: 'json',
+                timeout: config.promises.interval.ajaxTimeout
+            });
         },
         get_spionage_info: function () {
-            return site_jQuery.getJSON('/ajax_request/get_spionage_info.php?galaxy_check='+config.gameData.planetCoords.galaxy+'&system_check='+config.gameData.planetCoords.system+'&planet_check='+config.gameData.planetCoords.planet, { lwm_ignoreProcess: 1 });
+            return site_jQuery.ajax({
+                url: '/ajax_request/get_spionage_info.php?galaxy_check='+config.gameData.planetCoords.galaxy+'&system_check='+config.gameData.planetCoords.system+'&planet_check='+config.gameData.planetCoords.planet,
+                dataType: 'json',
+                data: { lwm_ignoreProcess: 1 },
+                timeout: config.promises.interval.ajaxTimeout
+            });
         },
         get_obs_info: function () {
-            return site_jQuery.getJSON('/ajax_request/get_info_for_observationen_page.php', { lwm_ignoreProcess: 1 });
+            return site_jQuery.ajax({
+                url: '/ajax_request/get_info_for_observationen_page.php',
+                dataType: 'json',
+                data: { lwm_ignoreProcess: 1 },
+                timeout: config.promises.interval.ajaxTimeout
+            });
         }
     };
 
@@ -3594,6 +3629,7 @@ function siteManager() {
                 dataType: "json",
                 url: "/ajax_request/send_spionage_action.php",
                 data: obj,
+                timeout: config.promises.interval.ajaxTimeout,
                 error: function(jqXHR, textStatus, errorThrown) {
                     alert(textStatus + ": " + errorThrown);
                 },
@@ -3699,6 +3735,7 @@ function siteManager() {
                 dataType: "json",
                 url: "/ajax_request/send_spionage_action.php",
                 data: obj,
+                timeout: config.promises.interval.ajaxTimeout,
                 error: function(jqXHR, textStatus, errorThrown) {
                     alert(textStatus + ": " + errorThrown);
                 },
