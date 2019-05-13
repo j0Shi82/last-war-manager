@@ -53,8 +53,7 @@
 ## v0.6.0
 
 - All arrow keys that add or remove ships or defense bulk add them when you hold the mouse button
-- Resources on the main page get highlighted when running trade would exceed their storage capacity
-
+- Resources on the main page get highlighted when running trades would exceed their storage capacity
 - **OBSERVATIONS**
   - Ability to sort observations by coords
 - **MESSAGES**
@@ -63,7 +62,7 @@
   - Add spy links to all planets
   - Sending obs drones from the galaxy view
 - **RESOURCES**
-  - Page now shows the time until capacities are reached for all resources
+  - The page now shows the time until capacities are reached for all resources
 - **TRADE**
   - Trades that would exceed storage capacities when accepted/denied are highlighted
 

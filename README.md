@@ -36,7 +36,6 @@ A German feedback thread can be found on the [official message board](http://for
 - Settings page that lets you control what the script should do
 - **OVERVIEW**
   - Resources get added to the planets on the overview
-  - Show energy and building slots on overview page for all planets
   - Ability to switch planets by clicking the coord table headers
   - Fleet warning distance shows on the overview page
 - **PRODUCTION**
@@ -63,7 +62,7 @@ A German feedback thread can be found on the [official message board](http://for
   - Buttons to fill bank and withdraw interest
 - **RESOURCES**
   - New table that shows hourly and daily production for all planets
-  - Page now shows the time until capacities are reached for all resources
+  - The page now shows the time until capacities are reached for all resources
 - **PLANETS**
   - Delete button is gone
   - Change button is gone. Instead, you can change planets by clicking on the coords
