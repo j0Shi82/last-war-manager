@@ -65,225 +65,6 @@ var firstLoad = true;
 function siteManager() {
     var site_jQuery = null;
 
-    var googleManager = (function() {
-        var gapi = null;
-        var CLIENT_ID = '807071171095-2r28v4jpvgujv5n449ja4lrmk4hg88ie.apps.googleusercontent.com';
-        var API_KEY = 'AIzaSyA7VHXY213eg3suaarrMmrbOlX8T9hVwrc';
-        var DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
-        var SCOPES = 'https://www.googleapis.com/auth/drive.appfolder https://www.googleapis.com/auth/drive.file';
-        var saveFileID = null;
-
-        //if drive fails to load, set loadstate and use browser config instead
-        var handleError = function () {
-            //reset the google settings
-            if (GM_config.get('confirm_drive_sync')) alert('Couldn\'t sync with Google Drive. Please go to the settings and reconnect the service!');
-            signOut();
-            GM_config.set('confirm_drive_sync', false);
-            GM_config.save();
-
-            //load browser values
-            getLoadStatePromise('gameData').then(function () { config.setGMValues(); },function () { helper.throwError(new Error('gameData promise rejected')); });
-        }
-
-        /**
-             *  On load, called to load the auth2 library and API client library.
-             */
-        var handleClientLoad = function(g) {
-            gapi = g;
-            gapi.load('client:auth2', {
-                callback: initClient,
-                onerror: function () {
-                    console.error('gapi.client failed to load!');
-                    handleError();
-                }
-            });
-        }
-
-        /**
-             *  Initializes the API client library and sets up sign-in state
-             *  listeners.
-             */
-        var initClient = function() {
-            //console.log('gapi.client.init');
-            gapi.client.init({
-                apiKey: API_KEY,
-                clientId: CLIENT_ID,
-                discoveryDocs: DISCOVERY_DOCS,
-                scope: SCOPES
-            }).then(function () {
-                gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
-                updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
-            }, function (error) {
-                Sentry.captureException(error);
-                console.error(JSON.stringify(error, null, 2));
-                handleError();
-            });
-        }
-
-        var updateSigninStatus = function(isSignedIn) {
-            if (isSignedIn && GM_config.get('confirm_drive_sync')) {
-                //console.log('gapi.client.drive.files.list');
-                //if config file was already loaded, return and resolve gdrive load
-                GM.getValue('lwm_gDriveFileID', null).then(function (ID) {
-                    config.lwm.gDriveFileID = ID;
-                    if (config.lwm.gDriveFileID !== null) {
-                        getLoadStatePromise('gameData').then(function () { config.setGMValues(); },function () { helper.throwError(new Error('gameData promise rejected')); });
-                        return;
-                    } else {
-                        gapi.client.drive.files.list({
-                            q: 'name="lwm_config.json"',
-                            spaces: 'appDataFolder',
-                            fields: 'files(id)'
-                        }).then(function(response) {
-                            //console.log(response);
-                            if (response.status === 200) {
-                                if (response.result.files.length === 0) {
-                                    createConfig();
-                                } else {
-                                    saveFileID = response.result.files[0].id;
-                                    getConfig();
-                                }
-                            } else {
-                                console.error('files.create: ' + response);
-                                handleError();
-                            }
-                        }, function (error) {
-                            Sentry.captureException(error);
-                            console.error(JSON.stringify(error, null, 2));
-                            handleError();
-                        });
-                    }
-                });
-            } else {
-                handleError();
-            }
-        }
-
-        var createConfig = function () {
-            var fileMetadata = {
-                name: 'lwm_config.json',
-                description: 'Saved config for the Last War Manager',
-                parents: ['appDataFolder'],
-                mimeType: 'application/json',
-                uploadType: 'multipart'
-            };
-            //console.log('gapi.client.drive.files.create');
-            gapi.client.drive.files.create({
-                resource: fileMetadata,
-                fields: 'id,name'
-            }).then(function(response) {
-                //console.log(response);
-                if (response.status === 200) {
-                    config.lwm.gDriveFileID = response.result.id;
-                    GM.setValue('lwm_gDriveFileID', config.lwm.gDriveFileID);
-                    config.loadStates.gdrive = false;
-                    saveConfig();
-                } else {
-                    console.error('files.create: ' + response);
-                    handleError();
-                }
-            }, function (error) {
-                Sentry.captureException(error);
-                console.error(JSON.stringify(error, null, 2));
-                handleError();
-            });
-        }
-
-        var saveConfig = function () {
-            // check whether config is ready
-            if (config.loadStates.gdrive) {
-                //console.log('gapi.client.request failed due to config.loadStates.gdrive');
-                return;
-            }
-            //save
-            var saveObj = JSON.parse(JSON.stringify(config.lwm));
-            saveObj.menu = {
-                addon_clock: GM_config.get('addon_clock'),
-                addon_fleet: GM_config.get('addon_fleet'),
-                addon_fleet_exclude_drones: GM_config.get('addon_fleet_exclude_drones'),
-                confirm_const: GM_config.get('confirm_const'),
-                overview_planetresources: GM_config.get('overview_planetresources'),
-                overview_planetstatus: GM_config.get('overview_planetstatus'),
-                overview_planetnames: GM_config.get('overview_planetnames'),
-                message_spylinks: GM_config.get('message_spylinks'),
-                trade_highlights: GM_config.get('trade_highlights'),
-                fleet_saveprios: GM_config.get('fleet_saveprios'),
-                obs_opentabs: GM_config.get('obs_opentabs'),
-                fleet_presets_1_active: GM_config.get('fleet_presets_1_active'),fleet_presets_1_weekday: GM_config.get('fleet_presets_1_weekday'),fleet_presets_1_time: GM_config.get('fleet_presets_1_time'),
-                fleet_presets_2_active: GM_config.get('fleet_presets_2_active'),fleet_presets_2_weekday: GM_config.get('fleet_presets_2_weekday'),fleet_presets_2_time: GM_config.get('fleet_presets_2_time'),
-                fleet_presets_3_active: GM_config.get('fleet_presets_3_active'),fleet_presets_3_weekday: GM_config.get('fleet_presets_3_weekday'),fleet_presets_3_time: GM_config.get('fleet_presets_3_time'),
-                fleet_presets_4_active: GM_config.get('fleet_presets_4_active'),fleet_presets_4_weekday: GM_config.get('fleet_presets_4_weekday'),fleet_presets_4_time: GM_config.get('fleet_presets_4_time'),
-                fleet_presets_5_active: GM_config.get('fleet_presets_5_active'),fleet_presets_5_weekday: GM_config.get('fleet_presets_5_weekday'),fleet_presets_5_time: GM_config.get('fleet_presets_5_time'),
-                confirm_production: GM_config.get('confirm_production'),
-                confirm_research: GM_config.get('confirm_research'),
-                coords_fleets: GM_config.get('coords_fleets'),
-                coords_trades: GM_config.get('coords_trades')
-            };
-
-            //console.log('gapi.client.request',saveObj);
-            gapi.client.request({
-                path: '/upload/drive/v3/files/' + config.lwm.gDriveFileID,
-                method: 'PATCH',
-                params: {
-                    uploadType: 'media',
-                    mimeType: 'application/json'
-                },
-                body: JSON.stringify(saveObj)
-            }).then(function (response) {
-                //console.log(response);
-                if (response.status !== 200) {
-                    console.error('client.request: ' + response);
-                }
-            }, function (error) {
-                Sentry.captureException(error);
-                console.error(JSON.stringify(error, null, 2));
-            });
-        }
-
-        var getConfig = function () {
-            //console.log('gapi.client.drive.files.get');
-            gapi.client.drive.files.get({
-                fileId: saveFileID,
-                alt: 'media'
-            }).then(function (response) {
-                //console.log(response);
-                if (response.status === 200) {
-                    config.lwm.gDriveFileID = saveFileID;
-                    GM.setValue('lwm_gDriveFileID', config.lwm.gDriveFileID);
-                    config.lwm.set(response.result);
-                    //config.loadStates.gdrive = false; <-- loadState is updated in config.lwm.set()
-                } else {
-                    console.error('files.create: ' + response);
-                    handleError();
-                }
-            }, function (error) {
-                Sentry.captureException(error);
-                console.error(JSON.stringify(error, null, 2));
-                handleError();
-            });
-        }
-
-        var signIn = function() {
-            gapi.auth2.getAuthInstance().signIn();
-        }
-
-        var signOut = function() {
-            gapi.auth2.getAuthInstance().signOut();
-        }
-
-        var isSignedIn = function() {
-            return gapi.auth2.getAuthInstance().isSignedIn.get();
-        }
-
-        return {
-            signIn: signIn,
-            signOut: signOut,
-            isSignedIn: isSignedIn,
-            save: saveConfig,
-            init: handleClientLoad
-        };
-    })();
-
     var GM_config_time_array =  ['00:00','00:05','00:10','00:15','00:20','00:25','00:30','00:35','00:40','00:45','00:50','00:55',
                             '01:00','01:05','01:10','01:15','01:20','01:25','01:30','01:35','01:40','01:45','01:50','01:55',
                             '02:00','02:05','02:10','02:15','02:20','02:25','02:30','02:35','02:40','02:45','02:50','02:55',
@@ -619,7 +400,7 @@ function siteManager() {
             }
 
             //load browser values
-            getLoadStatePromise('gameData').then(function () { config.setGMValues(); },function (e) { helper.throwError(e); });
+            config.setGMValues();
         }
 
         /**
@@ -663,7 +444,7 @@ function siteManager() {
                 GM.getValue('lwm_gDriveFileID', null).then(function (ID) {
                     config.lwm.gDriveFileID = ID;
                     if (config.lwm.gDriveFileID !== null) {
-                        getLoadStatePromise('gameData').then(function () { config.setGMValues(); },function (e) { helper.throwError(e); });
+                        config.setGMValues();
                         return;
                     } else {
                         gapi.client.drive.files.list({
@@ -941,7 +722,7 @@ function siteManager() {
                 GM.setValue('lwm_planetData', JSON.stringify(config.lwm.planetData));
 
                 // wait for gameData, then process
-                getLoadStatePromise('gameData').then(function () { config.setGMValues() },function () { helper.throwError(new Error('gameData promise rejected')); });
+                config.setGMValues();
             },
         },
         pages: {
@@ -970,6 +751,13 @@ function siteManager() {
                 });
 
                 if (typeof config.lwm[settingName][config.gameData.playerID][config.gameData.planetCoords.string] === "undefined") config.lwm[settingName][config.gameData.playerID][config.gameData.planetCoords.string] = [];
+            }
+
+            //check if necessary data is there
+            if (config.gameData.planets.length === 0) {
+                //just end here because we can't verify stuff without planets
+                config.loadStates.gdrive = false; // <-- this ends gdrive setup on first load
+                return;
             }
 
             GM.getValue('lwm_lastTradeCoords', '{}').then(function (data) {
@@ -1062,9 +850,9 @@ function siteManager() {
                 site_jQuery.when(
                     config.getGameData.overviewInfos(),
                     config.getGameData.planetInformation()
-                ).then(function () { config.loadStates.gameData = false; },function (e) {
+                ).then(function () { config.loadStates.gameData = false; },function () {
                     config.loadStates.gameData = false; //still resolve load to be able to continue
-                    helper.throwError(new Error('fetching gameData all failed'));
+                    helper.throwError(new Error('fetching gameData failed'));
                 });
 
                 // spionage is not needed initially and can be loaded later
@@ -1193,20 +981,23 @@ function siteManager() {
 
             site_jQuery('.status.lwm-firstload').text('LOADING... Game Data...');
             config.getGameData.all();
-            site_jQuery.getScript('//cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@302db6b2a437abb6c2891f8fee0195f87e021834/assets/vendor.js').then(function () {
-                return site_jQuery.getScript('//apis.google.com/js/api.js');
+            getLoadStatePromise('gameData').then(function () {
+                site_jQuery('.status.lwm-firstload').text('LOADING... LWM Assets...');
+                return site_jQuery.getScript('//cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@302db6b2a437abb6c2891f8fee0195f87e021834/assets/vendor.js');
             }, startupError).then(function () {
                 site_jQuery('.status.lwm-firstload').text('LOADING... Google Drive...');
+                return site_jQuery.getScript('//apis.google.com/js/api.js');
+            }, startupError).then(function () {
                 googleManager.init(unsafeWindow.gapi);
-            }, startupError);
-            getLoadStatePromise('gdrive').then(function () {
+                return getLoadStatePromise('gdrive');
+            }, startupError).then(function () {
                 site_jQuery('.status.lwm-firstload').text('LOADING... Page Setup...');
                 //wait for gameData and google because some stuff depends on it
                 global.hotkeySetup();
                 if (!lwmSettings.get('confirm_drive_sync')) config.setGMValues();
 
                 // the first ubersicht load is sometimes not caught by our ajax wrapper, so do manually
-                getLoadStatePromise('gameData').then(function () { process('ubersicht'); }, startupError);
+                process('ubersicht');
             }, startupError);
 
             //we're hooking into ajax requests to figure out on which page we are and fire our own stuff
@@ -1586,6 +1377,16 @@ function siteManager() {
 
                 //add fleet warning distance
                 site_jQuery('.Posle').last().next().find('tr').last().after('<tr><td class="Pola">Frühwarnung:</td><td class="Pola lwm_fleetwarning"></td></tr>');
+
+                //throw error for missing data
+                if (lwmSettings.get('overview_planetnames') && Object.keys(config.gameData.planetInformation).length === 0
+                        ||
+                    lwmSettings.get('overview_planetstatus') && Object.keys(config.lwm.planetInfo[config.gameData.playerID]).length === 0
+                        ||
+                    lwmSettings.get('overview_planetresources') && Object.keys(config.gameData.planetInformation).length === 0)
+                {
+                    helper.throwError(new Error('couldn\'t load necessary data for uebersicht page'));
+                }
 
                 config.loadStates.content = false;
             }).catch(function (e) {
@@ -2696,7 +2497,7 @@ function siteManager() {
                     var coords = parseCoords(site_jQuery(this).parents('tr').find('td').first().text());
                     var coordData = config.lwm.planetData[coords[0]+'x'+coords[1]+'x'+coords[2]];
                     //add spy buttons for planets that's missing it
-                    if (value !== '' && value !== 'false' && value !== '0') {
+                    if (value !== '' && value !== 'false' && value !== '0' && Object.keys(config.gameData.spionageInfos).length !== 0) {
                         var spydrones = site_jQuery.grep(config.gameData.spionageInfos.planetenscanner_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
                         var obsdrones = site_jQuery.grep(config.gameData.spionageInfos.observations_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
                         var existingObs = helper.getActiveObs(coords);
@@ -2745,6 +2546,10 @@ function siteManager() {
 
                 //add search icons
                 helper.replaceElementsHtmlWithIcon(site_jQuery('.formButtonGalaxyView'), 'fas fa-search');
+
+                if (Object.keys(config.gameData.spionageInfos).length === 0) {
+                    helper.throwError(new Error('missing data for galaxy view'));
+                }
 
                 config.loadStates.content = false;
             }).catch(function (e) {
@@ -3592,7 +3397,8 @@ function siteManager() {
                     switch (fleetData.Type) {
                         case '1':
                             var existingObs = helper.getActiveObs([fleetData.Galaxy_send,fleetData.System_send,fleetData.Planet_send]);
-                            var spydrones = site_jQuery.grep(config.gameData.spionageInfos.planetenscanner_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
+                            var spydrones = [];
+                            if (Object.keys(config.gameData.spionageInfos).length !== 0) spydrones = site_jQuery.grep(config.gameData.spionageInfos.planetenscanner_drons, function (el, i) { return el.engine_type === 'IOB' && parseInt(el.number) > 0; });
                             var obsLink = existingObs.length ? '<i onclick="'+(lwmSettings.get('obs_opentabs') ? 'window.open(\'view/content/new_window/observationen_view.php?id='+existingObs[0].id+'\')' : 'openObservationWindow('+existingObs[0].id+')')+'" style="cursor:hand;" class="fas fa-search-plus"></i>' : (spydrones.length ? '<i style="cursor:hand;" class="fas fa-search"></i>' : '');
 
                             fleetInfoString = 'Eigene Flotte vom Planet '+ ownCoords;
