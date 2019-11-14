@@ -17,8 +17,9 @@ input.deletePlanetName,
 #profileImageBox > img,
 .resourceBox .bigPop,
 .ui-loader {
-  display: none;
+  display: none !important;
 }
+
 html {
   overflow: auto;
   overflow-x: hidden;
@@ -27,35 +28,43 @@ html {
   background-image: url(images/main_screen/background.jpg);
   background-size: 100% 100%;
 }
+
 body {
   background-color: rgba(0, 0, 0, 0.5);
   font-size: 14px;
 }
+
 body > div > img:first-child {
   display: none;
 }
+
 div[data-role="page"] {
   min-height: unset !important;
   max-width: 1200px;
   margin: 0 auto;
 }
+
 @media (max-width: 600px) {
   #tradeOfferDiv .offer {
     width: 98%;
   }
+
   #galaxyViewInfoTable tr td:nth-child(2),
   #galaxyViewInfoTable tr td:nth-child(3) {
     word-break: break-all;
   }
+
   #tableForChangingPlanet .col-2 {
     display: none;
   }
 }
+
 @media (max-width: 850px) {
   html {
     width: 100%;
     margin-left: 0;
   }
+
   #link,
   #veticalLink {
     display: flex;
@@ -63,18 +72,22 @@ div[data-role="page"] {
     flex-wrap: wrap;
     margin-bottom: 20px !important;
   }
+
   .fontSizeFourteenClass,
   table {
     font-size: 12px;
   }
+
   #Main {
     flex-flow: column;
   }
+
   #Header,
   #Footer,
   #Content {
     flex: 1 100% !important;
   }
+
   #Header {
     display: none;
     order: 1 !important;
@@ -85,16 +98,21 @@ div[data-role="page"] {
     width: 100%;
     background-color: #173a44;
   }
+
   .headerBox {
     background-color: #173a44;
   }
+
   #lwm_menu_toggle {
     display: block !important;
     position: fixed;
   }
+
   #Content {
     order: 3 !important;
+    display: block !important;
   }
+
   #Footer {
     order: 2 !important;
     margin-bottom: 10px;
@@ -102,6 +120,7 @@ div[data-role="page"] {
     margin-right: 1%;
     margin-top: 68px;
   }
+
   #Header,
   .headerBox,
   .menu,
@@ -109,18 +128,21 @@ div[data-role="page"] {
   .secound_line {
     height: unset !important;
   }
+
   .menu {
     flex-direction: column;
     border-bottom: 2px solid #5db8b6;
     border-left: 2px solid #5db8b6;
     border-right: 2px solid #5db8b6;
     padding: 5px;
-    border-radius: 0px 0px 10px 10px;
+    border-radius: 0 0 10px 10px;
   }
+
   .lwm_menu-content .select_box_cordinaten {
     top: 0;
     margin: 0;
   }
+
   .resourceBoxs {
     width: 100% !important;
     display: flex;
@@ -128,11 +150,12 @@ div[data-role="page"] {
     justify-content: space-between;
     align-content: center;
   }
+
   .resourceBox {
     flex: 0 0 100px;
     float: none;
     margin-left: 2px !important;
-    margin-right: 0px !important;
+    margin-right: 0 !important;
     display: flex;
     font-size: 12px !important;
     flex-direction: column;
@@ -140,19 +163,24 @@ div[data-role="page"] {
     justify-content: center;
     height: 55px !important;
   }
+
   .resourceBox img,
   .resourceBox br {
     display: none;
   }
+
   .resourceProgressBar {
     width: 80px !important;
   }
+
   .resourceBox ul.loadbar {
-    margin-top: 2px;
+    margin-top: 2px !important;
   }
+
   .galaxyView {
     display: none !important;
   }
+
   .resourceName,
   .resourceAmount,
   .resourceProgressBar {
@@ -160,12 +188,18 @@ div[data-role="page"] {
     top: 0;
     left: 0;
   }
-  .profileImage {
+
+  .profileImage,
+  #profileImageBox,
+  .profileInfo,
+  .iconOpenMenuDiv {
     display: none !important;
   }
+
   .first_line {
     justify-content: space-between !important;
   }
+
   .secound_line {
     justify-content: space-between !important;
     flex: unset !important;
@@ -173,10 +207,12 @@ div[data-role="page"] {
     margin-top: 5px !important;
   }
 }
+
 select {
   color: #7cf3fd;
   background-color: rgb(12, 48, 70);
 }
+
 #Main {
   display: none;
   justify-content: center;
@@ -187,6 +223,7 @@ select {
   margin: 0;
   height: unset;
 }
+
 #Header {
   flex: 1 100%;
   height: 180px;
@@ -195,14 +232,16 @@ select {
 #lwm_menu_toggle i {
   cursor: hand;
 }
+
 #lwm_menu_toggle {
   display: none;
   width: 100%;
   color: #000;
   background-color: rgb(93, 184, 182);
-  padding: 5px 0px 5px 0px;
+  padding: 5px 0 5px 0;
   z-index: 10;
 }
+
 #lwm_menu_toggle .lwm_menu-content {
   display: flex !important;
   justify-content: space-between;
@@ -210,21 +249,25 @@ select {
   margin: 0 auto;
   align-items: center;
 }
+
 #lwm_menu_toggle .lwm_menu-content .lwm_menu-item {
   height: 56px;
 }
+
 #lwm_menu_toggle .lwm_menu-content .lwm_menu-item:last-child {
   flex: 0 0 42px;
   display: flex;
   justify-content: center;
   align-items: center;
 }
+
 #lwm_menu_toggle .lwm_menu-content .lwm_menu-item:nth-child(2) {
   flex: 0 0 115px;
   display: flex;
   justify-content: center;
   align-items: center;
 }
+
 #lwm_menu_toggle .lwm_menu-content .lwm_menu-item:first-child {
   flex-grow: 1;
   display: flex;
@@ -232,17 +275,20 @@ select {
   align-items: center;
   flex-wrap: wrap;
 }
+
 #lwm_menu_toggle .lwm_menu-content .lwm_menu-item:first-child i {
   font-size: 2em;
   width: 35px;
   text-align: center;
 }
+
 i.icon-galaxy {
   width: 28px;
   height: 28px;
   background-size: 100% 100%;
   background-image: url("https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/galaxy.png");
 }
+
 .headerBox {
   padding-top: 0;
   height: 180px;
@@ -250,6 +296,7 @@ i.icon-galaxy {
   margin: 0;
   width: 100%;
 }
+
 .profileImage {
   top: 0;
   left: 0;
@@ -264,6 +311,7 @@ i.icon-galaxy {
   background-color: #4290a157;
   border-radius: 60px 60px 10px 10px;
 }
+
 .profileInfo {
   padding: 0;
   text-align: center;
@@ -272,10 +320,11 @@ i.icon-galaxy {
   margin-left: 5px;
   margin-right: 5px;
 }
+
 #profileImageBox {
   float: none;
-  margin-right: 0px;
-  margin: 5px auto 0px;
+  margin-right: 0;
+  margin: 5px auto 0;
   width: 120px;
   height: 120px;
   overflow: hidden;
@@ -283,39 +332,46 @@ i.icon-galaxy {
   background-size: cover;
   border-radius: 60px;
 }
+
 #profileImageBox > svg {
   display: none;
 }
+
 .menu {
   margin-left: 0;
   width: unset;
   text-align: unset;
   order: 2;
   flex: 1 0 0;
-  display: flex;
+  display: flex !important;
+  position: static !important;
   flex-direction: column;
   padding: 5px;
   justify-content: space-between;
 }
+
 .first_line,
 .secound_line {
-  margin-top: 0px;
+  margin-top: 0;
   display: flex;
   flex-wrap: wrap;
   align-content: center;
   justify-content: space-between;
 }
+
 #Footer {
   order: 1;
   flex: 0 0 180px;
   height: unset;
 }
+
 .resourceBoxs {
   margin: 0;
   padding: 0;
   width: 180px;
   float: none;
 }
+
 .resourceBox {
   width: 170px;
   margin-left: 5px;
@@ -328,13 +384,16 @@ i.icon-galaxy {
   border-radius: 10px;
   height: 75px;
 }
+
 .resourceBox img {
   opacity: 1;
 }
+
 .resourceProgressBar {
   background-size: 100% 100%;
   width: 140px;
 }
+
 .galaxyView {
   background-size: 100% 100%;
   background-repeat: no-repeat;
@@ -345,15 +404,17 @@ i.icon-galaxy {
   background-color: #4290a157;
   border-radius: 10px;
 }
+
 #Content {
   order: 2;
   flex-grow: 3;
   flex-shrink: 1;
-  flex-basis: 0px;
+  flex-basis: 0;
   height: unset;
   margin: 0;
   margin-bottom: 50px;
 }
+
 .middleContent {
   background-image: none;
   background: none;
@@ -364,6 +425,7 @@ i.icon-galaxy {
   margin-top: 0;
   float: none;
 }
+
 #all {
   width: 100%;
   height: unset;
@@ -372,12 +434,14 @@ i.icon-galaxy {
   clip-path: none;
   -webkit-clip-path: none;
 }
+
 .pageContent {
   height: unset;
   overflow-y: initial;
   overflow-x: auto;
   padding-right: 0;
 }
+
 ul.loadbarConstruction,
 ul.loadbarResearch {
   display: flex;
@@ -386,6 +450,7 @@ ul.loadbarResearch {
   padding-left: 0;
   padding-right: 0;
 }
+
 ul.loadbar {
   display: flex;
   width: 90%;
@@ -396,12 +461,14 @@ ul.loadbar {
   -webkit-padding-before: unset;
   margin-top: -5px;
 }
+
 ul.loadbarConstruction li,
 ul.loadbarResearch li,
 ul.loadbar li {
   flex: 1 1 1px;
   width: unset;
 }
+
 table,
 tr,
 td,
@@ -409,22 +476,27 @@ th {
   border: 1px solid rgba(124, 243, 241, 0.5);
   border-collapse: collapse;
 }
+
 .resourceProgressBarPlanet {
   width: unset;
   background-size: 100% 100%;
 }
+
 .resourceProgressBarPlanet ul.loadbar {
   -webkit-margin-before: 2px;
 }
+
 .planetButtonMain {
   background-color: #4290a157;
   font-size: 18px;
   font-weight: bold;
   white-space: normal;
 }
+
 .wordBreak {
   word-break: normal;
 }
+
 #constructionPageDiv tr > td:first-child,
 #schiffskomponentenDiv tr > td:first-child,
 #productionDiv tr > td:first-child:not(.roheisenVariable),
@@ -438,6 +510,7 @@ th {
   min-width: 50px;
   background-color: #4290a157;
 }
+
 tr th:first-child,
 #lwm_resourceTotal th,
 #ShipTable > tbody > tr > td:first-child,
@@ -450,6 +523,7 @@ tr th:first-child,
   background-color: #4290a157;
   word-break: break-all;
 }
+
 .timeConstructionTd,
 .timeResearchTd {
   flex-direction: row;
@@ -457,17 +531,20 @@ tr th:first-child,
   align-content: center;
   justify-content: space-evenly;
 }
+
 .defaultButton,
 .greenButton,
 .yellowButton,
 .redButton {
   margin: 0;
 }
+
 #saveLinks {
   padding-top: 10px;
   padding-bottom: 10px;
   text-align: center;
 }
+
 .formButtonSpionage,
 .formButton,
 .formButtonNewMessage,
@@ -477,11 +554,13 @@ tr th:first-child,
   height: 25px !important;
   line-height: 25px !important;
 }
+
 .formButtonSpionage,
 .formButtonNewMessage {
   margin-top: 5px !important;
   margin-bottom: 5px !important;
 }
+
 .buttonAccount {
   width: 150px !important;
   height: 25px !important;
@@ -489,6 +568,7 @@ tr th:first-child,
   margin-top: 5px !important;
   margin-bottom: 5px !important;
 }
+
 .menu_box,
 .buttonAccount,
 .navButton,
@@ -506,6 +586,7 @@ tr th:first-child,
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .menu_box:hover,
 .buttonAccount:hover,
 .navButton:hover,
@@ -517,6 +598,7 @@ tr th:first-child,
 .formButtonGalaxyView:hover {
   background-color: #cdd21c57;
 }
+
 .menu_box,
 .buttonAccount,
 .formButtonNewMessage,
@@ -528,6 +610,7 @@ tr th:first-child,
   background-image: none !important;
   background-color: #4290a157;
 }
+
 .menu_box {
   width: 120px !important;
   height: 22px;
@@ -537,6 +620,7 @@ tr th:first-child,
   justify-content: space-between;
   align-items: center;
 }
+
 .navButton,
 .bigNavButton {
   background: none;
@@ -551,12 +635,15 @@ tr th:first-child,
   align-items: center;
   padding-right: 5px;
 }
+
 .headerOfGalaxyViewPage .formButtonGalaxyView {
   width: 20px !important;
 }
+
 .headerOfGalaxyViewPage .formButtonGalaxyView i {
   line-height: 2em;
 }
+
 .menu_box i + span {
   margin-left: 5px;
   margin-right: 5px;
@@ -564,32 +651,40 @@ tr th:first-child,
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .menu_box i {
   margin-left: 5px;
 }
+
 .navButton i,
 .bigNavButton i {
   margin-left: 5px;
   margin-right: 5px;
 }
+
 .activeBox {
   background: none;
   background-image: none !important;
   background-color: #cdd21c57;
 }
+
 .lightRedBackgroundGalaxyView {
   background-color: #6b1919;
   background: #6b1919;
 }
+
 .hisMessage {
   background-color: #7399dc;
 }
+
 .hisMessage::before {
   border-color: transparent #7399dc transparent transparent;
 }
+
 .buttonRow {
   height: unset;
 }
+
 @media (max-width: 600px) {
   .headerOfGalaxyViewPage input,
   #inboxContent .formButton,
@@ -601,6 +696,7 @@ tr th:first-child,
     width: 50px !important;
   }
 }
+
 @media (max-width: 850px) {
   .navButton,
   .navButton.bigNavButton {
@@ -609,6 +705,7 @@ tr th:first-child,
     height: 22px !important;
     font-size: 12px !important;
   }
+
   .buttonAccount,
   .formButtonNewMessage,
   .formButton,
@@ -618,13 +715,16 @@ tr th:first-child,
     width: 125px !important;
     font-size: 12px !important;
   }
+
   #tradeOfferDiv .formButton {
     width: 100px !important;
   }
+
   .menu_box {
     width: 100px !important;
     font-size: 12px !important;
   }
+
   td.roheisenVariable,
   td.kristallVariable,
   td.frubinVariable,
@@ -635,6 +735,7 @@ tr th:first-child,
     word-break: break-all;
   }
 }
+
 .raumdock-arrow-left,
 .arrow-left,
 .spionage-arrow-left,
@@ -644,6 +745,7 @@ tr th:first-child,
   border-right: 20px solid #7cf3fd;
   margin-top: 0 !important;
 }
+
 .raumdock-arrow-right,
 .arrow-right,
 .spionage-arrow-right,
@@ -653,10 +755,12 @@ tr th:first-child,
   border-left: 20px solid #7cf3fd;
   margin-top: 0 !important;
 }
+
 input[type="number"] {
   text-align: center;
   margin: 0;
 }
+
 [id*="InputNumber"],
 .inputNumberDiv {
   display: flex;
@@ -664,14 +768,17 @@ input[type="number"] {
   flex-wrap: nowrap;
   align-items: center;
 }
+
 #changeFlottenDiv td[id*="InputNumber"] {
   display: table-cell;
 }
+
 .inputNumberDiv span {
   margin-left: 2px;
   margin-right: 2px;
   font-size: 14px;
 }
+
 @media (max-width: 850px) {
   #handelspostenDiv input[type="number"],
   #verteidigungDiv input[type="number"],
@@ -680,26 +787,31 @@ input[type="number"] {
     width: 30px !important;
   }
 }
+
 #raumdockDiv .inputNumberDiv,
 #spionageDiv .inputNumberDiv {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+
 .inputNumberDiv .fa-check-circle {
   color: #6ac468;
   cursor: hand;
   font-size: 2em;
 }
+
 .inputNumberDiv .fa-ban {
   color: #c46868;
   cursor: hand;
   font-size: 2em;
 }
+
 .shipNameProduction,
 .headerProduction {
   font-size: inherit;
 }
+
 .shipNameProduction,
 .headerProduction {
   background: none;
@@ -707,19 +819,24 @@ input[type="number"] {
   background-color: #4290a157;
   min-width: 50px;
 }
+
 table + table {
   margin-top: 5px;
 }
+
 th,
 th.wordBreak {
   word-break: break-all;
 }
+
 th.resursiUnos {
   display: table-cell !important;
 }
+
 #ComponentTable tr:not([id]):not(:nth-child(3)) {
   display: none !important;
 }
+
 #ComponentTable tr:not([id]):nth-child(3) td,
 #AllItems th,
 #headerMaintable th,
@@ -742,42 +859,50 @@ td.constructionName,
   word-break: break-all;
   background-color: #4290a157;
 }
+
 #tradeOfferDiv th {
   background-color: #4290a157;
   word-break: normal !important;
 }
+
 .hideCommponetShips .bla {
   display: flex;
   justify-content: center;
 }
+
 .hideCommponetShips .bla input {
   width: 25px;
   margin: 0;
 }
+
 #planetText {
   margin: 0;
 }
+
 #galaxyViewDiv {
   margin-top: 5px;
 }
-#lwm_folottenbewegungenPageDiv
-  tr
-  > td:not(:nth-last-child(1)):not(:nth-last-child(2)):not(:first-child) {
+
+#lwm_folottenbewegungenPageDiv tr > td:not(:nth-last-child(1)):not(:nth-last-child(2)):not(:first-child) {
   display: none;
 }
+
 #lwm_folottenbewegungenPageDiv select {
   width: 30%;
   margin-left: 1.5%;
   margin-right: 1.5%;
 }
+
 #lwm_folottenbewegungenPageDiv b {
   text-decoration: underline;
 }
+
 #lwm_folottenbewegungenPageDiv i {
   float: left;
   margin-top: 2px;
   width: 1.5em;
 }
+
 #planetTable > tbody > tr:nth-child(1) > td:nth-child(4),
 #planetTable > tbody > tr:nth-child(1) > td:nth-child(5),
 #planetTable > tbody > tr:nth-child(1) > th:nth-child(4),
@@ -792,33 +917,41 @@ td.constructionName,
 #planetTable > tbody > tr:nth-child(5n - 3) > th:nth-child(5) {
   display: none;
 }
+
 #t1DIV,
 #t2DIV,
 #t3DIV {
   display: table-row !important;
 }
+
 /* SHIPDOCK */
 #lwm_selectAllShips {
   margin-left: 5px;
 }
+
 .createShipButton {
   cursor: hand;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .createShipButton:hover {
   background-color: #cdd21c57;
 }
+
 /* SHIPDOCK END */
+
 /* INBOX */
 .inboxPage {
   display: flex;
   flex-flow: column;
 }
+
 #messagesListTableInbox {
   margin-bottom: 5px;
 }
+
 .messages {
   width: 90%;
   border: 1px solid #7cf3f1;
@@ -827,19 +960,23 @@ td.constructionName,
   height: unset;
   overflow-y: auto;
 }
+
 .messages a {
   color: #32eccf;
   font-weight: bold;
 }
+
 #veticalLink {
   width: 100%;
   text-align: center;
   height: unset;
   margin-bottom: 5px;
 }
+
 #inboxContent {
   width: 100%;
 }
+
 .inboxDeleteMessageButtons {
   display: flex;
   justify-content: flex-start;
@@ -848,6 +985,7 @@ td.constructionName,
   margin: 0;
   float: left;
 }
+
 .inboxNextPageButtons {
   display: flex;
   justify-content: flex-end;
@@ -856,21 +994,26 @@ td.constructionName,
   margin: 0;
   float: right;
 }
+
 .buttonRowInbox,
 .buttonRowNextPageInbox {
   height: unset;
   width: unset;
   float: none;
 }
+
 .newMessageInbox textarea {
   width: 90%;
 }
+
 #inboxContent .controller {
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
 /* INBOX END */
+
 /* DEFENSE */
 #DefenseGraph {
   background: url(https://last-war.de/images/Defense.jpg);
@@ -878,6 +1021,7 @@ td.constructionName,
   background-repeat: no-repeat;
   height: 400px;
 }
+
 #DefenseGraph #layer1,
 #DefenseGraph #layer2,
 #DefenseGraph #layer3,
@@ -888,20 +1032,24 @@ td.constructionName,
   margin: 0;
   font-size: 14px;
 }
+
 #DefenseGraph #layer1 {
   width: 80%;
   left: 10%;
   top: 3%;
 }
+
 #DefenseGraph #layer2 {
   width: 80%;
   top: 25%;
   left: 10%;
 }
+
 #DefenseGraph #layer3 {
   width: 100%;
   top: 40%;
 }
+
 #DefenseGraph #layer3 #layer3_right {
   font-size: 10px;
   width: 45%;
@@ -909,38 +1057,46 @@ td.constructionName,
   padding: 0;
   margin-top: 2%;
 }
+
 #DefenseGraph #layer3 #layer3_left {
   width: 45%;
   text-align: center;
   margin-right: 5%;
   height: unset;
 }
+
 #DefenseGraph #layer4 {
   width: 100%;
   top: 60%;
   left: 0%;
 }
+
 #DefenseGraph #layer4 > div:first-child {
   width: 80%;
 }
+
 #DefenseGraph #layer4 #plasma {
   width: 40%;
   margin: 0;
   text-align: right;
   margin-top: 3%;
 }
+
 #DefenseGraph #layer4 #anti {
   width: 40%;
   text-align: left;
   margin-top: 3%;
   margin-right: 0;
 }
+
 #upgradeDefenceDiv button[onclick*="upgradeDefenceFunction"] {
   display: flex;
   justify-content: center;
   align-items: center;
 }
+
 /* DEFENSE END */
+
 /* TOOLTIP **/
 .big_img_alt {
   width: auto;
@@ -958,7 +1114,9 @@ td.constructionName,
   padding-left: 10px;
   padding-right: 10px;
 }
+
 /* TOOLTIP END */
+
 /* LOADER */
 .loader {
   border: 16px solid #7cf3f1;
@@ -969,56 +1127,72 @@ td.constructionName,
   animation: spin 2s linear infinite;
   margin: 0 auto;
 }
+
 .lwm-firstload.status {
   width: 100%;
   text-align: center;
 }
+
 @keyframes spin {
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }
 }
+
 /* LOADER END */
+
 /* TRADE */
 #newTradeOfferDiv th input:nth-child(1) {
   width: 25px !important;
 }
+
 #newTradeOfferDiv th input:nth-child(2) {
   width: 30px !important;
 }
+
 #newTradeOfferDiv th input:nth-child(3) {
   width: 25px !important;
 }
+
 #newTradeOfferDiv th:nth-child(2) {
   white-space: nowrap;
 }
+
 #newTradeOfferDiv td {
   text-align: center;
   padding: 5px !important;
 }
+
 #newTradeOfferDiv td:nth-child(1),
 #newTradeOfferDiv td:nth-child(3) {
   word-break: break-all;
 }
+
 #newTradeOfferDiv td input {
   width: 90%;
   margin: 5px 5% 5px 5% !important;
 }
+
 #tradeOfferComment {
   border: 1px solid #7cf3fd !important;
 }
+
 /* TRADE END */
+
 /* FLEET START */
 .pageContent .flottenViewDiv #firstTable {
   width: unset !important;
 }
+
 .flottenViewDiv a:hover {
   color: #fff;
   background-color: #242d6f8f;
 }
+
 #lwm_fleet_timer_wrapper {
   margin-top: 20px;
   border: 1px solid rgba(124, 243, 241, 0.5);
@@ -1027,21 +1201,25 @@ td.constructionName,
   flex-wrap: wrap;
   justify-content: space-between;
 }
+
 #lwm_fleet_timer_wrapper div,
 #lwm_fleet_timer_wrapper select,
 #lwm_fleet_timer_wrapper input {
   height: 20px;
 }
+
 #lwm_fleet_timer_wrapper .lwm_preselect {
   font-weight: bold;
   background-color: #7cf3fd;
   color: #0c3046;
 }
+
 /* FLEET END */
+
 /* SETTINGS */
 iframe#lwmSettings {
-  left: 0px !important;
-  top: 0px !important;
+  left: 0 !important;
+  top: 0 !important;
   width: 100% !important;
   height: 100% !important;
   max-width: 100% !important;
@@ -1050,6 +1228,7 @@ iframe#lwmSettings {
   background: #00000080 !important;
   background-color: #00000080 !important;
 }
+
 body#lwmSettings {
   width: 80%;
   margin-left: 10%;
@@ -1058,28 +1237,34 @@ body#lwmSettings {
   background: transparent !important;
   background-color: transparent !important;
 }
+
 body#lwmSettings #lwmSettings_wrapper {
   background-color: #7cf3f1;
   padding: 10px;
 }
+
 body#lwmSettings input,
 body#lwmSettings button {
   border-color: #000;
   background-color: #4290a157;
   color: #000;
 }
+
 body#lwmSettings .section_desc {
   border-color: #000;
   background-color: #4290a157;
   color: #000;
 }
+
 /* SETTINGS END */
 .planetGraph {
   margin-top: 1%;
 }
+
 .planetGraph:nth-child(2n-1) {
   margin-right: 2%;
 }
+
 @media (max-width: 700px) {
   .planetGraph {
     margin-top: 1%;
@@ -1087,10 +1272,12 @@ body#lwmSettings .section_desc {
     width: 100%;
   }
 }
+
 /* GALAXY */
 .actionClass {
   font-size: 0.75em;
 }
+
 .flottenKommandoAction,
 .newTradeOfferAction,
 .spionagePlanetenscannerAction,
@@ -1098,55 +1285,66 @@ body#lwmSettings .section_desc {
 .changePlanetAction {
   background-image: none;
 }
+
 .headerOfGalaxyViewPage {
   margin-bottom: 5px;
   padding: 5px;
   border: 1px solid rgba(124, 243, 241, 0.5);
   border-collapse: collapse;
 }
+
 .headerOfGalaxyViewPage input {
   width: unset;
   float: none;
   border-color: unset;
   border-radius: 5px;
-  border-width: 0px;
+  border-width: 0;
   margin-top: 0%;
   height: 29px;
   background-color: #4290a157;
   color: #7cf3fd;
   text-align: center;
 }
+
 .headerOfGalaxyViewPage input::-webkit-input-placeholder,
 .headerOfGalaxyViewPage input::placeholder {
   color: #7cf3fd80;
 }
+
 .headerOfGalaxyViewPage .col-4 {
   text-align: right;
 }
+
 #tableForChangingPlanet #left,
 #tableForChangingPlanet #right {
   cursor: hand;
 }
+
 #tableForChangingPlanet .row {
   justify-content: space-evenly;
   align-items: center;
 }
+
 #galaxy_view_search {
   margin-right: 2px;
   margin-left: 2px;
   font-size: 14px;
 }
+
 .inputSearchGalaxyValDiv {
   display: flex;
   justify-content: center;
   flex-wrap: nowrap;
   align-items: center;
 }
+
 /* GALAXY END */
+
 /* PRODUCTION */
 #aktuelleProduktionPageDiv .fa-ban {
   color: rgba(255, 0, 0, 0.75);
 }
+
 .shipNameProduction i {
   color: rgba(255, 0, 0, 0.75);
   cursor: hand;
@@ -1154,34 +1352,42 @@ body#lwmSettings .section_desc {
   margin-left: 5px;
   margin-right: 5px;
 }
+
 #productionDiv button[onclick*="delete"] {
   border: 0 !important;
 }
+
 #productionDiv table i.fa-ban {
   color: rgba(255, 0, 0, 0.75);
 }
+
 .tableFilters_content {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
 }
+
 .tableFilters {
   margin-bottom: 20px;
   border: 1px solid #7cf3f1;
 }
+
 .tableFilters_header {
   color: #c7fbff;
   text-align: center;
   background-color: #4290a157;
   border-bottom: 1px solid #7cf3f1;
 }
+
 [id*="ProductionButtonShip"] button {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
 }
+
 /* PRODUCTION END */
+
 /* ROHSTOFFE START */
 #rohstoffeDiv > .rohstoffeTableClass > tbody > tr {
   display: flex;
@@ -1189,15 +1395,19 @@ body#lwmSettings .section_desc {
   justify-content: space-evenly;
   height: unset !important;
 }
+
 #rohstoffeDiv > .rohstoffeTableClass > tbody > tr > td {
   width: unset !important;
   flex: 0 0 300px;
-  height: 250px;
+  height: 250px !important;
 }
+
 #lwm_resourceTotal {
   margin-bottom: 20px;
 }
+
 /* ROHSTOFFE END */
+
 /* ACCOUNT */
 #AccountInfo {
   display: flex;
@@ -1205,38 +1415,49 @@ body#lwmSettings .section_desc {
   flex-wrap: wrap;
   justify-content: space-evenly;
 }
+
 #AccountInfo > div {
   margin: 0;
   width: unset;
   height: unset;
   float: none;
 }
+
 .friendsLis {
   flex: 0 0 100%;
 }
+
 /* ACCOUNT END */
+
 /* BANK */
 #bankDiv > div {
   width: 100% !important;
   margin: 0 !important;
 }
+
 /* BANK END */
+
 /* CALENDAR */
 @media (max-width: 850px) {
   #calendarDiv tr td:nth-child(1),
   #calendarDiv tr td:nth-child(1) {
     word-break: break-all;
   }
+
   #calendarDiv tr td:nth-child(1) {
     min-width: 50px;
   }
+
   #calendarDiv tr td:nth-child(2) {
     min-width: 25px;
   }
 }
-/* CALENDAR END*/
+
+/* CALENDAR END */
+
 /* UEBERSICHT */
 #uberPageDiv table {
   overflow: hidden;
 }
+
 /* UEBERSICHT END */
