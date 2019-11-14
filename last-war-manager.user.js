@@ -17,7 +17,7 @@
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@8840c8c3f1f7c6e3776c6da640877665070fed57/assets/sentry.bundle.min.js
 // @require       https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
-// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@fd330d2d473219bb054600fe050101c347fc6c3e/last-war-manager.css
+// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@4d226fe7b2657fcc7a3661bec22ba7686cfc1539/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
 // @grant         GM.setValue
@@ -26,7 +26,7 @@
 // @grant         GM_getResourceText
 // @grant         GM_addStyle
 // @run-at        document-start
-// @version       0.9.0
+// @version       0.9.1
 // ==/UserScript==
 
 Sentry.init({
@@ -1179,10 +1179,15 @@ function siteManager() {
                         case 'kreditinstitut': lwm_jQuery(this).prepend('<i class="fab fa-cc-visa"></i>'); break;
                     }
                 });
-                if (window.matchMedia("(min-width: 849px)").matches) {
-                    lwm_jQuery('#link .navButton, #veticalLink .navButton').appendTo('.secound_line');
+                //layout fix v0.9.0
+                var $secondMenuLine = lwm_jQuery('.menu .secound_line');
+                if (!$secondMenuLine.length) {
+                    $secondMenuLine = lwm_jQuery('<div class="secound_line"></div>');
+                    lwm_jQuery('.menu').append($secondMenuLine);
                 }
-                lwm_jQuery('.secound_line').toggle(lwm_jQuery('.secound_line .navButton').length > 0);
+
+                lwm_jQuery('#link .navButton, #veticalLink .navButton').appendTo($secondMenuLine);
+                $secondMenuLine.toggle($secondMenuLine.find('.navButton').length > 0);
 
                 config.loadStates.submenu = false;
             }).catch(function (e) {
