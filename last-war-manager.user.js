@@ -1320,8 +1320,9 @@ function siteManager() {
             config.promises.content = getPromise('#divTabele1,#divTabele2,#link');
             config.promises.content.then(function () {
                 lwm_jQuery('#aktuelleProduktionPageDiv td[onclick]').each(function () {
-                    lwm_jQuery(this).css('cursor', 'hand');
-                    if (GM_config.get('confirm_production')) helper.addConfirm(lwm_jQuery(this));
+                    var self = lwm_jQuery(this);
+                    self.css('cursor', 'hand');
+                    if (GM_config.get('confirm_production')) helper.addConfirm(self, self.parent().find('td:eq(1)').text() + ' abbrechen');
                     if (GM_config.get('addon_clock')) {
                         clearInterval(unsafeWindow.timeinterval_aktuelle_produktion);
                         helper.setDataForClocks();
@@ -1340,8 +1341,9 @@ function siteManager() {
         defense: function() {
             config.promises.content = getPromise('#verteidigungDiv');
             config.promises.content.then(function () {
+                var self = lwm_jQuery(this);
                 lwm_jQuery('button[onclick*=\'makeDefence\']').each(function () {
-                    if (GM_config.get('confirm_production')) helper.addConfirm(lwm_jQuery(this));
+                    if (GM_config.get('confirm_production')) helper.addConfirm(self, self.parent().find('td:eq(1)').text() + ' abbrechen');
                 });
 
                 helper.replaceElementsHtmlWithIcon(lwm_jQuery('button[onclick*=\'makeDefence\']'), 'fas fa-2x fa-plus-circle');
@@ -1360,7 +1362,10 @@ function siteManager() {
                 lwm_jQuery('.arrow-left,.arrow-right').css('margin-top',0);
 
                 lwm_jQuery('button[onclick*=\'buyHandeslpostenShips\']').each(function () {
-                    if (GM_config.get('confirm_production')) helper.addConfirm(lwm_jQuery(this));
+                    if (GM_config.get('confirm_production')) {
+                        var self = lwm_jQuery(this);
+                        helper.addConfirm(self, self.parents('tr').find('td:eq(0)').text() + ' bestellen');
+                    }
                 });
 
                 helper.replaceElementsHtmlWithIcon(lwm_jQuery('button[onclick*=\'buyHandeslpostenShips\']'), 'fas fa-2x fa-plus-circle');
@@ -1377,7 +1382,8 @@ function siteManager() {
             config.promises.content.then(function () {
                 //add confirm to recycle buttons
                 lwm_jQuery('button[onclick*=\'recycleDefence\']').each(function () {
-                    if (GM_config.get('confirm_production')) helper.addConfirm(lwm_jQuery(this));
+                    var self = lwm_jQuery(this);
+                    if (GM_config.get('confirm_production')) helper.addConfirm(self, self.parents('tr').find('td:eq(0)').text() + ' bauen');
                 });
 
                 helper.replaceElementsHtmlWithIcon(lwm_jQuery('button[onclick*=\'recycleDefence\']'), 'fas fa-2x fa-plus-circle');
@@ -1410,14 +1416,16 @@ function siteManager() {
         produktion: function() {
             config.promises.content = getPromise('#productionDiv');
             config.promises.content.then(function () {
-                lwm_jQuery('button[onclick*=\'delete\']').each(function () {
-                    if (GM_config.get('confirm_production')) helper.addConfirm(lwm_jQuery(this));
+                lwm_jQuery('button[onclick*=\'deleteDesign\']').each(function () {
+                    var self = lwm_jQuery(this);
+                    if (GM_config.get('confirm_production')) helper.addConfirm(self, self.parents('tr').find('td:eq(0)').text() + ' löschen');
                 });
 
-                helper.replaceElementsHtmlWithIcon(lwm_jQuery('button[onclick*=\'delete\']'), 'fas fa-ban');
+                helper.replaceElementsHtmlWithIcon(lwm_jQuery('button[onclick*=\'deleteDesign\']'), 'fas fa-ban');
 
                 lwm_jQuery('button[onclick*=\'makeShip\']').each(function () {
-                    if (GM_config.get('confirm_production')) helper.addConfirm(lwm_jQuery(this));
+                    var self = lwm_jQuery(this);
+                    if (GM_config.get('confirm_production')) helper.addConfirm(self, self.parents('tr').prev().find('td:eq(0)').text() + ' produzieren');
                 });
 
                 helper.replaceElementsHtmlWithIcon(lwm_jQuery('button[onclick*=\'makeShip\']'), 'fas fa-2x fa-plus-circle');
@@ -1578,11 +1586,12 @@ function siteManager() {
             config.promises.content.then(function () {
                 helper.addResMemory(lwm_jQuery('.greenButton'), 'building');
                 lwm_jQuery('.greenButton,.yellowButton,.redButton').each(function () {
+                    var textAppendix = lwm_jQuery(this).is('.greenButton') ? ' bauen' : ' abbrechen';
                     var $td = lwm_jQuery(this).parent();
                     $td.css('cursor', 'hand');
                     $td.attr('onclick', lwm_jQuery(this).attr('onclick'));
                     lwm_jQuery(this).attr('onclick', '');
-                    if (GM_config.get('confirm_const')) helper.addConfirm($td);
+                    if (GM_config.get('confirm_const')) helper.addConfirm($td, $td.parent().find('.constructionName').text() + textAppendix);
                     if (GM_config.get('addon_clock')) {
                         clearInterval(unsafeWindow.timeinterval_construction);
                         helper.setDataForClocks();
@@ -1600,11 +1609,12 @@ function siteManager() {
             config.promises.content = getPromise('.basisForschungen,#researchPage:contains(\'Forschungszentrale benötigt.\')');
             config.promises.content.then(function () {
                 lwm_jQuery('.greenButton,.yellowButton,.redButton').each(function () {
+                    var textAppendix = lwm_jQuery(this).is('.greenButton') ? ' forschen' : ' abbrechen';
                     var $td = lwm_jQuery(this).parent();
                     $td.css('cursor', 'hand');
                     $td.attr('onclick', lwm_jQuery(this).attr('onclick'));
                     lwm_jQuery(this).attr('onclick', '')
-                    if (GM_config.get('confirm_research')) helper.addConfirm($td);
+                    if (GM_config.get('confirm_research')) helper.addConfirm($td, $td.parent().find('.researchName').text() + textAppendix);
                     if (GM_config.get('addon_clock')) {
                         clearInterval(unsafeWindow.timeinterval_construction);
                         helper.setDataForClocks();
