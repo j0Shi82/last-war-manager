@@ -174,7 +174,7 @@ div[data-role="page"] {
   }
 
   .resourceBox ul.loadbar {
-    margin-top: 2px;
+    margin-top: 2px !important;
   }
 
   .galaxyView {
@@ -1399,7 +1399,7 @@ body#lwmSettings .section_desc {
 #rohstoffeDiv > .rohstoffeTableClass > tbody > tr > td {
   width: unset !important;
   flex: 0 0 300px;
-  height: 250px;
+  height: 250px !important;
 }
 
 #lwm_resourceTotal {
