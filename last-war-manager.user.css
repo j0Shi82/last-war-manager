@@ -78,7 +78,7 @@
 
     #link,
     #veticalLink {
-      display: flex;
+      display: flex !important;
       justify-content: space-between;
       flex-wrap: wrap;
       margin-bottom: 20px !important;
