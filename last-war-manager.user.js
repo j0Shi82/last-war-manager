@@ -17,7 +17,7 @@
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@8840c8c3f1f7c6e3776c6da640877665070fed57/assets/sentry.bundle.min.js
 // @require       https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
-// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@53c29ea751c518eb74ef8e91956bde655d2ad281/last-war-manager.css
+// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@73848d6bafdeb2527f609bd698449951eaba665a/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
 // @grant         GM.setValue
@@ -1039,7 +1039,7 @@ function siteManager() {
             lwm_jQuery('.loader').hide();
             lwm_jQuery('#all').show();
             if (firstLoad) {
-                lwm_jQuery('#Main').css('display','flex');
+                lwm_jQuery('#Main').addClass('active');
                 lwm_jQuery('.lwm-firstload').remove();
                 firstLoad = false;
 
@@ -1058,7 +1058,7 @@ function siteManager() {
             lwm_jQuery('.loader').hide();
             lwm_jQuery('#all').show();
             if (firstLoad) {
-                lwm_jQuery('#Main').css('display','flex');
+                lwm_jQuery('#Main').addClass('active');
                 lwm_jQuery('.lwm-firstload').remove();
                 firstLoad = false;
 
