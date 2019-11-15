@@ -17,7 +17,7 @@
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@8840c8c3f1f7c6e3776c6da640877665070fed57/assets/sentry.bundle.min.js
 // @require       https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
-// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@0bca3d4e02f31c2098c8fd9c0977e3486dc80861/last-war-manager.css
+// @resource      css https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@62a375cfc1565f98799707a0163773d3b57d34e1/last-war-manager.css
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
 // @grant         GM.getValue
 // @grant         GM.setValue
@@ -1194,10 +1194,10 @@ function siteManager() {
                     var $submenuLinkBox = lwm_jQuery('.pageContent #link');
                     if (!$submenuLinkBox.length) {
                         $submenuLinkBox = lwm_jQuery('<div id="link"></div>');
-                        lwm_jQuery('.pageContent').prepend($submenuLinkBox);
+                        lwm_jQuery('.pageContent').first().prepend($submenuLinkBox);
                     }
                     lwm_jQuery('#link .navButton, #veticalLink .navButton').appendTo($submenuLinkBox);
-                    $submenuLinkBox.toggle($submenuLinkBox.find('.navButton').length > 0);
+                    $submenuLinkBox.toggleClass('active', $submenuLinkBox.find('.navButton').length > 0);
                 }
                 
 
