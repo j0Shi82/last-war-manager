@@ -241,6 +241,10 @@
     height: unset;
   }
 
+  #Main.active {
+    display: flex !important;
+  }
+
   #Header {
     flex: 1 100%;
     height: 180px;
