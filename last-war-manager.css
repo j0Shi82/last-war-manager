@@ -24,7 +24,7 @@ html {
   overflow: auto;
   overflow-x: hidden;
   width: 100%;
-  height: unset;
+  height: 100%;
   background-image: url(images/main_screen/background.jpg);
   background-size: 100% 100%;
 }
@@ -40,6 +40,7 @@ body > div > img:first-child {
 
 div[data-role="page"] {
   min-height: unset !important;
+  height: 100%;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -70,6 +71,11 @@ div[data-role="page"] {
     display: flex !important;
     justify-content: space-between;
     flex-wrap: wrap;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  #link.active {
     margin-bottom: 20px !important;
   }
 
@@ -221,7 +227,7 @@ select {
   flex-flow: row wrap;
   width: 100%;
   margin: 0;
-  height: unset;
+  height: 100%;
 }
 
 #Header {
