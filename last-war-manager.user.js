@@ -8,10 +8,10 @@
 // @updateURL     https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/last-war-manager.user.js
 // @downloadURL   https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/last-war-manager.user.js
 // @supportURL    https://github.com/j0Shi82/last-war-manager/issues
-// @match         https://*.last-war.de/main.php*
-// @match         https://*.last-war.de/main-mobile.php*
-// @match         https://*.last-war.de/planetenscanner_view.php*
-// @match         https://*.last-war.de/view/content/new_window/observationen_view.php*
+// @match         http*://*.last-war.de/main.php*
+// @match         http*://*.last-war.de/main-mobile.php*
+// @match         http*://*.last-war.de/planetenscanner_view.php*
+// @match         http*://*.last-war.de/view/content/new_window/observationen_view.php*
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@e07de5c0a13d416fda88134f999baccfee6f7059/assets/jquery.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
 // @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@bfb98adb5b546b920ce7730e1382b1048cb756a1/assets/vendor.js
@@ -28,6 +28,12 @@
 // @run-at        document-start
 // @version       0.9.1
 // ==/UserScript==
+
+if (location.protocol != 'https:')
+{
+ location.href = 'https:' + window.location.href.substring(window.location.protocol.length);
+ return;
+}
 
 Sentry.init({
     dsn: 'https://a26d8eec21664f969f5962a60313da95@sentry.io/1450111',
@@ -1179,7 +1185,7 @@ function siteManager() {
                         case 'kreditinstitut': lwm_jQuery(this).prepend('<i class="fab fa-cc-visa"></i>'); break;
                     }
                 });
-                
+
 
                 if (window.matchMedia("(min-width: 849px)").matches) {
                     //layout fix v0.9.0
@@ -1199,7 +1205,7 @@ function siteManager() {
                     lwm_jQuery('#link .navButton, #veticalLink .navButton').appendTo($submenuLinkBox);
                     $submenuLinkBox.toggleClass('active', $submenuLinkBox.find('.navButton').length > 0);
                 }
-                
+
 
                 config.loadStates.submenu = false;
             }).catch(function (e) {
