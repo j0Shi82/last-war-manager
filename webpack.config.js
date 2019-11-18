@@ -1,5 +1,7 @@
+const webpack = require('webpack');
 const path = require('path');
 const WrapperPlugin = require('wrapper-webpack-plugin');
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 
 module.exports = {
   entry: './src/index.js',
@@ -32,6 +34,11 @@ module.exports = {
     modules: ['src', 'node_modules'],
   },
   plugins: [
+    new webpack.IgnorePlugin({
+      resourceRegExp: /^\.\/locale$/,
+      contextRegExp: /moment$/,
+    }),
+    new BundleAnalyzerPlugin(),
     new WrapperPlugin({
       afterOptimizations: true,
       header: '/*\n'
