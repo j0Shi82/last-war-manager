@@ -1,5 +1,7 @@
 const path = require('path');
 const WrapperPlugin = require('wrapper-webpack-plugin');
+const Visualizer = require('webpack-visualizer-plugin');
+const webpack = require('webpack');
 
 module.exports = {
   entry: './src/index.js',
@@ -32,6 +34,13 @@ module.exports = {
     modules: ['src', 'node_modules'],
   },
   plugins: [
+    new webpack.IgnorePlugin({
+      resourceRegExp: /^\.\/locale$/,
+      contextRegExp: /moment$/,
+    }),
+    new Visualizer({
+      filename: './statistics.html',
+    }),
     new WrapperPlugin({
       afterOptimizations: true,
       header: '/*\n'

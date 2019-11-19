@@ -1,4 +1,4 @@
-import { lwmJQ, siteWindow } from 'config/globals';
+import { siteWindow } from 'config/globals';
 
 import config from 'config/lwmConfig';
 import { getPageLoadPromise } from 'utils/loadPromises';
@@ -9,8 +9,28 @@ import pageTweaks from 'main/pageTweaks/index';
 import addOns from 'addons/index';
 
 const { document } = siteWindow;
+const docQuery = (query) => document.querySelector(query);
 
+// stuff to run when the page has loaded
+const finalizePageLoad = () => {
+  docQuery('.loader').style.display = 'none';
+  docQuery('#all').style.display = 'block';
+  if (config.firstLoad) {
+    docQuery('#Main').classList.add('active');
+    docQuery('.lwm-firstload').parentNode.removeChild(docQuery('.lwm-firstload'));
+    config.firstLoad = false;
+
+    const viewportmeta = docQuery('meta[name=viewport]');
+    viewportmeta.setAttribute('content', 'width=device-width, initial-scale=1.0');
+  }
+
+  // not sure focus works on a div <= TODO
+  docQuery('#all').focus();
+};
+
+// this is the main process function that tweaks and changes content pages
 export default (page, xhr, preserveSubmenu) => {
+  // set the loadState to true to init content processing
   config.loadStates.content = true;
   config.loadStates.lastLoadedPage = page;
 
@@ -19,44 +39,12 @@ export default (page, xhr, preserveSubmenu) => {
 
   // figure out whether or not to process submenu and reject ongoing load in case
   if (preserveSubmenu && config.promises.submenu !== null) config.promises.submenu.reject();
-
-  getPageLoadPromise().then(() => {
-    lwmJQ('.loader').hide();
-    lwmJQ('#all').show();
-    if (config.firstLoad) {
-      lwmJQ('#Main').addClass('active');
-      lwmJQ('.lwm-firstload').remove();
-      config.firstLoad = false;
-
-      const viewportmeta = document.querySelector('meta[name=viewport]');
-      viewportmeta.setAttribute('content', 'width=device-width, initial-scale=1.0');
-    }
-    lwmJQ('#all').focus();
-
-    if (page === 'get_galaxy_view_info') {
-      lwmJQ('html, body').animate({ scrollTop: lwmJQ(document).height() }, 250);
-    }
-  }).catch((e) => {
-    Sentry.captureException(e);
-    // console.log(e);
-    throwError();
-    lwmJQ('.loader').hide();
-    lwmJQ('#all').show();
-    if (config.firstLoad) {
-      lwmJQ('#Main').addClass('active');
-      lwmJQ('.lwm-firstload').remove();
-      config.firstLoad = false;
-
-      const viewportmeta = document.querySelector('meta[name=viewport]');
-      viewportmeta.setAttribute('content', 'width=device-width, initial-scale=1.0');
-    }
-    lwmJQ('#all').focus();
-  });
-
+  // move the submenu to it's LWM location
   if (!preserveSubmenu) {
     submenu.move(page);
   }
 
+  // call the function to change the corresponding page content
   switch (page) {
     case 'ubersicht': pageTweaks.uebersicht(); break;
     case 'produktion': pageTweaks.produktion(); break;
@@ -94,9 +82,23 @@ export default (page, xhr, preserveSubmenu) => {
     default: pageTweaks.default(); break;
   }
 
+  // replace arrows is a function that we want to do on so many pages that it's enough to just call it globally
   pageTweaks.replaceArrows();
 
   /* addons */
   /* config.isPageLoad is currently set to false here because it's the last thing that runs */
   addOns.load(page);
+
+  // the promise gets resolved within the page tweak function
+  // this is what happens once it's done
+  getPageLoadPromise().catch((e) => {
+    Sentry.captureException(e);
+    throwError();
+  }).finally(() => {
+    finalizePageLoad();
+    // make sure to scroll to the galaxy view because it can get outside the viewport in some cases
+    if (page === 'get_galaxy_view_info') {
+      docQuery('#tableForChangingPlanet').scrollIntoView();
+    }
+  });
 };
