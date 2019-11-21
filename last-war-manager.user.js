@@ -1277,7 +1277,7 @@ function siteManager() {
                 lwm_jQuery('.Posle').find('td:first').attr('colspan', '3');
                 lwm_jQuery('.Posle').find('td:first').each(function () {
                     var coords = lwm_jQuery(this).html().match(/\d+x\d+x\d+/)[0].split('x');
-                    var button = '<input class="planetButton planetButtonMain" type="button" value="'+lwm_jQuery(this).html()+'" onclick="changeCords('+coords[0]+', '+coords[1]+', '+coords[2]+');">';
+                    var button = '<input class="planetButton planetButtonMain" type="button" value="'+lwm_jQuery(this).text()+'" onclick="changeCords('+coords[0]+', '+coords[1]+', '+coords[2]+');">';
                     lwm_jQuery(this).parents('.Posle').attr('data-coords', coords[0]+'x'+coords[1]+'x'+coords[2]);
                     lwm_jQuery(this).html(button);
                 });
