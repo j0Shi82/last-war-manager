@@ -1,31 +1,29 @@
-/*
-==UserScript==
-@name          Last War Manager
-@author        j0Shi <psycho.j0shi@gmail.com>
-@namespace     https://github.com/j0Shi82/
-@homepageURL   https://github.com/j0Shi82/last-war-manager
-@description   Some tweaking to the Last War UI and environment
-@license       GPL-3.0-or-later; http://www.gnu.org/licenses/gpl-3.0.txt
-@updateURL     https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/last-war-manager.user.js
-@downloadURL   https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/last-war-manager.user.js
-@supportURL    https://github.com/j0Shi82/last-war-manager/issues
-@match         http*://*.last-war.de/main.php*
-@match         http*://*.last-war.de/main-mobile.php*
-@match         http*://*.last-war.de/planetenscanner_view.php*
-@match         http*://*.last-war.de/view/content/new_window/observationen_view.php*
-@require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
-@require       https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
-@icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
-@grant         GM.getValue
-@grant         GM.setValue
-@grant         GM_getValue
-@grant         GM_setValue
-@grant         GM_getResourceText
-@grant         GM_addStyle
-@run-at        document-start
-@version       1.0.0
-==/UserScript==
-*/
+// ==UserScript==
+// @name          Last War Manager
+// @author        j0Shi <psycho.j0shi@gmail.com>
+// @namespace     https://github.com/j0Shi82/
+// @homepageURL   https://github.com/j0Shi82/last-war-manager
+// @description   Some tweaking to the Last War UI and environment
+// @license       GPL-3.0-or-later; http://www.gnu.org/licenses/gpl-3.0.txt
+// @updateURL     https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/last-war-manager.user.js
+// @downloadURL   https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/last-war-manager.user.js
+// @supportURL    https://github.com/j0Shi82/last-war-manager/issues
+// @match         http*://*.last-war.de/main.php*
+// @match         http*://*.last-war.de/main-mobile.php*
+// @match         http*://*.last-war.de/planetenscanner_view.php*
+// @match         http*://*.last-war.de/view/content/new_window/observationen_view.php*
+// @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
+// @require       https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
+// @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/logo-small.png
+// @grant         GM.getValue
+// @grant         GM.setValue
+// @grant         GM_getValue
+// @grant         GM_setValue
+// @grant         GM_getResourceText
+// @grant         GM_addStyle
+// @run-at        document-start
+// @version       1.0.0
+// ==/UserScript==
 !function(e){var t={};function n(r){if(t[r])return t[r].exports;var a=t[r]={i:r,l:!1,exports:{}};return e[r].call(a.exports,a,a.exports,n),a.l=!0,a.exports}n.m=e,n.c=t,n.d=function(e,t,r){n.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:r})},n.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},n.t=function(e,t){if(1&t&&(e=n(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var r=Object.create(null);if(n.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var a in e)n.d(r,a,function(t){return e[t]}.bind(null,a));return r},n.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return n.d(t,"a",t),t},n.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},n.p="",n(n.s=25)}([function(e,t,n){"use strict";n.d(t,"b",(function(){return a})),n.d(t,"a",(function(){return i})),n.d(t,"c",(function(){return o})),n.d(t,"d",(function(){return s}));
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
