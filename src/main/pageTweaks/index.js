@@ -18,6 +18,7 @@ import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
 
 momentDurationFormatSetup(moment);
+const pi = (x) => parseInt(x, 10);
 
 const { document, confirm, alert } = siteWindow;
 
@@ -679,7 +680,9 @@ const pageTweaks = {
       const linksOwn = [];
       const saveLinksOwn = [];
       lwmJQ(config.gameData.planets).each((i, coords) => {
-        if (coords.galaxy === siteWindow.my_galaxy && coords.system === siteWindow.my_system && coords.planet === siteWindow.my_planet) return true;
+        if (pi(coords.galaxy) === siteWindow.my_galaxy
+            && pi(coords.system) === siteWindow.my_system
+            && pi(coords.planet) === siteWindow.my_planet) return true;
         const $link = lwmJQ(`<a href='javascript:void(0)' data-index='${i}'>${coords.galaxy}x${coords.system}x${coords.planet}</a>`);
         const $saveLink = lwmJQ(`<a href='javascript:void(0)' data-index='${i}'> (SAVE)</a>`);
         $link.click((e) => {

@@ -18,5 +18,27 @@ const getObsInfo = () => siteWindow.jQuery.ajax({
   data: { lwm_ignoreProcess: 1 },
   timeout: config.promises.interval.ajaxTimeout,
 });
+const changePlanet = (coords) => {
+  const coordsSplit = coords.split('x');
+  return siteWindow.jQuery.ajax({
+    url: '/ajax_request/change_cordinates.php',
+    method: 'post',
+    data: {
+      galaxy: coordsSplit[0],
+      system: coordsSplit[1],
+      planet: coordsSplit[2],
+    },
+    timeout: config.promises.interval.ajaxTimeout,
+    success: (data) => {
+      if (data === '1') {
+        siteWindow.location.reload();
+      } else if (!data) {
+        siteWindow.logoutRequest();
+      }
+    },
+  });
+};
 
-export { getFlottenbewegungenInfo, getSpionageInfo, getObsInfo };
+export {
+  getFlottenbewegungenInfo, getSpionageInfo, getObsInfo, changePlanet,
+};

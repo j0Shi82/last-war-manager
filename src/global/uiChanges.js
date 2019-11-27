@@ -5,6 +5,7 @@ import { Sentry } from 'plugins/sentry';
 import { getPageLoadPromise } from 'utils/loadPromises';
 import config from 'config/lwmConfig';
 import { setDataForClocks } from 'utils/helper';
+import { changePlanet } from 'utils/requests';
 import uninstall from 'main/index';
 import tweakTooltips from 'global/tooltips';
 
@@ -55,9 +56,9 @@ export default () => {
   $menuToggle.prependTo(lwmJQ('#Main'));
   lwmJQ('.select_box_cordinaten').clone().appendTo($menuToggle.find('.planet-changer'));
   $menuToggle.find('.planet-changer').click((e) => { e.stopPropagation(); });
-  $menuToggle.find('.planet-changer').change((e) => {
+  $menuToggle.find('.planet-changer').find('select').change((e) => {
     lwmJQ('.profileInfo #allCordinaten').val(lwmJQ(e.target).find('select').val());
-    lwmJQ('.profileInfo #allCordinaten').change();
+    changePlanet(e.target.value);
   });
 
   // main-mobile fixes

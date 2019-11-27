@@ -13,6 +13,8 @@ import driveManager from 'plugins/driveManager';
 
 momentDurationFormatSetup(moment);
 
+const domQuery = (query) => siteWindow.document.querySelector(query);
+
 const addOns = {
   config: {
     fleetRefreshInterval: null,
@@ -79,7 +81,6 @@ const addOns = {
   checkCapacities() {
     if (!gmConfig.get('trade_highlights')) return;
     const capacities = siteWindow.resourceCapacityArray;
-    const domQuery = siteWindow.document.querySelector;
     const resSpans = [domQuery('#roheisenAmount'), domQuery('#kristallAmount'), domQuery('#frubinAmount'), domQuery('#orizinAmount'), domQuery('#frurozinAmount'), domQuery('#goldAmount')];
     const currentRes = [siteWindow.Roheisen, siteWindow.Kristall, siteWindow.Frubin, siteWindow.Orizin, siteWindow.Frurozin, siteWindow.Gold];
     const incomingRes = getIncomingResArray();

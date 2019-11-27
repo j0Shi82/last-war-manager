@@ -1,8 +1,7 @@
 const webpack = require('webpack');
 const path = require('path');
 const WrapperPlugin = require('wrapper-webpack-plugin');
-const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const Visualizer = require('webpack-visualizer-plugin');
 
 module.exports = {
   entry: './src/index.js',
@@ -11,14 +10,6 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
   },
   target: 'web',
-  optimization: {
-    minimizer: [new UglifyJsPlugin()],
-  },
-  watch: true,
-  watchOptions: {
-    aggregateTimeout: 2000,
-    ignored: ['node_modules', 'dist']
-  },
   module: {
     rules: [
       {
@@ -47,7 +38,9 @@ module.exports = {
       resourceRegExp: /^\.\/locale$/,
       contextRegExp: /moment$/,
     }),
-    new BundleAnalyzerPlugin(),
+    new Visualizer({
+      filename: './statistics.html',
+    }),
     new WrapperPlugin({
       afterOptimizations: true,
       header: '/*\n'
