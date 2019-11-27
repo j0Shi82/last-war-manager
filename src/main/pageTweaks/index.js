@@ -77,7 +77,7 @@ const pageTweaks = {
       lwmJQ('.Posle').find('td:first').attr('colspan', '3');
       lwmJQ('.Posle').find('td:first').each((i, el) => {
         const coords = lwmJQ(el).html().match(/\d+x\d+x\d+/)[0].split('x');
-        const button = `<input class="planetButton planetButtonMain" type="button" value="${lwmJQ(el).html()}" onclick="changeCords(${coords[0]}, ${coords[1]}, ${coords[2]});">`;
+        const button = `<input class="planetButton planetButtonMain" type="button" value="${lwmJQ(el).text()}" onclick="changeCordsFromUberPage(${coords[0]}, ${coords[1]}, ${coords[2]});">`;
         lwmJQ(el).parents('.Posle').attr('data-coords', `${coords[0]}x${coords[1]}x${coords[2]}`);
         lwmJQ(el).html(button);
       });
@@ -1241,7 +1241,6 @@ const pageTweaks = {
     }
   },
   galaxyView: () => {
-    // lwmJQ('#galaxyViewInfoTable').html('');
     config.promises.content = getPromise('#galaxyViewInfoTable');
     config.promises.content.then(() => {
       lwmJQ('a.flottenKommandoAction').addClass('fa-stack').append('<i class="far fa-circle fa-stack-2x"></i>').append('<i class="fas fa-fighter-jet fa-stack-1x"></i>');
@@ -1311,6 +1310,45 @@ const pageTweaks = {
 
       // move observation and search div
       lwmJQ('.headerOfGalaxyViewPage').insertBefore(lwmJQ('#tableForChangingPlanet'));
+
+      // replace galaxy switch with a dropdown
+      lwmJQ('.inputSearchGalaxyValDiv').find('span').hide();
+      const currentGalaxy = lwmJQ('#galaxy_view_search').text();
+      if (!lwmJQ('#lwm_galaxyDropdown').length) {
+        const $galaxyDropdown = lwmJQ('<select id="lwm_galaxyDropdown"></select>');
+        for (let i = 0; i < 7; i += 1) {
+          $galaxyDropdown.append(`<option val="${i + 1}">${i + 1}</option>`);
+        }
+        $galaxyDropdown.change((e) => {
+          const galaxy = lwmJQ(e.target).val();
+          lwmJQ('#galaxy_view_search').html(galaxy);
+          siteWindow.insertOptionTag();
+          const system = lwmJQ('#system_view').val() || '';
+          const uriData = `galaxy_search=${galaxy}&system_search=${system}&galaxy=${config.gameData.planetCoords.galaxy}&system=${config.gameData.planetCoords.system}&planet=${config.gameData.planetCoords.planet}`;
+          siteWindow.jQuery.ajax({
+            url: `/ajax_request/get_galaxy_view_info.php?${uriData}`,
+            timeout: config.promises.interval.ajaxTimeout,
+            error() { throwError(); },
+            success(data) {
+              if (data === '-1') {
+                siteWindow.location.reload();
+              } else if (data === '500') {
+                siteWindow.location.reload();
+              } else if (!data) {
+                siteWindow.logoutRequest();
+              } else {
+                const planetInfo = data.info_for_planets;
+                const { allSystems } = data;
+
+                siteWindow.loadGalaxyViewPage(planetInfo, allSystems, null, galaxy, system);
+              }
+            },
+            dataType: 'json',
+          });
+        });
+        lwmJQ('.inputSearchGalaxyValDiv').find('#galaxy_view_search').after($galaxyDropdown);
+      }
+      lwmJQ('#lwm_galaxyDropdown').val(currentGalaxy);
 
       // add search icons
       replaceElementsHtmlWithIcon(lwmJQ('.formButtonGalaxyView'), 'fas fa-search');

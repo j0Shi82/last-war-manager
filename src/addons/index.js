@@ -79,13 +79,14 @@ const addOns = {
   checkCapacities() {
     if (!gmConfig.get('trade_highlights')) return;
     const capacities = siteWindow.resourceCapacityArray;
-    const resSpans = [lwmJQ('#roheisenAmount'), lwmJQ('#kristallAmount'), lwmJQ('#frubinAmount'), lwmJQ('#orizinAmount'), lwmJQ('#frurozinAmount'), lwmJQ('#goldAmount')];
+    const domQuery = siteWindow.document.querySelector;
+    const resSpans = [domQuery('#roheisenAmount'), domQuery('#kristallAmount'), domQuery('#frubinAmount'), domQuery('#orizinAmount'), domQuery('#frurozinAmount'), domQuery('#goldAmount')];
     const currentRes = [siteWindow.Roheisen, siteWindow.Kristall, siteWindow.Frubin, siteWindow.Orizin, siteWindow.Frurozin, siteWindow.Gold];
     const incomingRes = getIncomingResArray();
 
-    lwmJQ.each(currentRes, (i, amount) => {
-      if (amount + incomingRes[i] > capacities[i]) resSpans[i].addClass('redBackground');
-      else resSpans[i].removeClass('redBackground');
+    currentRes.forEach((amount, i) => {
+      if (amount + incomingRes[i] > capacities[i]) resSpans[i].classList.add('redBackground');
+      else resSpans[i].classList.remove('redBackground');
     });
 
     // add invterval
