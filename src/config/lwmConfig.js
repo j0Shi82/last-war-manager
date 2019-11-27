@@ -317,6 +317,11 @@ const config = {
           if (typeof config.gameData.fleetInfo[type] === 'undefined') config.gameData.fleetInfo[type] = [];
           // delete fleets for planet and re-insert
           config.gameData.fleetInfo[type] = lwmJQ.grep(config.gameData.fleetInfo[type], (f) => f.homePlanet !== config.gameData.planetCoords.string);
+          // delete fleets with come time older than seven days
+          // this fixes a bug that caused defending fleets from previous round to remain in the calendar data
+          config.gameData.fleetInfo[type] = lwmJQ.grep(
+            config.gameData.fleetInfo[type], (f) => new Date(new Date(f.ComeTime).valueOf() + (1000 * 60 * 60 * 24 * 7)) > new Date(),
+          );
           lwmJQ.each(fleetData[type], (i, fleet) => {
             // if fleet is present, delete and add to update seconds and time
             // checkForFleet(type, fleet);
