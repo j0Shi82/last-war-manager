@@ -51,7 +51,7 @@ export default () => {
     $buttonSaveAll.appendTo(lwmJQ(lastTR).find('td:eq(1) .buttonRow'));
 
     // add div with own chords
-    const $divOwn = lwmJQ('<div style=\'width:100%\'></div>');
+    const $divOwn = lwmJQ('<div class="lwm-trade-coords" style=\'width:100%\'></div>');
     const linksOwn = [];
     const saveLinksOwn = [];
     lwmJQ(config.gameData.planets).each((i, coords) => {
@@ -85,7 +85,7 @@ export default () => {
     $divOwn.appendTo(lwmJQ(lastTR).find('td:eq(1)'));
 
     // add div with saved coords
-    const $divSave = lwmJQ('<div style=\'width:100%\'></div>');
+    const $divSave = lwmJQ('<div class="lwm-trade-coords" style=\'width:100%\'></div>');
     const linksSave = [];
     lwmJQ(config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string]).each((i, coords) => {
       const $link = lwmJQ(`<a href='javascript:void(0)'>${coords}</a>`);
@@ -97,7 +97,7 @@ export default () => {
       linksSave.push($link);
     });
     lwmJQ(linksSave).each((i, l) => {
-      $divSave.append([l, i !== linksOwn.length - 1 ? ' - ' : '']);
+      $divSave.append([l, i !== linksSave.length - 1 ? ' - ' : '']);
     });
     $divSave.appendTo(lwmJQ(lastTR).find('td:eq(1)'));
 

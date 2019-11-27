@@ -119,6 +119,13 @@ export default () => {
               type: 'checkbox',
               default: true,
             },
+          overview_planetpicture:
+            {
+              label: 'OVERVIEW: Show planet pictures.',
+              labelPos: 'right',
+              type: 'checkbox',
+              default: false,
+            },
           message_spylinks:
             {
               label: 'MESSAGES: Show direct links to spy and combat reports in message lists (WARNING: This marks all reports as read on first visit).',

@@ -18,6 +18,15 @@ module.exports = {
         loader: 'babel-loader',
       },
       {
+        test: /\.css$/i,
+        use: [
+          // Creates `style` nodes from JS strings
+          'style-loader',
+          // Translates CSS into CommonJS
+          'css-loader',
+        ],
+      },
+      {
         test: /\.s[ac]ss$/i,
         use: [
           // Creates `style` nodes from JS strings
@@ -68,7 +77,7 @@ module.exports = {
               + '@grant         GM_getResourceText\n'
               + '@grant         GM_addStyle\n'
               + '@run-at        document-start\n'
-              + '@version       0.9.1\n'
+              + '@version       1.0.0\n'
               + '==/UserScript==\n'
               + '*/\n',
     }),

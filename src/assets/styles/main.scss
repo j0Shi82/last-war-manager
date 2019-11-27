@@ -393,6 +393,11 @@ i.icon-galaxy {
   background-color: #4290a157;
   border-radius: 10px;
   height: 75px;
+
+  .lwm-resourceAmount {
+    position: static;
+    font-size: 1.5em;
+  }
 }
 
 .resourceBox img {
@@ -820,10 +825,6 @@ input[type="number"] {
 .shipNameProduction,
 .headerProduction {
   font-size: inherit;
-}
-
-.shipNameProduction,
-.headerProduction {
   background: none;
   background-image: none;
   background-color: #4290a157;
@@ -1156,6 +1157,14 @@ td.constructionName,
 /* LOADER END */
 
 /* TRADE */
+@media (max-width: 850px) {
+  #newTradeOfferDiv {
+    .lwm-trade-coords {
+      font-size: 1.5em;
+    }
+  }
+}
+
 #newTradeOfferDiv th input:nth-child(1) {
   width: 25px !important;
 }

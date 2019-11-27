@@ -68,7 +68,7 @@ const checkCoords = (coords) => {
   let c = [];
   if (!Array.isArray(coords)) c = coords.split('x');
   else c = coords;
-  return Number.isInteger(parseInt(c[0], 10)) && Number.isInteger(parseInt(c[1], 10)) && Number.isInteger(c(coords[2], 10));
+  return Number.isInteger(parseInt(c[0], 10)) && Number.isInteger(parseInt(c[1], 10)) && Number.isInteger(c[2], 10);
 };
 const getIncomingResArray = () => {
   const to = config.gameData.tradeInfo.trade_offers;
