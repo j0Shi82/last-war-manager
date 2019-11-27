@@ -17,7 +17,7 @@ const finalizePageLoad = () => {
   docQuery('#all').style.display = 'block';
   if (config.firstLoad) {
     docQuery('#Main').classList.add('active');
-    docQuery('.lwm-firstload').parentNode.removeChild(docQuery('.lwm-firstload'));
+    document.querySelectorAll('.lwm-firstload').forEach((el) => { el.parentNode.removeChild(el); });
     config.firstLoad = false;
 
     const viewportmeta = docQuery('meta[name=viewport]');
