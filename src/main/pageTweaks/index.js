@@ -20,7 +20,6 @@ import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
 
 momentDurationFormatSetup(moment);
-const pi = (x) => parseInt(x, 10);
 
 const { document, confirm, alert } = siteWindow;
 
