@@ -491,7 +491,13 @@ const addOns = {
       const lang = config.const.lang.fleet;
       const dataTypes = ['all_informations', 'buy_ships_array', 'dron_observationens', 'dron_planetenscanners', 'fleet_informations', 'send_infos'];
       const dataFleetBefore = JSON.stringify(addOns.calendar.getData('fleet', config.gameData.playerID, config.gameData.planetCoords.string));
+
+      // delete fleets with come time older than seven days
+      // this fixes a bug that caused defending fleets from previous round to remain in the calendar data
+      config.lwm.calendar = config.lwm.calendar.filter((e) => !(e.type === 'fleet'
+        && new Date(e.ts + (1000 * 60 * 60 * 24 * 7)) < new Date()));
       addOns.calendar.deleteCat('fleet', config.gameData.playerID, config.gameData.planetCoords.string);
+
       lwmJQ.each(dataTypes, (i, type) => {
         lwmJQ.each(data[type], (f, fleetData) => {
           const time = fleetData.ComeTime || fleetData.DefendingTime || fleetData.time;
