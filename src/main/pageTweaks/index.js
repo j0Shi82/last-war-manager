@@ -410,7 +410,7 @@ const pageTweaks = {
                   type: 'POST',
                   dataType: 'json',
                   url: './ajax_request/accept_trade_offer.php',
-                  data: { tradeOfferId },
+                  data: { trade_offer_id: tradeOfferId },
                 });
                 acceptPromises.push(call);
               });
@@ -428,7 +428,7 @@ const pageTweaks = {
                   type: 'POST',
                   dataType: 'json',
                   url: './ajax_request/decline_trade_offer.php',
-                  data: { tradeOfferId },
+                  data: { trade_offer_id: tradeOfferId },
                 });
                 declinePromises.push(call);
               });
@@ -438,7 +438,7 @@ const pageTweaks = {
                   type: 'POST',
                   dataType: 'json',
                   url: './ajax_request/delete_trade_offer.php',
-                  data: { tradeOfferId },
+                  data: { trade_offer_id: tradeOfferId },
                 });
                 declinePromises.push(call);
               });
