@@ -62,9 +62,6 @@ export default () => {
       // docQuery('#uberPageDiv').prepend(docQuery('#planetImage'));
     }
 
-    // save overview times to calendar
-    addOns.calendar.storeOverview(config.gameData.overviewInfo);
-
     if (gmConfig.get('addon_clock')) {
       clearInterval(siteWindow.timeinterval_uber);
     }

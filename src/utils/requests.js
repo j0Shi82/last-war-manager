@@ -1,6 +1,13 @@
 import { siteWindow } from 'config/globals';
 import config from 'config/lwmConfig';
 
+const getUebersichtInfo = () => siteWindow.jQuery.ajax({
+  type: 'GET',
+  dataType: 'json',
+  url: '/ajax_request/get_ubersicht_info.php',
+  data: { galaxy_check: siteWindow.my_galaxy, system_check: siteWindow.my_system, planet_check: siteWindow.my_planet },
+  timeout: config.promises.interval.ajaxTimeout,
+});
 const getFlottenbewegungenInfo = () => siteWindow.jQuery.ajax({
   url: `/ajax_request/get_flottenbewegungen_info.php?galaxy=${config.gameData.planetCoords.galaxy}&system=${config.gameData.planetCoords.system}&planet=${config.gameData.planetCoords.planet}`,
   dataType: 'json',
@@ -40,5 +47,5 @@ const changePlanet = (coords) => {
 };
 
 export {
-  getFlottenbewegungenInfo, getSpionageInfo, getObsInfo, changePlanet,
+  getFlottenbewegungenInfo, getSpionageInfo, getObsInfo, changePlanet, getUebersichtInfo,
 };

@@ -9,7 +9,7 @@ import { throwError } from 'utils/helper';
 import {
   pageTriggersLoadingSpinner, pageSavesResponse, pagePreservesSubmenu, pageProcessesContent,
 } from 'utils/urlHelper';
-import { getSpionageInfo } from 'utils/requests';
+import { getSpionageInfo, getUebersichtInfo } from 'utils/requests';
 import { getLoadStatePromise } from 'utils/loadPromises';
 import submenu from 'main/submenu';
 import process from 'main/process';
@@ -101,7 +101,10 @@ const installMain = () => {
 
       if (pageSavesResponse(page)) {
         switch (page) {
-          case 'get_ubersicht_info': config.gameData.overviewInfo = xhr.responseJSON; break;
+          case 'get_ubersicht_info':
+            config.gameData.overviewInfo = xhr.responseJSON;
+            addOns.calendar.storeOverview(xhr.responseJSON);
+            break;
           case 'get_production_info': config.getGameData.setProductionInfos(xhr.responseJSON); break;
           case 'get_aktuelle_production_info': addOns.calendar.storeProd(xhr.responseJSON); break;
           case 'get_flottenbewegungen_info':
@@ -124,6 +127,11 @@ const installMain = () => {
         // separate case to refresh drones after a fleet action (which may or may not be a dron action)
         if (['put_fleets', 'delete_fleets', 'put_change_flotten'].includes(page)) {
           getSpionageInfo();
+        }
+
+        // get uebersicht info after building and research clicks so that calendar gets updated immediately
+        if (['put_building', 'cancel_building', 'put_research', 'cancel_research'].includes(page)) {
+          getUebersichtInfo();
         }
       }
     });
