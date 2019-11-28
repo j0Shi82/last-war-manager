@@ -51,7 +51,7 @@ const performObservation = (coords) => {
       } else if (!reponseData) {
         siteWindow.logoutRequest();
       } else if (reponseData.error) {
-        alert(data.error);
+        alert(reponseData.error);
       } else if (reponseData.dron_id) {
         let message = '';
         if (parseInt(reponseData.real_number, 10) === 1) {
@@ -63,17 +63,17 @@ const performObservation = (coords) => {
         const r = confirm(message);
         if (r === true) {
           siteWindow.jQuery.post('/ajax_request/put_observationen_drons.php', {
-            Units: data.Units,
-            EngineType_Drone: data.EngineType_Drone,
-            Speed_Drone: data.Speed_Drone,
-            Name_Dron: data.Name_Dron,
-            galaxy1: data.spionage_galaxy,
-            system1: data.spionage_system_from,
-            planet1: data.spionage_planet_from,
-            planet2: data.spionage_planet_to,
-            real_number: data.real_number,
-            id_drones: data.dron_id,
-            Frurozin_d: data.Frurozin_d,
+            Units: reponseData.Units,
+            EngineType_Drone: reponseData.EngineType_Drone,
+            Speed_Drone: reponseData.Speed_Drone,
+            Name_Dron: reponseData.Name_Dron,
+            galaxy1: reponseData.spionage_galaxy,
+            system1: reponseData.spionage_system_from,
+            planet1: reponseData.spionage_planet_from,
+            planet2: reponseData.spionage_planet_to,
+            real_number: reponseData.real_number,
+            id_drones: reponseData.dron_id,
+            Frurozin_d: reponseData.Frurozin_d,
             galaxy_check: siteWindow.my_galaxy,
             system_check: siteWindow.my_system,
             planet_check: siteWindow.my_planet,

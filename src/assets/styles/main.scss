@@ -220,13 +220,14 @@ select {
 }
 
 #Main {
+  max-width: 1200px;
+  margin: 0 auto;
   display: none;
   justify-content: center;
   align-items: stretch;
   align-content: flex-start;
   flex-flow: row wrap;
   width: 100%;
-  margin: 0;
   height: unset;
 }
 
@@ -240,7 +241,7 @@ select {
 }
 
 #lwm_menu_toggle i {
-  cursor: hand;
+  cursor: pointer;
 }
 
 #lwm_menu_toggle {
@@ -397,6 +398,11 @@ i.icon-galaxy {
   .lwm-resourceAmount {
     position: static;
     font-size: 1.5em;
+  }
+
+  .lwm-resourceClock {
+    position: static;
+    font-size: 1em;
   }
 }
 
@@ -812,13 +818,13 @@ input[type="number"] {
 
 .inputNumberDiv .fa-check-circle {
   color: #6ac468;
-  cursor: hand;
+  cursor: pointer;
   font-size: 2em;
 }
 
 .inputNumberDiv .fa-ban {
   color: #c46868;
-  cursor: hand;
+  cursor: pointer;
   font-size: 2em;
 }
 
@@ -941,7 +947,7 @@ td.constructionName,
 }
 
 .createShipButton {
-  cursor: hand;
+  cursor: pointer;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1336,7 +1342,7 @@ body#lwmSettings .section_desc {
 
 #tableForChangingPlanet #left,
 #tableForChangingPlanet #right {
-  cursor: hand;
+  cursor: pointer;
 }
 
 #tableForChangingPlanet .row {
@@ -1366,7 +1372,7 @@ body#lwmSettings .section_desc {
 
 .shipNameProduction i {
   color: rgba(255, 0, 0, 0.75);
-  cursor: hand;
+  cursor: pointer;
   float: left;
   margin-left: 5px;
   margin-right: 5px;

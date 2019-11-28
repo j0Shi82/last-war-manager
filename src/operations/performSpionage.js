@@ -51,7 +51,7 @@ const performSpionage = (coords) => {
       } else if (!responseData) {
         siteWindow.logoutRequest();
       } else if (responseData.error) {
-        alert(data.error);
+        alert(responseData.error);
       } else if (responseData.dron_id) {
         let message = '';
         if (parseInt(responseData.real_number, 10) === 1) {
@@ -63,18 +63,18 @@ const performSpionage = (coords) => {
         const r = confirm(message);
         if (r === true) {
           siteWindow.jQuery.post('/ajax_request/put_planetenscanner_drons.php', {
-            Units: data.Units,
-            EngineType_Drone: data.EngineType_Drone,
-            Speed_Drone: data.Speed_Drone,
-            Name_Dron: data.Name_Dron,
-            galaxy1: data.spionage_galaxy,
-            system1: data.spionage_system_from,
-            planet1: data.spionage_planet_from,
-            planet2: data.spionage_planet_to,
-            real_number: data.real_number,
-            id_drones: data.dron_id,
-            Frurozin_d: data.Frurozin_d,
-            status_planete: data.status_planete,
+            Units: responseData.Units,
+            EngineType_Drone: responseData.EngineType_Drone,
+            Speed_Drone: responseData.Speed_Drone,
+            Name_Dron: responseData.Name_Dron,
+            galaxy1: responseData.spionage_galaxy,
+            system1: responseData.spionage_system_from,
+            planet1: responseData.spionage_planet_from,
+            planet2: responseData.spionage_planet_to,
+            real_number: responseData.real_number,
+            id_drones: responseData.dron_id,
+            Frurozin_d: responseData.Frurozin_d,
+            status_planete: responseData.status_planete,
             galaxy_check: siteWindow.my_galaxy,
             system_check: siteWindow.my_system,
             planet_check: siteWindow.my_planet,

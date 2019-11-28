@@ -1171,6 +1171,8 @@ const pageTweaks = {
         return true;
       });
 
+      setDataForClocks();
+
       if (config.gameData.planets.length === Object.values(config.lwm.resProd[config.gameData.playerID]).length) {
         // add resources analysis
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.0
+- Hovering over resource boxes now reveals percentage capacity numbers.
+- The Manager now offers an option to show the planet image (default is false).
+- **GALAXY**
+  - You can now select different galaxies using a select box.
+- **FLEETS**
+  - Defending fleets from previous rounds should no longer show up in the calendar or fleet activity.
+
 ## v0.9.0
 - The fleet addon can be toggled and received a slight design change.
 
