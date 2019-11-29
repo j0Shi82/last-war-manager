@@ -395,11 +395,12 @@ i.icon-galaxy {
   border-radius: 10px;
   height: 75px;
 
-  .lwm-resourceAmount {
+  .lwm-resourceCapacity {
     position: static;
-    font-size: 1.5em;
+    font-size: 1.25em;
   }
 
+  .lwm-resourceAmount,
   .lwm-resourceClock {
     position: static;
     font-size: 1em;
