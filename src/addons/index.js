@@ -252,7 +252,7 @@ const addOns = {
         const speedString = ` <span class='lwm_fleet_duration' style='font-style:italic;'>Flugdauer: ${moment.duration(fleetData.total_secounds, 'seconds').format('HH:mm:ss', { trim: false, forceLength: true })}.</span>`;
         switch (parseInt(fleetData.Type, 10)) {
           case 1:
-            trStyle = 'background-color:red;';
+            trStyle = 'color:#fff;background-color:#c70000;';
             fleetInfoString = `${iconAtt}Eine Flotte vom Planet ${oppCoords} greift deinen Planeten ${ownCoords} an.`;
             fleetTimeString = fleetData.ComeTime;
             fleetClock = `clock_${fleetData.clock_id}`;
