@@ -4,7 +4,7 @@ import {
   lwmJQ, gmConfig, siteWindow,
 } from 'config/globals';
 import {
-  throwError,
+  throwError, setDataForClocks,
 } from 'utils/helper';
 import { getPromise } from 'utils/loadPromises';
 import { Sentry } from 'plugins/sentry';
@@ -67,6 +67,7 @@ export default () => {
 
     if (gmConfig.get('addon_clock')) {
       clearInterval(siteWindow.timeinterval_uber);
+      setDataForClocks();
     }
 
     // add fleet warning distance

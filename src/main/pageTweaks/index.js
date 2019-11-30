@@ -223,6 +223,7 @@ const pageTweaks = {
         if (gmConfig.get('confirm_const')) addConfirm($td, $td.parent().find('.constructionName').text() + textAppendix);
         if (gmConfig.get('addon_clock')) {
           clearInterval(siteWindow.timeinterval_construction);
+          clearInterval(siteWindow.timeinterval_construction2);
           setDataForClocks();
         }
       });
@@ -245,7 +246,7 @@ const pageTweaks = {
         lwmJQ(el).attr('onclick', '');
         if (gmConfig.get('confirm_research')) addConfirm($td, $td.parent().find('.researchName').text() + textAppendix);
         if (gmConfig.get('addon_clock')) {
-          clearInterval(siteWindow.timeinterval_construction);
+          clearInterval(siteWindow.timeinterval_research);
           setDataForClocks();
         }
       });

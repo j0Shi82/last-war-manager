@@ -336,7 +336,7 @@ const config = {
 
         // add fleet warning to uebersicht
         if (siteWindow.active_page === 'ubersicht') {
-          // lwmJQ('.lwm_fleetwarning').text(`${lwmJQ.number(fleetData.View_Units, 0, ',', '.')} SU`);
+          lwmJQ('.lwm_fleetwarning').text(`${siteWindow.jQuery.number(fleetData.View_Units, 0, ',', '.')} SU`);
         }
       });
     },

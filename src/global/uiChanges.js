@@ -138,13 +138,22 @@ export default () => {
   });
 
   // rewrite clock functions so we can kill timers
+  //
   if (gmConfig.get('addon_clock')) {
-    const oldInitializeClock = siteWindow.initializeClock;
-    siteWindow.initializeClock = (idTr, idTd, idTime, totalSecounds, secounds, constructionNumber) => {
-      oldInitializeClock(idTr, idTd, idTime, totalSecounds, secounds, constructionNumber);
-      clearInterval(siteWindow.timeinterval_construction);
-      setDataForClocks();
-    };
+    const clocks = ['initializeAktuelleProduktionClock', 'initializeClock', 'initializeClock2', 'initializeResearchClock', 'initializeUberClock', 'initializeFlottenbewegungenClock'];
+    clocks.forEach((clock) => {
+      const oldClock = siteWindow[clock];
+      siteWindow[clock] = (idTr, idTd, idTime, totalSecounds, secounds, constructionNumber) => {
+        oldClock(idTr, idTd, idTime, totalSecounds, secounds, constructionNumber);
+        clearInterval(siteWindow.timeinterval_construction);
+        clearInterval(siteWindow.timeinterval_construction2);
+        clearInterval(siteWindow.timeinterval_research);
+        clearInterval(siteWindow.timeinterval_uber);
+        clearInterval(siteWindow.timeinterval_aktuelle_produktion);
+        clearInterval(siteWindow.timeinterval_flottenbewegungen);
+        setDataForClocks();
+      };
+    });
   }
 
   // register events to navigate with arrow keys
