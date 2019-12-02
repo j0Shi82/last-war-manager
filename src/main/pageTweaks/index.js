@@ -722,7 +722,7 @@ const pageTweaks = {
     config.promises.content.then(() => {
       const maxSpeed = fleetSendData.max_speed_transport;
       const minTimeInSeconds = moment.duration(fleetSendData.send_time, 'seconds').asSeconds();
-      const maxTimeInSeconds = (minTimeInSeconds / ((2 - (maxSpeed / 100)) * (2 - (20 / 100))));
+      const maxTimeInSeconds = ((minTimeInSeconds / (2 - (maxSpeed / 100))) * (2 - (20 / 100)));
 
       // round up to the next five mintue interval
       const start = moment().add(minTimeInSeconds, 'seconds');
@@ -743,7 +743,7 @@ const pageTweaks = {
         /* disable options that don't fit speed of fleet */
         $select.find('option:gt(0)').each((i, el) => {
           const timeDiffInSeconds = moment(lwmJQ(el).val()).diff(moment(), 'seconds') / ($oneway ? 1 : 2);
-          const minSpeedInSeconds = (minTimeInSeconds / ((2 - (maxSpeed / 100)) * (2 - (20 / 100))));
+          const minSpeedInSeconds = ((minTimeInSeconds / (2 - (maxSpeed / 100))) * (2 - (20 / 100)));
           lwmJQ(el).prop('disabled', minSpeedInSeconds < timeDiffInSeconds || minTimeInSeconds > timeDiffInSeconds);
         });
       };
@@ -767,7 +767,7 @@ const pageTweaks = {
         } else {
           // calculate speed for given return time
           let timeDiffInSeconds = $momentVal.diff(moment(), 'seconds') / ($oneway ? 1 : 2);
-          const minSpeedInSeconds = (minTimeInSeconds / ((2 - (maxSpeed / 100)) * (2 - (20 / 100))));
+          const minSpeedInSeconds = ((minTimeInSeconds / (2 - (maxSpeed / 100))) * (2 - (20 / 100)));
           if (minSpeedInSeconds < timeDiffInSeconds || minTimeInSeconds > timeDiffInSeconds) {
             alert('WARNING: Choice is not possible due to fleet speed');
             lwmJQ('.changeTime').val('20');
@@ -777,8 +777,8 @@ const pageTweaks = {
           const type = $oneway ? '0' : lwmJQ('#lwm_fleet_type').val();
           let sendSpeed; let returnSpeed; let curSpeed; let sendSpeedInSeconds; let
             returnSpeedInSeconds;
-          const newSpeed = Math.round((1 - ((((timeDiffInSeconds - (minTimeInSeconds
-                / (2 - (parseInt(maxSpeed, 10) / 100)))) / ((minTimeInSeconds / (2 - (parseInt(maxSpeed, 10) / 100))) * 0.01))) / 100)) * 100);
+          const newSpeed = Math.round((1 - ((((timeDiffInSeconds - (minTimeInSeconds / (2 - (parseInt(maxSpeed, 10) / 100))))
+            / ((minTimeInSeconds / (2 - (parseInt(maxSpeed, 10) / 100))) * 0.01))) / 100)) * 100);
           switch (type) {
             case '0':
               lwmJQ('.changeTime').val(newSpeed);
@@ -792,11 +792,11 @@ const pageTweaks = {
               do {
                 // calculate 20% speed in seconds
                 sendSpeed = curSpeed;
-                sendSpeedInSeconds = minTimeInSeconds / ((2 - (maxSpeed / 100)) * (2 - (curSpeed / 100)));
+                sendSpeedInSeconds = (minTimeInSeconds / (2 - (maxSpeed / 100))) * (2 - (curSpeed / 100));
                 // subtract and see whether return is still possible
                 returnSpeedInSeconds = timeDiffInSeconds - sendSpeedInSeconds;
-                returnSpeed = Math.round((1 - ((((returnSpeedInSeconds - (minTimeInSeconds
-                    / (2 - (parseInt(maxSpeed, 10) / 100)))) / ((minTimeInSeconds / (2 - (parseInt(maxSpeed, 10) / 100))) * 0.01))) / 100)) * 100);
+                returnSpeed = Math.round((1 - ((((returnSpeedInSeconds - (minTimeInSeconds / (2 - (parseInt(maxSpeed, 10) / 100))))
+                  / ((minTimeInSeconds / (2 - (parseInt(maxSpeed, 10) / 100))) * 0.01))) / 100)) * 100);
                 curSpeed += 1;
               } while (returnSpeed < 20 || returnSpeed > maxSpeed);
               lwmJQ('#send').val(returnSpeed);
@@ -811,11 +811,11 @@ const pageTweaks = {
               do {
                 // calculate 20% speed in seconds
                 sendSpeed = curSpeed;
-                sendSpeedInSeconds = minTimeInSeconds / ((2 - (maxSpeed / 100)) * (2 - (curSpeed / 100)));
+                sendSpeedInSeconds = (minTimeInSeconds / (2 - (maxSpeed / 100))) * (2 - (curSpeed / 100));
                 // subtract and see whether return is still possible
                 returnSpeedInSeconds = timeDiffInSeconds - sendSpeedInSeconds;
-                returnSpeed = Math.round((1 - ((((returnSpeedInSeconds - (minTimeInSeconds
-                    / (2 - (parseInt(maxSpeed, 10) / 100)))) / ((minTimeInSeconds / (2 - (parseInt(maxSpeed, 10) / 100))) * 0.01))) / 100)) * 100);
+                returnSpeed = Math.round((1 - ((((returnSpeedInSeconds - (minTimeInSeconds / (2 - (parseInt(maxSpeed, 10) / 100))))
+                  / ((minTimeInSeconds / (2 - (parseInt(maxSpeed, 10) / 100))) * 0.01))) / 100)) * 100);
                 curSpeed += 1;
               } while (returnSpeed < 20 || returnSpeed > maxSpeed);
               lwmJQ('#send').val(sendSpeed);
