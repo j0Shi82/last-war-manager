@@ -90,7 +90,7 @@ export default () => {
     linksOwn.forEach((l, i) => {
       divOwn.appendChild(l);
       divOwn.appendChild(isPremium() ? saveLinksOwn[i] : createElementFromHTML('<div></div>'));
-      divOwn.appendChild(i !== linksOwn.length - 1 ? createElementFromHTML(' - ') : createElementFromHTML('<div></div>'));
+      divOwn.appendChild(i !== linksOwn.length - 1 ? createElementFromHTML('&nbsp;-&nbsp;') : createElementFromHTML('<div></div>'));
     });
     lastTR.querySelector('td:nth-child(2)').appendChild(divOwn);
 
@@ -106,7 +106,7 @@ export default () => {
     });
     linksSave.forEach((l, i) => {
       divSave.appendChild(l);
-      divSave.appendChild(i !== linksSave.length - 1 ? createElementFromHTML(' - ') : createElementFromHTML('<div></div>'));
+      divSave.appendChild(i !== linksSave.length - 1 ? createElementFromHTML('&nbsp;-&nbsp;') : createElementFromHTML('<div></div>'));
     });
     lastTR.querySelector('td:nth-child(2)').appendChild(divSave);
 

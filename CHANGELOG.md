@@ -9,6 +9,8 @@
   - Defending fleets from previous rounds should no longer show up in the calendar or fleet activity.
 - **TRADES**
   - Premium features like saving all res are now only available for premium users.
+- **MEMO**
+  - The premium feature is now accessible through the main menu for premium users.
 
 ## v0.9.0
 - The fleet addon can be toggled and received a slight design change.

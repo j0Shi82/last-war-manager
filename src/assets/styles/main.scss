@@ -1492,3 +1492,41 @@ body#lwmSettings .section_desc {
 }
 
 /* UEBERSICHT END */
+
+/* MEMO START */
+.lwm-memo-container {
+  position: absolute;
+  z-index: 1000;
+  width: 80%;
+  left: 10%;
+  height: 80vh;
+  top: 10vh;
+
+  .lwm-memo-menu {
+    background: #000;
+    height: 50px;
+    display: flex;
+    padding: 0 10px;
+    align-items: center;
+    justify-content: space-between;
+
+    .lwm-memo-close {
+      font-size: 3em;
+      cursor: pointer;
+    }
+  }
+
+  .lwm-memo-body {
+    height: calc(80vh - 50px);
+
+    .lwm-memo-text {
+      width: 100%;
+      background-color: #000;
+      color: #7cf3fd;
+      border: 1px solid #7cf3fd;
+      height: 100%;
+    }
+  }
+}
+
+/* MEMO END */

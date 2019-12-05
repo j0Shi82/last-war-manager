@@ -9,7 +9,8 @@ import { changePlanet } from 'utils/requests';
 import uninstall from 'main/index';
 import tweakTooltips from 'global/tooltips';
 
-const { document } = lwmWindow;
+const { document, alert } = lwmWindow;
+const isPremium = () => siteWindow.premium_account === 1;
 
 export default () => {
   /* delete propassssss */
@@ -181,6 +182,11 @@ export default () => {
   lwmJQ('#produktion').prepend('<i class="fas fa-fighter-jet"></i>');
   lwmJQ('#flottenbewegungen').after(lwmJQ('#flottenbewegungen').clone().prepend('<i class="far fa-calendar"></i>').attr('id', 'calendar'));
   lwmJQ('#calendar span').text('Kalender');
+  if (isPremium()) {
+    lwmJQ('#flottenbewegungen').after(lwmJQ('#flottenbewegungen').clone().prepend('<i class="far fa-clipboard"></i>').attr('id', 'clipboard')
+      .attr('onclick', ''));
+    lwmJQ('#clipboard span').text('Notizblock');
+  }
   lwmJQ('#flottenbewegungen').prepend('<i class="fas fa-plane-departure"></i>').attr('id', 'raumdock').attr('onclick', 'changeContent(\'flottenkommando\', \'second\', \'Flotten-Kommando\');');
   lwmJQ('#trade_offer').prepend('<i class="fas fa-handshake"></i>');
   lwmJQ('#rohstoffe').prepend('<i class="fas fa-gem"></i>');
@@ -194,6 +200,61 @@ export default () => {
   lwmJQ('#forum').prepend('<i class="fab fa-wpforms"></i>');
   lwmJQ('#chatMenu').prepend('<i class="fas fa-comments"></i>');
   lwmJQ('#logout').prepend('<i class="fas fa-sign-out-alt"></i>');
+
+  if (isPremium()) {
+    // memo block
+    lwmJQ('#clipboard').click(() => {
+      // add memo
+      lwmJQ('#Main').css({
+        opacity: '0.5',
+        position: 'fixed',
+        pointerEvents: 'none',
+      });
+      const $closeButton = lwmJQ('<div class=\'lwm-memo-close\'><i class="fas fa-times-circle"></i></div>');
+      $closeButton.click(() => {
+        lwmJQ('#Main').css({
+          opacity: '',
+          position: '',
+          pointerEvents: '',
+        });
+        lwmJQ('.lwm-memo-container').remove();
+      });
+      const $memoText = lwmJQ('<textarea class=\'lwm-memo-text\'></textarea>').text(siteWindow.memo_text);
+      const $saveButton = lwmJQ('<div class="lwm-memo-save"><a class="buttonAccount" href="#"><i class="fas fa-check"></i> Speichern</a></div>');
+      $saveButton.click(() => {
+        const memoText = lwmJQ('.lwm-memo-text').val();
+
+        if (isPremium() && memoText && memoText.length > 0) {
+          siteWindow.jQuery.ajax({
+            type: 'POST',
+            dataType: 'json',
+            url: './ajax_request/save_memo_text.php',
+            data: { memo_text: memoText },
+            error(jqXHR, textStatus, errorThrown) {
+              alert(`${textStatus}: ${errorThrown}`);
+            },
+            success(data) {
+              if (!data) {
+                siteWindow.logoutRequest();
+              } else if (data === -1) {
+                alert("Your premium account is expired or you don't have it.");
+                document.location.reload();
+              } else if (data === -2) {
+                alert('Please insert some text.');
+              } else {
+                siteWindow.memo_text = memoText;
+                alert('Notizen gespeichert');
+              }
+            },
+          });
+        }
+      });
+      const $container = lwmJQ('<div class="lwm-memo-container"><div class="lwm-memo-menu"></div><div class="lwm-memo-body"></div></div>');
+      $container.find('.lwm-memo-body').append($memoText);
+      $container.find('.lwm-memo-menu').append([$closeButton, $saveButton]);
+      lwmJQ('body').append($container);
+    });
+  }
 
   // add managerButton
   const $managerButton = lwmJQ('<div class="menu_box"><i class="fas fa-cogs"></i><span style="margin-right:2px;">Manager</span></div>');
