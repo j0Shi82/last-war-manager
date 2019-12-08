@@ -51,10 +51,10 @@ A German feedback thread can be found on the [official message board](http://for
   - Buttons to bulk add ships to fleets
   - Ability to store last used coords
   - While sending fleets, you can choose a return time and the script automatically adjusts speeds
-  - Save raid priorities
+  - Save raid priorities (premium only feature)
 - **TRADE**
    - Ability to store last used coords
-   - Two-click save to own planets
+   - Two-click save to own planets (premium only feature)
      - Save trades are recognized by the script and can not be canceled from another planet
    - Trades that would exceed storage capacities when accepted/denied are highlighted
    - Option to bulk accept / deny trades
@@ -77,6 +77,7 @@ A German feedback thread can be found on the [official message board](http://for
   - Add spy and obs links to all planets
   - The level of camouflage technology shows in the galaxy view if known
   - Planets with existing observation drones are marked in the galaxy view and instead of sending an obs drone open the report
+  - Ability to select galaxys using a dropdown
 - **ESPIONAGE**
   - Drone types without an amount do no longer show up in the spy listing (fixes a current bug)
 - **OBSERVATIONS**

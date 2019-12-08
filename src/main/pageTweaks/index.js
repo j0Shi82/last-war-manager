@@ -674,8 +674,13 @@ const pageTweaks = {
       });
       $divSave.appendTo($lastTR.find('td').first());
 
+      // remove last lcick coordinate if not prem
+      if (!siteWindow.premium_account) {
+        lwmJQ('#ClickLasteCordinate').remove();
+      }
+
       // save raid prio on submit
-      if (gmConfig.get('fleet_saveprios')) {
+      if (gmConfig.get('fleet_saveprios') && siteWindow.premium_account) {
         if (config.lwm.raidPrios.length === 6) {
           // fill fields if we have a saved prio
           lwmJQ('#roheisen_priority').val(config.lwm.raidPrios[0]);
@@ -750,6 +755,49 @@ const pageTweaks = {
 
       disableOptions();
 
+      const sendFleetTimeRequest = (speed, type = 'send') => {
+        siteWindow.jQuery.post('./ajax_request/count_time.php', {
+          id_broda: siteWindow.flotten_informations_infos.id_broda,
+          tip_broda: siteWindow.flotten_informations_infos.tip_broda,
+          Units: siteWindow.flotten_informations_infos.Units,
+          id_flote: siteWindow.flotten_informations_infos.id_flote,
+          speed,
+        }, (data) => {
+          if (type === 'send') {
+            siteWindow.flotten_informations_infos.send_time = data;
+            siteWindow.flotten_informations_infos.speed_send = speed;
+          } else {
+            siteWindow.flotten_informations_infos.back_time = data;
+            siteWindow.flotten_informations_infos.speed_back = speed;
+          }
+
+          let seconds = parseInt(data, 10);
+
+          let hours = Math.floor(seconds / 3600);
+          seconds -= hours * 3600;
+          let minutes = Math.floor(seconds / 60);
+          seconds -= minutes * 60;
+
+          if (hours <= 9) {
+            hours = `0${hours}`;
+          }
+
+          if (minutes <= 9) {
+            minutes = `0${minutes}`;
+          }
+
+          if (seconds <= 9) {
+            seconds = `0${seconds}`;
+          }
+
+          if (type === 'send') {
+            siteWindow.jQuery('#sendTime').text(`Flugzeit: ${hours}:${minutes}:${seconds} Stunden`);
+          } else {
+            siteWindow.jQuery('#backTime').text(`Flugzeit: ${hours}:${minutes}:${seconds} Stunden`);
+          }
+        });
+      };
+
       const calcFleetTime = () => {
         disableOptions();
         const $val = lwmJQ('#lwm_fleet_selecttime').val();
@@ -757,12 +805,15 @@ const pageTweaks = {
         const $oneway = lwmJQ('#lwm_fleet_oneway').is(':checked');
         if (!$val) {
           lwmJQ('.changeTime').val(maxSpeed);
-          lwmJQ('.changeTime').change();
+          sendFleetTimeRequest(maxSpeed, 'send');
+          sendFleetTimeRequest(maxSpeed, 'back');
           if ($val === null) {
             // val === null means options disabled
             alert('WARNING: Choice is not possible due to fleet speed');
             lwmJQ('.changeTime').val('20');
-            lwmJQ('.changeTime').change();
+            siteWindow.jQuery('.changeTime').change();
+            sendFleetTimeRequest(20, 'send');
+            sendFleetTimeRequest(20, 'back');
           }
         } else {
           // calculate speed for given return time
@@ -771,7 +822,9 @@ const pageTweaks = {
           if (minSpeedInSeconds < timeDiffInSeconds || minTimeInSeconds > timeDiffInSeconds) {
             alert('WARNING: Choice is not possible due to fleet speed');
             lwmJQ('.changeTime').val('20');
-            lwmJQ('.changeTime').change();
+            siteWindow.jQuery('.changeTime').change();
+            sendFleetTimeRequest(20, 'send');
+            sendFleetTimeRequest(20, 'back');
             return;
           }
           const type = $oneway ? '0' : lwmJQ('#lwm_fleet_type').val();
@@ -782,6 +835,8 @@ const pageTweaks = {
           switch (type) {
             case '0':
               lwmJQ('.changeTime').val(newSpeed);
+              sendFleetTimeRequest(newSpeed, 'send');
+              sendFleetTimeRequest(newSpeed, 'back');
               break;
             case '1':
               // ignore one way
@@ -800,7 +855,9 @@ const pageTweaks = {
                 curSpeed += 1;
               } while (returnSpeed < 20 || returnSpeed > maxSpeed);
               lwmJQ('#send').val(returnSpeed);
+              sendFleetTimeRequest(returnSpeed, 'send');
               lwmJQ('#back').val(sendSpeed);
+              sendFleetTimeRequest(sendSpeed, 'back');
               break;
             case '2':
               // ignore one way
@@ -819,12 +876,12 @@ const pageTweaks = {
                 curSpeed += 1;
               } while (returnSpeed < 20 || returnSpeed > maxSpeed);
               lwmJQ('#send').val(sendSpeed);
+              sendFleetTimeRequest(sendSpeed, 'send');
               lwmJQ('#back').val(returnSpeed);
+              sendFleetTimeRequest(returnSpeed, 'back');
               break;
             default: break;
           }
-          lwmJQ('.changeTime').change();
-          lwmJQ('.changeTime').change();
         }
       };
 

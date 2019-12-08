@@ -1,53 +1,56 @@
 # Changelog
 
 ## v1.0.0
-- Hovering over resource boxes now reveals percentage capacity numbers.
-- The Manager now offers an option to show the planet image (default is false).
+- Hovering over resource boxes now reveals percentage capacity numbers
+- The Manager now offers an option to show the planet image (default is false)
 - **GALAXY**
-  - You can now select different galaxies using a select box.
+  - You can now select different galaxies using a select box
 - **FLEETS**
-  - Defending fleets from previous rounds should no longer show up in the calendar or fleet activity.
+  - Defending fleets from previous rounds should no longer show up in the calendar or fleet activity
+  - Only save raid prios on premium accounts
 - **TRADES**
-  - Premium features like saving all res are now only available for premium users.
+  - Premium features like saving all res are now only available for premium users
 - **MEMO**
-  - The premium feature is now accessible through the main menu for premium users.
+  - The premium feature is now accessible through the main menu for premium users
+- **UEBERSICHT**
+  - LWM now supports SmartView
 
 ## v0.9.0
-- The fleet addon can be toggled and received a slight design change.
+- The fleet addon can be toggled and received a slight design change
 
 ## v0.8.0
 
-- The Google Drive saves are loaded once per login, not once per planet change.
+- The Google Drive saves are loaded once per login, not once per planet change
 - **TRADE**
-  - Save trades are now recognized by the script and can no longer be canceled from another planet.
-  - Fixed multiple bugs that sometimes incorrectly found trades to exceed storage capacities.
-  - Added an option to bulk accept / deny trades.
+  - Save trades are now recognized by the script and can no longer be canceled from another planet
+  - Fixed multiple bugs that sometimes incorrectly found trades to exceed storage capacities
+  - Added an option to bulk accept / deny trades
 - **ESPIONAGE**
-  - Drone types without an amount do no longer show up in the spy listing.
+  - Drone types without an amount do no longer show up in the spy listing
 - **FLEETS**
-  - Added the ability to auto save raid priorities.
-  - The fleet addon now shows fleet activity for all recently visited planets, not just the current one.
-  - Added an option to exclude drones from fleet activity.
-  - Fleets on their way back now have an info icon that leads to the fleet info.
-  - Fleets received a visual upgrade and can be filtered by coords, type, and status.
-  - In case the fleet addon is deactivated, fleets show up again on the old fleet / now calendar page.
-  - The original speed of fleets was added to the fleet table.
+  - Added the ability to auto save raid priorities
+  - The fleet addon now shows fleet activity for all recently visited planets, not just the current one
+  - Added an option to exclude drones from fleet activity
+  - Fleets on their way back now have an info icon that leads to the fleet info
+  - Fleets received a visual upgrade and can be filtered by coords, type, and status
+  - In case the fleet addon is deactivated, fleets show up again on the old fleet / now calendar page
+  - The original speed of fleets was added to the fleet table
 - **OVERVIEW**
-  - Fleet warning distance shows on the overview page.
+  - Fleet warning distance shows on the overview page
 - **CALENDAR**
-  - The calendar now groups similar entries to avoid too many rows.
+  - The calendar now groups similar entries to avoid too many rows
 - **OBSERVATIONS**
-  - You can now re-send drones from the obs page.
-  - Planets with existing observation drones are now marked in the galaxy view and instead of sending an obs drone open the existing obs report.
-  - The level of camouflage technology now shows on the obs page for known planets.
-  - Active obs for planets that fleets are currently attacking can now be opened from the fleet menu. If no ob active, the script offers to send a spy drone.
-  - Option added to open obs reports in new tabs instead of new windows.
+  - You can now re-send drones from the obs page
+  - Planets with existing observation drones are now marked in the galaxy view and instead of sending an obs drone open the existing obs report
+  - The level of camouflage technology now shows on the obs page for known planets
+  - Active obs for planets that fleets are currently attacking can now be opened from the fleet menu. If no ob active, the script offers to send a spy drone
+  - Option added to open obs reports in new tabs instead of new windows
 - **GALAXY**
-  - The level of camouflage technology now shows in the galaxy view for known planets.
+  - The level of camouflage technology now shows in the galaxy view for known planets
 - **PRODUCTION**
-  - Input fields on production pages listen to the enter key.
+  - Input fields on production pages listen to the enter key
 - **BANK**
-  - Added buttons to the bank page to fill bank and withdraw interest.
+  - Added buttons to the bank page to fill bank and withdraw interest
 
 ## v0.7.0
 

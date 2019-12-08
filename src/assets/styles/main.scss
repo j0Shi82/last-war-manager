@@ -870,6 +870,8 @@ td.constructionName,
 #changeFlottenDiv th,
 #messagesListTableInbox > tbody > tr:first-child,
 #lwm_folottenbewegungenPageDiv table tr:first-child,
+#divTabele1 table tr:first-child,
+#divTabele2 table tr:first-child,
 #galaxyViewInfoTable th,
 #observationenDiv th,
 #calendarDiv th,
@@ -1372,6 +1374,10 @@ body#lwmSettings .section_desc {
 /* GALAXY END */
 
 /* PRODUCTION */
+#divTabele2 {
+  margin-top: 20px;
+}
+
 #aktuelleProduktionPageDiv .fa-ban {
   color: rgba(255, 0, 0, 0.75);
 }
@@ -1489,6 +1495,12 @@ body#lwmSettings .section_desc {
 /* UEBERSICHT */
 #uberPageDiv table {
   overflow: hidden;
+}
+
+@media (max-width: 850px) {
+  tr[data-coords] > td:not(#BuildingClock):not(#BuildingClock2) {
+    word-break: break-all;
+  }
 }
 
 /* UEBERSICHT END */
