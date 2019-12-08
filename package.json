@@ -11,9 +11,9 @@
     "build": "webpack --mode production"
   },
   "devDependencies": {
-    "@babel/core": "^7.7.4",
-    "@babel/plugin-transform-runtime": "^7.7.4",
-    "@babel/preset-env": "^7.7.4",
+    "@babel/core": "^7.7.5",
+    "@babel/plugin-transform-runtime": "^7.7.6",
+    "@babel/preset-env": "^7.7.6",
     "@babel/preset-modules": "^0.1.1",
     "babel-loader": "^8.0.6",
     "css-loader": "^3.2.1",
@@ -32,8 +32,8 @@
     "wrapper-webpack-plugin": "^2.1.0"
   },
   "dependencies": {
-    "@babel/runtime": "^7.7.4",
-    "@sentry/browser": "^5.10.0",
+    "@babel/runtime": "^7.7.6",
+    "@sentry/browser": "^5.10.1",
     "dayjs": "^1.8.17",
     "hotkeys-js": "^3.7.3",
     "jquery": "^3.4.1",
