@@ -1,7 +1,7 @@
 
 import config from 'config/lwmConfig';
 import {
-  lwmJQ, gmConfig, siteWindow,
+  lwmJQ, gmConfig, gmSetValue, siteWindow,
 } from 'config/globals';
 import {
   throwError, setDataForClocks,
@@ -30,6 +30,45 @@ export default () => {
       const button = `<input class="planetButton planetButtonMain" type="button" value="${lwmJQ(el).text()}" onclick="changeCordsFromUberPage(${coords[0]}, ${coords[1]}, ${coords[2]});">`;
       lwmJQ(el).parents(isSmartView ? 'tr' : '.Posle').attr('data-coords', `${coords[0]}x${coords[1]}x${coords[2]}`);
       lwmJQ(el).html(button);
+    });
+
+    // highlight empty building slots
+    if (isSmartView) {
+      if (lwmJQ('.Posle:eq(0)').find('#HoverResearch').length === 0) {
+        lwmJQ('.Posle:eq(0)').append('<tr><td colspan="3" style="text-align:center;">Kein Forschungsauftrag</td></tr>');
+      }
+    } else {
+      // add missing trs
+      if (lwmJQ('.Posle:eq(0)').find('#HoverResearch').length === 0) {
+        lwmJQ('.Posle:eq(0)').prepend('<tr><td colspan="3" style="text-align:center;">Kein Forschungsauftrag</td></tr>');
+      }
+      lwmJQ('.Posle').each((i, el) => {
+        const hasHoverBuilding1 = lwmJQ(el).find('#HoverBuilding1').length > 0;
+        const hasHoverBuilding2 = lwmJQ(el).find('#HoverBuilding2').length > 0;
+        if (hasHoverBuilding1 && hasHoverBuilding2) return;
+        if (hasHoverBuilding1 && !hasHoverBuilding2) lwmJQ(el).find('#HoverBuilding1').after('<tr><td colspan="3" style="text-align:center;">Kein Bauauftrag</td></tr>');
+        if (!hasHoverBuilding1 && hasHoverBuilding2) lwmJQ(el).find('#HoverBuilding2').before('<tr><td colspan="3" style="text-align:center;">Kein Bauauftrag</td></tr>');
+        if (!hasHoverBuilding1 && !hasHoverBuilding2) lwmJQ(el).append('<tr><td colspan="3" style="text-align:center;">Kein Bauauftrag</td></tr><tr><td colspan="3" style="text-align:center;">Kein Bauauftrag</td></tr>');
+      });
+    }
+    lwmJQ('.BuildingNameClass:contains(\'Kein Bauauftrag\'),td:contains(\'Kein Bauauftrag\'),td:contains(\'Kein Forschungsauftrag\')').css({
+      backgroundColor: 'rgba(250, 0, 0, 0.3)',
+      cursor: 'pointer',
+    });
+    lwmJQ('.BuildingNameClass:contains(\'Kein Bauauftrag\')').click((e) => {
+      const coords = lwmJQ(e.target).parents('tr').attr('data-coords').split('x');
+      gmSetValue('lwm_navigateTo', ['construction', 'first', 'Konstruktion']);
+      siteWindow.changeCordsFromUberPage(coords[0], coords[1], coords[2]);
+    });
+    lwmJQ('td:contains(\'Kein Bauauftrag\')').click((e) => {
+      const coords = lwmJQ(e.target).parents('.Posle').attr('data-coords').split('x');
+      gmSetValue('lwm_navigateTo', ['construction', 'first', 'Konstruktion']);
+      siteWindow.changeCordsFromUberPage(coords[0], coords[1], coords[2]);
+    });
+    lwmJQ('td:contains(\'Kein Forschungsauftrag\')').click(() => {
+      const coords = config.gameData.planets[0].string.split('x');
+      gmSetValue('lwm_navigateTo', ['research', 'first', 'Forschung']);
+      siteWindow.changeCordsFromUberPage(coords[0], coords[1], coords[2]);
     });
 
     // add resources

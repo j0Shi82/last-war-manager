@@ -14,6 +14,7 @@
   - The premium feature is now accessible through the main menu for premium users
 - **UEBERSICHT**
   - LWM now supports SmartView
+  - Highlight empty building and research slots => cliks directly lead to the building and research page
 
 ## v0.9.0
 - The fleet addon can be toggled and received a slight design change

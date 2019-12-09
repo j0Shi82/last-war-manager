@@ -1,4 +1,4 @@
-import { siteWindow } from 'config/globals';
+import { siteWindow, gmGetValue, gmSetValue } from 'config/globals';
 
 import config from 'config/lwmConfig';
 import { getPageLoadPromise } from 'utils/loadPromises';
@@ -22,6 +22,14 @@ const finalizePageLoad = () => {
 
     const viewportmeta = docQuery('meta[name=viewport]');
     viewportmeta.setAttribute('content', 'width=device-width, initial-scale=1.0');
+
+    // check if we need to navigate to another page
+    gmGetValue('lwm_navigateTo', []).then((data) => {
+      if (data.length === 3) {
+        siteWindow.changeContent(data[0], data[1], data[2]);
+      }
+      gmSetValue('lwm_navigateTo', []);
+    });
   }
 
   // not sure focus works on a div <= TODO
