@@ -38,7 +38,7 @@ A German feedback thread can be found on the [official message board](http://for
   - Resources get added to the planets on the overview
   - Ability to switch planets by clicking the coord table headers
   - Fleet warning distance shows on the overview page
-  - Highlight empty building and research slots
+  - Highlight empty building and research slots => clicks directly lead to the building and research page
 - **PRODUCTION**
   - Ability to hide ships (workaround for a known issue that prevents users to delete ship designs)
   - Filter to only show ships that meet certain criteria

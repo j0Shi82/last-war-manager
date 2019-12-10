@@ -15,7 +15,7 @@
   - Ability to choose between showing the memo on top of the page or inline
 - **UEBERSICHT**
   - LWM now supports SmartView
-  - Highlight empty building and research slots => cliks directly lead to the building and research page
+  - Highlight empty building and research slots => clicks directly lead to the building and research page
 
 ## v0.8.0
 
