@@ -204,12 +204,18 @@ export default () => {
   if (isPremium()) {
     // memo block
     lwmJQ('#clipboard').click(() => {
+      if (lwmJQ('.lwm-memo-container').length > 0) {
+        lwmJQ('.lwm-memo-container').remove();
+        return;
+      }
       // add memo
-      lwmJQ('#Main').css({
-        opacity: '0.5',
-        position: 'fixed',
-        pointerEvents: 'none',
-      });
+      if (gmConfig.get('menu_clipboard')) {
+        lwmJQ('#Main').css({
+          opacity: '0.5',
+          position: 'fixed',
+          pointerEvents: 'none',
+        });
+      }
       const $closeButton = lwmJQ('<div class=\'lwm-memo-close\'><i class="fas fa-times-circle"></i></div>');
       $closeButton.click(() => {
         lwmJQ('#Main').css({
@@ -250,9 +256,10 @@ export default () => {
         }
       });
       const $container = lwmJQ('<div class="lwm-memo-container"><div class="lwm-memo-menu"></div><div class="lwm-memo-body"></div></div>');
+      if (!gmConfig.get('menu_clipboard')) $container.addClass('lwm-memo-container-inline');
       $container.find('.lwm-memo-body').append($memoText);
       $container.find('.lwm-memo-menu').append([$closeButton, $saveButton]);
-      lwmJQ('body').append($container);
+      if (gmConfig.get('menu_clipboard')) lwmJQ('body').append($container); else lwmJQ('#Content').prepend($container);
     });
   }
 

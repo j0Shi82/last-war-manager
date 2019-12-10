@@ -97,9 +97,16 @@ export default () => {
               max: 50,
               default: 10,
             },
-          overview_planetresources:
+          menu_clipboard:
             {
               section: [gmConfig.create('Page Specific'), 'Turn page specific add-ons on and off.'],
+              label: 'MENU: Place clipboard above the page instead of inside it.',
+              labelPos: 'right',
+              type: 'checkbox',
+              default: false,
+            },
+          overview_planetresources:
+            {
               label: 'OVERVIEW: Show resources on overview page.',
               labelPos: 'right',
               type: 'checkbox',

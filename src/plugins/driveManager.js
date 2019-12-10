@@ -75,6 +75,7 @@ const driveManager = () => {
       addon_fleet: gmConfig.get('addon_fleet'),
       addon_fleet_exclude_drones: gmConfig.get('addon_fleet_exclude_drones'),
       confirm_const: gmConfig.get('confirm_const'),
+      menu_clipboard: gmConfig.get('menu_clipboard'),
       overview_planetresources: gmConfig.get('overview_planetresources'),
       overview_planetstatus: gmConfig.get('overview_planetstatus'),
       overview_planetnames: gmConfig.get('overview_planetnames'),

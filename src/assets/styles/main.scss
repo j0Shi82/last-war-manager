@@ -1507,12 +1507,26 @@ body#lwmSettings .section_desc {
 
 /* MEMO START */
 .lwm-memo-container {
-  position: absolute;
-  z-index: 1000;
-  width: 80%;
-  left: 10%;
-  height: 80vh;
-  top: 10vh;
+  &:not(.lwm-memo-container-inline) {
+    position: absolute;
+    z-index: 1000;
+    width: 80%;
+    left: 10%;
+    height: 80vh;
+    top: 10vh;
+  }
+
+  &.lwm-memo-container-inline {
+    width: 100%;
+
+    .lwm-memo-body {
+      height: initial;
+
+      .lwm-memo-text {
+        height: 20vh;
+      }
+    }
+  }
 
   .lwm-memo-menu {
     background: #000;
