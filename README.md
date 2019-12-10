@@ -10,7 +10,7 @@ LWM uses the [Tampermonkey](https://tampermonkey.net/) extension that's availabl
 
 - [OpenUserJS](https://openuserjs.org/scripts/j0shi82/Last_War_Manager)
 - [GreaseFork](https://greasyfork.org/en/scripts/379871-last-war-manager)
-- [GitHub](https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/last-war-manager.user.js)
+- [GitHub](https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/dist/last-war-manager.user.js)
 
 The GitHub repository also includes a UserStyle file that only includes the visual changes. It is however included in the script and doesn't work independently anyway. You can try to install it on top in case you run into some trouble, but it will probably be discontinued soon. It stems from an earlier version.
 
