@@ -17,9 +17,6 @@
   - LWM now supports SmartView
   - Highlight empty building and research slots => cliks directly lead to the building and research page
 
-## v0.9.0
-- The fleet addon can be toggled and received a slight design change
-
 ## v0.8.0
 
 - The Google Drive saves are loaded once per login, not once per planet change
