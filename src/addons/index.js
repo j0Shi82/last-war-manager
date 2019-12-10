@@ -384,8 +384,17 @@ const addOns = {
 
       // populate fleets
       lwmJQ('#lwm_folottenbewegungenPageDiv table tbody').append($fleetRows);
-      if ($fleetRows.length === 0) lwmJQ('#lwm_folottenbewegungenPageDiv').hide();
-      else lwmJQ('#lwm_folottenbewegungenPageDiv').show();
+      if ($fleetRows.length === 0) {
+        lwmJQ('#lwm_folottenbewegungenPageDiv').hide();
+        lwmJQ('#lwm_folottenbewegungenPageDiv').parent().css({
+          marginBottom: '0px',
+        });
+      } else {
+        lwmJQ('#lwm_folottenbewegungenPageDiv').show();
+        lwmJQ('#lwm_folottenbewegungenPageDiv').parent().css({
+          marginBottom: '20px',
+        });
+      }
 
       // add spionage action
       lwmJQ('#lwm_folottenbewegungenPageDiv table tbody tr').find('.fa-search').click((e) => { performSpionage(lwmJQ(e.target).parents('tr').attr('data-coords').split('x')); });
