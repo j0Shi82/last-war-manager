@@ -1359,7 +1359,7 @@ const pageTweaks = {
           frubin: parseInt(responseJSON.resource.frubin, 10) - (responseJSON.bank_limit / (1 + calcInterest)) < 0
             ? 0 : parseInt(responseJSON.resource.frubin, 10) - (responseJSON.bank_limit / (1 + calcInterest)),
           orizin: parseInt(responseJSON.resource.orizin, 10) - (responseJSON.bank_limit / (1 + calcInterest)) < 0
-            ? 0 : parseInt(responseJSON.resource.roheisen, 10) - (responseJSON.bank_limit / (1 + calcInterest)),
+            ? 0 : parseInt(responseJSON.resource.orizin, 10) - (responseJSON.bank_limit / (1 + calcInterest)),
           frurozin: parseInt(responseJSON.resource.frurozin, 10) - (responseJSON.bank_limit / (1 + calcInterest)) < 0
             ? 0 : parseInt(responseJSON.resource.frurozin, 10) - (responseJSON.bank_limit / (1 + calcInterest)),
           gold: parseInt(responseJSON.resource.gold, 10) - (responseJSON.bank_limit / (1 + calcInterest)) < 0
