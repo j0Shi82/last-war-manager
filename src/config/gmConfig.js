@@ -100,7 +100,7 @@ export default () => {
           menu_clipboard:
             {
               section: [gmConfig.create('Page Specific'), 'Turn page specific add-ons on and off.'],
-              label: 'MENU: Place clipboard above the page instead of inside it.',
+              label: 'MENU: Place clipboard/memo above the page instead of inside it.',
               labelPos: 'right',
               type: 'checkbox',
               default: false,

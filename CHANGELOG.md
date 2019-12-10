@@ -12,6 +12,7 @@
   - Premium features like saving all res are now only available for premium users
 - **MEMO**
   - The premium feature is now accessible through the main menu for premium users
+  - Ability to choose between showing the memo on top of the page or inline
 - **UEBERSICHT**
   - LWM now supports SmartView
   - Highlight empty building and research slots => cliks directly lead to the building and research page

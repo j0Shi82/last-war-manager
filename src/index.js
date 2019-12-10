@@ -1,4 +1,4 @@
-// import initSentry, { Sentry } from 'plugins/sentry';
+import initSentry, { Sentry } from 'plugins/sentry';
 import {
   siteWindow, gmSetValue, gmConfig,
 } from 'config/globals';
@@ -61,7 +61,7 @@ const installMain = () => {
     siteWindow.jQuery.getScript('//apis.google.com/js/api.js').then(() => {
       setFirstLoadStatusMsg('LOADING... Google Drive...');
       driveManager.init(siteWindow.gapi);
-    }, () => { setFirstLoadStatusMsg('LOADING... ERROR...'); /* Sentry.captureMessage('Google API fetch failed'); */ throwError(); });
+    }, () => { setFirstLoadStatusMsg('LOADING... ERROR...'); Sentry.captureMessage('Google API fetch failed'); throwError(); });
     getLoadStatePromise('gdrive').then(() => {
       setFirstLoadStatusMsg('LOADING... Page Setup...');
       // wait for gameData and google because some stuff depends on it
@@ -70,7 +70,7 @@ const installMain = () => {
 
       // the first ubersicht load is sometimes not caught by our ajax wrapper, so do manually
       process('ubersicht');
-    }, () => { setFirstLoadStatusMsg('LOADING... ERROR...'); /* Sentry.captureMessage('gDrive promise rejected'); */ throwError(); });
+    }, () => { setFirstLoadStatusMsg('LOADING... ERROR...'); Sentry.captureMessage('gDrive promise rejected'); throwError(); });
 
     // this set of pages triggers the loading spinner on ajaxSend
     siteWindow.jQuery(document).ajaxSend((event, xhr, settings) => {
@@ -165,7 +165,7 @@ if (location.protocol === 'https:') {
       addOns.planetData.storeDataFromSpio();
     });
   } else {
-    // initSentry(); <-- TODO
+    initSentry();
     initGmConfig();
     installMain();
   }
