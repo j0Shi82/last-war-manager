@@ -78,7 +78,7 @@ module.exports = {
               + '// @grant         GM_getResourceText\n'
               + '// @grant         GM_addStyle\n'
               + '// @run-at        document-start\n'
-              + '// @version       1.0.0\n'
+              + '// @version       1.0.1\n'
               + '// ==/UserScript==\n',
     }),
   ],

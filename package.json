@@ -1,6 +1,6 @@
 {
   "name": "last-war-manager",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Some tweaking to the Last War UI and environment",
   "repository": "https://github.com/j0Shi82/last-war-manager.git",
   "author": "j0Shi82 <janosch.ferda@e-domizil.de>",
@@ -9,7 +9,7 @@
   "scripts": {
     "build:dev": "webpack --mode development",
     "build": "webpack --mode production",
-    "sourcemaps": "./node_modules/@sentry/cli/bin/sentry-cli last-war-manager@v1.0.0 upload-sourcemaps ./dist"
+    "sourcemaps": "./node_modules/@sentry/cli/bin/sentry-cli last-war-manager@v1.0.1 upload-sourcemaps ./dist"
   },
   "devDependencies": {
     "@babel/core": "^7.7.5",
