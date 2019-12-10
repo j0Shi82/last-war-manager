@@ -1,0 +1,35 @@
+{
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "airbnb-base"
+    ],
+    "rules": {
+      "no-param-reassign":["error", { "props": false }],
+      /*
+      * this is the airbnb rule with 150 instead of 100 max-len
+      * and allowing comments
+      * https://github.com/airbnb/javascript/blob/master/packages/eslint-config-airbnb-base/rules/style.js
+      */
+      "max-len": ["error", 150, 2, {
+        "ignoreUrls": true,
+        "ignoreComments": true,
+        "ignoreRegExpLiterals": true,
+        "ignoreStrings": true,
+        "ignoreTemplateLiterals": true
+      }]
+    },
+    "parserOptions": {
+      "parser": "babel-eslint"
+    },
+    "settings": {
+      "import/resolver": {
+        "node": {
+          "paths": ["src"]
+        }
+      }
+    }
+  }
+  

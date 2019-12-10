@@ -25,7 +25,7 @@ html {
   overflow-x: hidden;
   width: 100%;
   height: unset;
-  background-image: url(images/main_screen/background.jpg);
+  background-image: url(https://last-war.de/images/main_screen/background.jpg);
   background-size: 100% 100%;
 }
 
@@ -220,13 +220,14 @@ select {
 }
 
 #Main {
+  max-width: 1200px;
+  margin: 0 auto;
   display: none;
   justify-content: center;
   align-items: stretch;
   align-content: flex-start;
   flex-flow: row wrap;
   width: 100%;
-  margin: 0;
   height: unset;
 }
 
@@ -240,7 +241,7 @@ select {
 }
 
 #lwm_menu_toggle i {
-  cursor: hand;
+  cursor: pointer;
 }
 
 #lwm_menu_toggle {
@@ -296,7 +297,7 @@ i.icon-galaxy {
   width: 28px;
   height: 28px;
   background-size: 100% 100%;
-  background-image: url("https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/assets/galaxy.png");
+  background-image: url("https://raw.githubusercontent.com/j0Shi82/last-war-manager/c9ba9890b2f490e4204fe2f6fe849c3a633d2cd2/assets/galaxy.png");
 }
 
 .headerBox {
@@ -393,6 +394,17 @@ i.icon-galaxy {
   background-color: #4290a157;
   border-radius: 10px;
   height: 75px;
+
+  .lwm-resourceCapacity {
+    position: static;
+    font-size: 1.25em;
+  }
+
+  .lwm-resourceAmount,
+  .lwm-resourceClock {
+    position: static;
+    font-size: 1em;
+  }
 }
 
 .resourceBox img {
@@ -807,23 +819,19 @@ input[type="number"] {
 
 .inputNumberDiv .fa-check-circle {
   color: #6ac468;
-  cursor: hand;
+  cursor: pointer;
   font-size: 2em;
 }
 
 .inputNumberDiv .fa-ban {
   color: #c46868;
-  cursor: hand;
+  cursor: pointer;
   font-size: 2em;
 }
 
 .shipNameProduction,
 .headerProduction {
   font-size: inherit;
-}
-
-.shipNameProduction,
-.headerProduction {
   background: none;
   background-image: none;
   background-color: #4290a157;
@@ -862,6 +870,8 @@ td.constructionName,
 #changeFlottenDiv th,
 #messagesListTableInbox > tbody > tr:first-child,
 #lwm_folottenbewegungenPageDiv table tr:first-child,
+#divTabele1 table tr:first-child,
+#divTabele2 table tr:first-child,
 #galaxyViewInfoTable th,
 #observationenDiv th,
 #calendarDiv th,
@@ -940,7 +950,7 @@ td.constructionName,
 }
 
 .createShipButton {
-  cursor: hand;
+  cursor: pointer;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1156,6 +1166,14 @@ td.constructionName,
 /* LOADER END */
 
 /* TRADE */
+@media (max-width: 850px) {
+  #newTradeOfferDiv {
+    .lwm-trade-coords {
+      font-size: 1.5em;
+    }
+  }
+}
+
 #newTradeOfferDiv th input:nth-child(1) {
   width: 25px !important;
 }
@@ -1194,6 +1212,11 @@ td.constructionName,
 /* TRADE END */
 
 /* FLEET START */
+#attaksInfo {
+  color: #fff;
+  background-color: #c70000 !important;
+}
+
 .pageContent .flottenViewDiv #firstTable {
   width: unset !important;
 }
@@ -1327,7 +1350,7 @@ body#lwmSettings .section_desc {
 
 #tableForChangingPlanet #left,
 #tableForChangingPlanet #right {
-  cursor: hand;
+  cursor: pointer;
 }
 
 #tableForChangingPlanet .row {
@@ -1351,13 +1374,17 @@ body#lwmSettings .section_desc {
 /* GALAXY END */
 
 /* PRODUCTION */
+#divTabele2 {
+  margin-top: 20px;
+}
+
 #aktuelleProduktionPageDiv .fa-ban {
   color: rgba(255, 0, 0, 0.75);
 }
 
 .shipNameProduction i {
   color: rgba(255, 0, 0, 0.75);
-  cursor: hand;
+  cursor: pointer;
   float: left;
   margin-left: 5px;
   margin-right: 5px;
@@ -1470,4 +1497,62 @@ body#lwmSettings .section_desc {
   overflow: hidden;
 }
 
+@media (max-width: 850px) {
+  tr[data-coords] > td:not(#BuildingClock):not(#BuildingClock2) {
+    word-break: break-all;
+  }
+}
+
 /* UEBERSICHT END */
+
+/* MEMO START */
+.lwm-memo-container {
+  &:not(.lwm-memo-container-inline) {
+    position: absolute;
+    z-index: 1000;
+    width: 80%;
+    left: 10%;
+    height: 80vh;
+    top: 10vh;
+  }
+
+  &.lwm-memo-container-inline {
+    width: 100%;
+
+    .lwm-memo-body {
+      height: initial;
+
+      .lwm-memo-text {
+        height: 20vh;
+      }
+    }
+  }
+
+  .lwm-memo-menu {
+    background: #000;
+    height: 50px;
+    display: flex;
+    padding: 0 10px;
+    align-items: center;
+    justify-content: space-between;
+
+    .lwm-memo-close {
+      font-size: 3em;
+      cursor: pointer;
+    }
+  }
+
+  .lwm-memo-body {
+    height: calc(80vh - 50px);
+
+    .lwm-memo-text {
+      width: 100%;
+      background-color: #000;
+      color: #7cf3fd;
+      border: 1px solid #7cf3fd;
+      height: 100%;
+    }
+  }
+}
+
+/* MEMO END */
