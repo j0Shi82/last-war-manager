@@ -1,5 +1,7 @@
 # Changelog
 
+## v1.1.0
+
 ## v1.0.0
 - Hovering over resource boxes now reveals percentage capacity numbers
 - The Manager now offers an option to show the planet image (default is false)

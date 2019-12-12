@@ -1,6 +1,6 @@
 import config from 'config/lwmConfig';
 import {
-  gmConfig, siteWindow, gmSetValue,
+  gmConfig, siteWindow, gmSetValue, lwmJQ,
 } from 'config/globals';
 import {
   throwError, checkCoords,
@@ -22,7 +22,20 @@ export default () => {
     const lastTR = docQuery('#newTradeOfferDiv tr:last-child');
     lastTR.querySelector('td:nth-child(1)').style.display = 'none';
     lastTR.querySelector('td:nth-child(2)').setAttribute('colspan', '4');
-    lastTR.querySelector('td:nth-child(2) .buttonRow').appendChild(docQuery('.formButtonNewMessage'));
+    const divSave = createElementFromHTML('<div class="lwm-trade-coords" style=\'width:100%\'></div>');
+    lastTR.querySelector('td:nth-child(2)').appendChild(divSave);
+    lastTR.querySelector('td:nth-child(2)').appendChild(createElementFromHTML('<div class="buttonRow lwm-buttonRow2" style="width: 100%; margin-left: 0;"></div>'));
+    lastTR.querySelector('.lwm-buttonRow2').appendChild(docQuery('.formButtonNewMessage'));
+
+    // remove clutter and rebuild trade ui
+    lwmJQ('#newTradeOfferDiv td:eq(1),#newTradeOfferDiv td:eq(3)').contents().filter((i, el) => el.nodeName !== 'INPUT').remove();
+    lwmJQ('#newTradeOfferDiv th:eq(0), #newTradeOfferDiv th:eq(2), #newTradeOfferDiv td:eq(0), #newTradeOfferDiv td:eq(2)').remove();
+    lwmJQ('#newTradeOfferDiv th').attr('colspan', '4')
+      .prepend('Koordinaten:&nbsp;')
+      .append('<select id="lwm-own-coords"></select>')
+      .append(`<div>(Handelsgebühr: ${siteWindow.lose}%)</div>`);
+    lwmJQ('#newTradeOfferDiv td:eq(0)').prepend('<div><h3><u>Angebot</u></h3></div>');
+    lwmJQ('#newTradeOfferDiv td:eq(1)').prepend('<div><h3><u>Forderung</u></h3></div>');
 
     // save coords in lastused config
     const savedCoords = config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string];
@@ -52,50 +65,49 @@ export default () => {
         docQuery('#my_frurozin').value = Math.round((siteWindow.Frurozin - ((siteWindow.Frurozin * siteWindow.lose) / 100)));
         docQuery('#my_gold').value = Math.round((siteWindow.Gold - ((siteWindow.Gold * siteWindow.lose) / 100)));
         if (docQuery('#his_eisen').value === '0') docQuery('#his_eisen').value = '1';
+        docQuery('#his_gold').value = '0';
+        docQuery('#tradeOfferComment').value = '';
       });
       lastTR.querySelector('td:nth-child(2) .buttonRow').appendChild(buttonSaveAll);
     }
 
-    // add div with own chords
-    const divOwn = createElementFromHTML('<div class="lwm-trade-coords" style=\'width:100%\'></div>');
-    const linksOwn = [];
-    const saveLinksOwn = [];
+    // add button to secure all res
+    const buttonSecureAll = createElementFromHTML('<a class="formButtonNewMessage" style="float: none;" href="#">Savehandel</a>');
+    if (isPremium()) {
+      buttonSecureAll.addEventListener('click', () => {
+        buttonSaveAll.click();
+        docQuery('#his_gold').value = '99999999';
+        docQuery('#his_eisen').value = '0';
+        docQuery('#tradeOfferComment').value = '###LWM::SAVE###';
+      });
+      lastTR.querySelector('td:nth-child(2) .buttonRow').appendChild(buttonSecureAll);
+    }
+
+    // add own chords to select
+    const select = docQuery('#lwm-own-coords');
+    select.appendChild(createElementFromHTML('<option value=\'\'>Planet wählen</option>'));
+    select.addEventListener('change', () => {
+      if (select.value === '') {
+        docQuery('#galaxyTrade').value = '';
+        docQuery('#systemTrade').value = '';
+        docQuery('#planetTrade').value = '';
+      } else {
+        docQuery('#galaxyTrade').value = config.gameData.planets[select.value].galaxy;
+        docQuery('#systemTrade').value = config.gameData.planets[select.value].system;
+        docQuery('#planetTrade').value = config.gameData.planets[select.value].planet;
+      }
+    });
     config.gameData.planets.forEach((coords, i) => {
       if (pi(coords.galaxy) === siteWindow.my_galaxy
             && pi(coords.system) === siteWindow.my_system
             && pi(coords.planet) === siteWindow.my_planet) return true;
-      const link = createElementFromHTML(`<a href='javascript:void(0)' data-index='${i}'>${coords.galaxy}x${coords.system}x${coords.planet}</a>`);
-      link.addEventListener('click', (e) => {
-        docQuery('#galaxyTrade').value = config.gameData.planets[e.target.getAttribute('data-index')].galaxy;
-        docQuery('#systemTrade').value = config.gameData.planets[e.target.getAttribute('data-index')].system;
-        docQuery('#planetTrade').value = config.gameData.planets[e.target.getAttribute('data-index')].planet;
-      });
-      const saveLink = createElementFromHTML(`<a href='javascript:void(0)' data-index='${i}'> (SAVE)</a>`);
-      if (isPremium()) {
-        saveLink.addEventListener('click', (e) => {
-          docQuery('#galaxyTrade').value = config.gameData.planets[e.target.getAttribute('data-index')].galaxy;
-          docQuery('#systemTrade').value = config.gameData.planets[e.target.getAttribute('data-index')].system;
-          docQuery('#planetTrade').value = config.gameData.planets[e.target.getAttribute('data-index')].planet;
-          buttonSaveAll.click();
-          docQuery('#his_gold').value = '99999999';
-          docQuery('#his_eisen').value = '0';
-          docQuery('#tradeOfferComment').value = '###LWM::SAVE###';
-        });
-      }
-      linksOwn.push(link);
-      saveLinksOwn.push(saveLink);
+      const option = createElementFromHTML(`<option value='${i}'>${coords.galaxy}x${coords.system}x${coords.planet}</option>`);
+      select.appendChild(option);
 
       return true;
     });
-    linksOwn.forEach((l, i) => {
-      divOwn.appendChild(l);
-      divOwn.appendChild(isPremium() ? saveLinksOwn[i] : createElementFromHTML('<div></div>'));
-      divOwn.appendChild(i !== linksOwn.length - 1 ? createElementFromHTML('&nbsp;-&nbsp;') : createElementFromHTML('<div></div>'));
-    });
-    lastTR.querySelector('td:nth-child(2)').appendChild(divOwn);
 
     // add div with saved coords
-    const divSave = createElementFromHTML('<div class="lwm-trade-coords" style=\'width:100%\'></div>');
     const linksSave = [];
     savedCoords.forEach((coords) => {
       const link = createElementFromHTML(`<a href='javascript:void(0)'>${coords}</a>`);
@@ -108,7 +120,6 @@ export default () => {
       divSave.appendChild(l);
       divSave.appendChild(i !== linksSave.length - 1 ? createElementFromHTML('&nbsp;-&nbsp;') : createElementFromHTML('<div></div>'));
     });
-    lastTR.querySelector('td:nth-child(2)').appendChild(divSave);
 
     config.loadStates.content = false;
   }).catch((e) => {
