@@ -41,5 +41,8 @@
     "moment": "^2.24.0",
     "moment-duration-format": "^2.3.2",
     "numeral": "^2.0.6"
+  },
+  "resolutions": {
+    "serialize-javascript": "^2.1.2"
   }
 }
