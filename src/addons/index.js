@@ -161,22 +161,31 @@ const addOns = {
 
         const process = () => {
           const $tableBase = lwmJQ('#lwm_folottenbewegungenPageDiv table');
-          $tableBase.find('tr:gt(0)').data('show', false);
+          $tableBase.find('tr:gt(1)').data('show', false);
           const $coords = lwmJQ('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_coords').val();
           const $type = lwmJQ('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_types').val();
           const $status = lwmJQ('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_status').val();
 
-          lwmJQ.each($tableBase.find('tr:gt(0)'), (i, el) => {
+          lwmJQ.each($tableBase.find('tr:gt(1)'), (i, el) => {
             lwmJQ(el).data('show',
               (lwmJQ(el).attr('data-coords') === $coords || $coords === '')
                                 && (lwmJQ(el).attr('data-type') === $type || $type === '')
                                 && (lwmJQ(el).attr('data-status') === $status || $status === ''));
+            // hide drones if excluded and not directly selected
+            if (gmConfig.get('addon_fleet_exclude_drones') && $type !== '4' && lwmJQ(el).attr('data-type') === '4') {
+              lwmJQ(el).data('show', false);
+            }
           });
 
-          lwmJQ.each($tableBase.find('tr:gt(0)'), (i, el) => {
+          lwmJQ.each($tableBase.find('tr:gt(1)'), (i, el) => {
             if (lwmJQ(el).data('show')) lwmJQ(el).show();
             else lwmJQ(el).hide();
           });
+
+          // show hint at hidden drones
+          if ($tableBase.find('tr:gt(1)').filter((i, el) => lwmJQ(el).data('show')).length === 0) {
+            lwmJQ('#lwm_fleets_drone_info').show();
+          } else lwmJQ('#lwm_fleets_drone_info').hide();
         };
 
         const add = (fleetData) => {
@@ -286,26 +295,24 @@ const addOns = {
         $fleetRows.push(`<tr data-type="${fleetData.Type || ''}" data-status="${fleetData.Status || ''}" data-coords="${fleetData.Galaxy_send}x${fleetData.System_send}x${fleetData.Planet_send}" style=${trStyle}><td>${fleetInfoString}${speedString}</td><td>${fleetTimeString}</td><td id='${fleetClock}'>${moment.duration(moment(fleetTimeString).diff(moment(), 'seconds'), 'seconds').format('HH:mm:ss', { trim: false, forceLength: true })}</td></tr>`);
       });
 
-      if (!gmConfig.get('addon_fleet_exclude_drones')) {
-        lwmJQ.each(config.gameData.fleetInfo.all_informations, (i, fleetData) => {
-          // add missing info for drones
-          fleetData.Type = '4'; fleetData.Status = '1';
-          filter.add(fleetData);
-          $fleetRows.push(`<tr data-type="${fleetData.Type || ''}" data-status="${fleetData.Status || ''}" data-coords="${fleetData.homePlanet}"><td>${iconDrone}Eigene ${fleetData.name} von Planet <b>${fleetData.homePlanet}</b> ist unterwegs nach ( <b>${fleetData.galaxy}x${fleetData.system}</b> )</td><td>${fleetData.time}</td><td id='clock_${fleetData.clock_id}'>${moment.duration(moment(fleetData.time).diff(moment(), 'seconds'), 'seconds').format('HH:mm:ss', { trim: false, forceLength: true })}</td></tr>`);
-        });
+      lwmJQ.each(config.gameData.fleetInfo.all_informations, (i, fleetData) => {
+        // add missing info for drones
+        fleetData.Type = '4'; fleetData.Status = '1';
+        filter.add(fleetData);
+        $fleetRows.push(`<tr data-type="${fleetData.Type || ''}" data-status="${fleetData.Status || ''}" data-coords="${fleetData.homePlanet}"><td>${iconDrone}Eigene ${fleetData.name} von Planet <b>${fleetData.homePlanet}</b> ist unterwegs nach ( <b>${fleetData.galaxy}x${fleetData.system}</b> )</td><td>${fleetData.time}</td><td id='clock_${fleetData.clock_id}'>${moment.duration(moment(fleetData.time).diff(moment(), 'seconds'), 'seconds').format('HH:mm:ss', { trim: false, forceLength: true })}</td></tr>`);
+      });
 
-        lwmJQ.each(config.gameData.fleetInfo.dron_observationens, (i, fleetData) => {
-          fleetData.Type = '4'; fleetData.Status = '1';
-          filter.add(fleetData);
-          $fleetRows.push(`<tr data-type="${fleetData.Type || ''}" data-status="${fleetData.Status || ''}" data-coords="${fleetData.homePlanet}"><td>${iconDrone}Eigene ${fleetData.name} von Planet <b>${fleetData.homePlanet}</b> ist unterwegs nach ( <b>${fleetData.galaxy}x${fleetData.system}x${fleetData.planet}</b> )</td><td>${fleetData.time}</td><td id='clock_${fleetData.clock_id}'>${moment.duration(moment(fleetData.time).diff(moment(), 'seconds'), 'seconds').format('HH:mm:ss', { trim: false, forceLength: true })}</td></tr>`);
-        });
+      lwmJQ.each(config.gameData.fleetInfo.dron_observationens, (i, fleetData) => {
+        fleetData.Type = '4'; fleetData.Status = '1';
+        filter.add(fleetData);
+        $fleetRows.push(`<tr data-type="${fleetData.Type || ''}" data-status="${fleetData.Status || ''}" data-coords="${fleetData.homePlanet}"><td>${iconDrone}Eigene ${fleetData.name} von Planet <b>${fleetData.homePlanet}</b> ist unterwegs nach ( <b>${fleetData.galaxy}x${fleetData.system}x${fleetData.planet}</b> )</td><td>${fleetData.time}</td><td id='clock_${fleetData.clock_id}'>${moment.duration(moment(fleetData.time).diff(moment(), 'seconds'), 'seconds').format('HH:mm:ss', { trim: false, forceLength: true })}</td></tr>`);
+      });
 
-        lwmJQ.each(config.gameData.fleetInfo.dron_planetenscanners, (i, fleetData) => {
-          fleetData.Type = '4'; fleetData.Status = '1';
-          filter.add(fleetData);
-          $fleetRows.push(`<tr data-type="${fleetData.Type || ''}" data-status="${fleetData.Status || ''}" data-coords="${fleetData.homePlanet}"><td>${iconDrone}Eigene ${fleetData.name} von Planet <b>${fleetData.homePlanet}</b> ist unterwegs nach ( <b>${fleetData.galaxy}x${fleetData.system}x${fleetData.planet}</b> )</td><td>${fleetData.time}</td><td id='clock_${fleetData.clock_id}'>${moment.duration(moment(fleetData.time).diff(moment(), 'seconds'), 'seconds').format('HH:mm:ss', { trim: false, forceLength: true })}</td></tr>`);
-        });
-      }
+      lwmJQ.each(config.gameData.fleetInfo.dron_planetenscanners, (i, fleetData) => {
+        fleetData.Type = '4'; fleetData.Status = '1';
+        filter.add(fleetData);
+        $fleetRows.push(`<tr data-type="${fleetData.Type || ''}" data-status="${fleetData.Status || ''}" data-coords="${fleetData.homePlanet}"><td>${iconDrone}Eigene ${fleetData.name} von Planet <b>${fleetData.homePlanet}</b> ist unterwegs nach ( <b>${fleetData.galaxy}x${fleetData.system}x${fleetData.planet}</b> )</td><td>${fleetData.time}</td><td id='clock_${fleetData.clock_id}'>${moment.duration(moment(fleetData.time).diff(moment(), 'seconds'), 'seconds').format('HH:mm:ss', { trim: false, forceLength: true })}</td></tr>`);
+      });
 
       lwmJQ.each(config.gameData.fleetInfo.buy_ships_array, (i, fleetData) => {
         filter.add(fleetData);
@@ -382,6 +389,8 @@ const addOns = {
         $fleetRows.push(`<tr data-type="${fleetData.Type || ''}" data-status="${fleetData.Status || ''}" data-coords="${fleetData.homePlanet}"><td>${fleetInfoString}${speedString}</td><td>${fleetTimeString}</td><td id='${fleetClock}'>${moment.duration(moment(fleetTimeString).diff(moment(), 'seconds'), 'seconds').format('HH:mm:ss', { trim: false, forceLength: true })}</td></tr>`);
       });
 
+      // display message if there are hidden drones
+      lwmJQ('#lwm_folottenbewegungenPageDiv table tbody').append('<tr id="lwm_fleets_drone_info" style="display:none;"><td colspan="3" style="text-align="center"><span style="font-style: italic; width:100%;">Drones are hidden in the settings. To show them please specifically select them using the type dropdown.</span></td></tr>');
       // populate fleets
       lwmJQ('#lwm_folottenbewegungenPageDiv table tbody').append($fleetRows);
       if ($fleetRows.length === 0) {
@@ -404,7 +413,7 @@ const addOns = {
       lwmJQ('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_status').append($selectOptions.status);
 
       // sort table by time
-      lwmJQ('#lwm_folottenbewegungenPageDiv table tbody tr:gt(0)').sort((a, b) => {
+      lwmJQ('#lwm_folottenbewegungenPageDiv table tbody tr:gt(1)').sort((a, b) => {
         const tsA = moment.duration(lwmJQ(a).find('td').last().text());
         const tsB = moment.duration(lwmJQ(b).find('td').last().text());
         return tsA.asSeconds() - tsB.asSeconds();

@@ -7,6 +7,9 @@
   - The trade window has been reworked and de-cluttered
 - **MESSAGES**
   - Shorten submenu labels to avoid a spacing issue
+- **FLEET**
+  - If drones are hidden in the LWM settings, you can still reveal them by specifically picking them in the fleet type dropdown
+  - The fleet container is now collapsible
 
 ## v1.0.0
 - Hovering over resource boxes now reveals percentage capacity numbers
