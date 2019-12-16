@@ -177,15 +177,17 @@ const addOns = {
             }
           });
 
-          lwmJQ.each($tableBase.find('tr:gt(1)'), (i, el) => {
-            if (lwmJQ(el).data('show')) lwmJQ(el).show();
-            else lwmJQ(el).hide();
-          });
+          gmGetValue('lwm_fleetDivState', true).then((state) => {
+            lwmJQ.each($tableBase.find('tr:gt(1)'), (i, el) => {
+              if (lwmJQ(el).data('show') && state) lwmJQ(el).show();
+              else lwmJQ(el).hide();
+            });
 
-          // show hint at hidden drones
-          if ($tableBase.find('tr:gt(1)').filter((i, el) => lwmJQ(el).data('show')).length === 0) {
-            lwmJQ('#lwm_fleets_drone_info').show();
-          } else lwmJQ('#lwm_fleets_drone_info').hide();
+            // show hint at hidden drones
+            if ($tableBase.find('tr:gt(1)').filter((i, el) => lwmJQ(el).data('show')).length === 0 && state) {
+              lwmJQ('#lwm_fleets_drone_info').show();
+            } else lwmJQ('#lwm_fleets_drone_info').hide();
+          });
         };
 
         const add = (fleetData) => {
@@ -207,6 +209,18 @@ const addOns = {
         };
 
         const attachSelects = () => {
+          if (lwmJQ('#lwm_folottenbewegungenPageDiv i.toggle').length === 0) {
+            gmGetValue('lwm_fleetDivState', true).then((data) => {
+              lwmJQ('#lwm_folottenbewegungenPageDiv table td').first().prepend(`<i style="font-size: 1.5em;margin-top:0px;" class="toggle fas fa-${data ? 'minus' : 'plus'}-circle"></i>`);
+              lwmJQ('#lwm_folottenbewegungenPageDiv table td').find('i.toggle').click((e) => {
+                gmGetValue('lwm_fleetDivState', true).then((data2) => {
+                  gmSetValue('lwm_fleetDivState', !data2);
+                  process();
+                });
+                lwmJQ(e.target).toggleClass('fa-minus-circle fa-plus-circle');
+              });
+            });
+          }
           if (lwmJQ('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_coords').length === 0) {
             const $selectCoords = lwmJQ('<select id="lwm_fleetFilter_coords"><option value="">Pick Coords</option></select>');
             $selectCoords.change(() => { process(); });

@@ -89,6 +89,7 @@ const config = {
     planetInfo: {},
     calendar: [],
     planetData: {},
+    fleetDivState: true,
 
     set: (data) => {
       if (typeof data.lastTradeCoords !== 'undefined') config.lwm.lastTradeCoords = data.lastTradeCoords;
@@ -100,6 +101,7 @@ const config = {
       if (typeof data.planetInfo !== 'undefined') config.lwm.planetInfo = data.planetInfo;
       if (typeof data.calendar !== 'undefined') config.lwm.calendar = data.calendar;
       if (typeof data.planetData !== 'undefined') config.lwm.planetData = data.planetData;
+      if (typeof data.fleetDivState !== 'undefined') config.lwm.fleetDivState = data.fleetDivState;
       if (typeof data.menu !== 'undefined') {
         Object.keys(data.menu).forEach((key) => {
           if (typeof gmConfig.fields[key] !== 'undefined') gmConfig.set(key, data.menu[key]);
@@ -117,6 +119,7 @@ const config = {
       gmSetValue('lwm_planetInfo', JSON.stringify(config.lwm.planetInfo));
       gmSetValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
       gmSetValue('lwm_planetData', JSON.stringify(config.lwm.planetData));
+      gmSetValue('lwm_fleetDivState', JSON.stringify(config.lwm.fleetDivState));
 
       // wait for gameData, then process
       getLoadStatePromise('gameData').then(() => { config.setGMValues(); }, () => { Sentry.captureMessage('gameData promise rejected'); throwError(); });
@@ -225,6 +228,11 @@ const config = {
 
         gmSetValue('lwm_planetData_temp', '{}'); // clear temp
         gmSetValue('lwm_planetData', JSON.stringify(config.lwm.planetData));
+
+        return gmGetValue('lwm_fleetDivState', true);
+      })
+      .then((data) => {
+        gmSetValue('lwm_fleetDivState', data);
 
         config.loadStates.gdrive = false; // <-- this ends gdrive setup on first load
         if (gmConfig.get('confirm_drive_sync')) driveManager.save();
