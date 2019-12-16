@@ -8,8 +8,7 @@
   "private": true,
   "scripts": {
     "build:dev": "webpack --mode development",
-    "build": "webpack --mode production",
-    "sourcemaps": "sentry-cli releases files last-war-manager@v1.1.0 upload-sourcemaps /d/Users/last-war-manager/dist"
+    "build": "webpack --mode production"
   },
   "devDependencies": {
     "@babel/core": "^7.7.5",

@@ -1,6 +1,12 @@
 # Changelog
 
 ## v1.1.0
+- **OVERVIEW**
+  - There's a new option to enable hinting at vacant multi building slots (defaults to false)
+- **TRADE**
+  - The trade window has been reworked and de-cluttered
+- **MESSAGES**
+  - Shorten submenu labels to avoid a spacing issue
 
 ## v1.0.0
 - Hovering over resource boxes now reveals percentage capacity numbers
@@ -15,7 +21,7 @@
 - **MEMO**
   - The premium feature is now accessible through the main menu for premium users
   - Ability to choose between showing the memo on top of the page or inline
-- **UEBERSICHT**
+- **OVERVIEW**
   - LWM now supports SmartView
   - Highlight empty building and research slots => clicks directly lead to the building and research page
 

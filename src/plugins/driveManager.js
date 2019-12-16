@@ -80,6 +80,7 @@ const driveManager = () => {
       overview_planetstatus: gmConfig.get('overview_planetstatus'),
       overview_planetnames: gmConfig.get('overview_planetnames'),
       overview_planetpicture: gmConfig.get('overview_planetpicture'),
+      overview_hintvacantmultiqueue: gmConfig.get('overview_hintvacantmultiqueue'),
       message_spylinks: gmConfig.get('message_spylinks'),
       trade_highlights: gmConfig.get('trade_highlights'),
       fleet_saveprios: gmConfig.get('fleet_saveprios'),

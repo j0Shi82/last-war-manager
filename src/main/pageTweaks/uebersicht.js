@@ -46,9 +46,12 @@ export default () => {
         const hasHoverBuilding1 = lwmJQ(el).find('#HoverBuilding1').length > 0;
         const hasHoverBuilding2 = lwmJQ(el).find('#HoverBuilding2').length > 0;
         if (hasHoverBuilding1 && hasHoverBuilding2) return;
-        if (hasHoverBuilding1 && !hasHoverBuilding2) lwmJQ(el).find('#HoverBuilding1').after('<tr><td colspan="3" style="text-align:center;">Kein Bauauftrag</td></tr>');
-        if (!hasHoverBuilding1 && hasHoverBuilding2) lwmJQ(el).find('#HoverBuilding2').before('<tr><td colspan="3" style="text-align:center;">Kein Bauauftrag</td></tr>');
-        if (!hasHoverBuilding1 && !hasHoverBuilding2) lwmJQ(el).append('<tr><td colspan="3" style="text-align:center;">Kein Bauauftrag</td></tr><tr><td colspan="3" style="text-align:center;">Kein Bauauftrag</td></tr>');
+        if (hasHoverBuilding1 && !hasHoverBuilding2 && gmConfig.get('overview_hintvacantmultiqueue')) lwmJQ(el).find('#HoverBuilding1').after('<tr><td colspan="3" style="text-align:center;">Kein Bauauftrag</td></tr>');
+        if (!hasHoverBuilding1 && hasHoverBuilding2 && gmConfig.get('overview_hintvacantmultiqueue')) lwmJQ(el).find('#HoverBuilding2').before('<tr><td colspan="3" style="text-align:center;">Kein Bauauftrag</td></tr>');
+        if (!hasHoverBuilding1 && !hasHoverBuilding2) {
+          if (gmConfig.get('overview_hintvacantmultiqueue')) lwmJQ(el).append('<tr><td colspan="3" style="text-align:center;">Kein Bauauftrag</td></tr>');
+          lwmJQ(el).append('<tr><td colspan="3" style="text-align:center;">Kein Bauauftrag</td></tr>');
+        }
       });
     }
     lwmJQ('.BuildingNameClass:contains(\'Kein Bauauftrag\'),td:contains(\'Kein Bauauftrag\'),td:contains(\'Kein Forschungsauftrag\')').css({

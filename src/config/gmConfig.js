@@ -133,6 +133,13 @@ export default () => {
               type: 'checkbox',
               default: false,
             },
+          overview_hintvacantmultiqueue:
+            {
+              label: 'OVERVIEW: Show vacant multi building slots.',
+              labelPos: 'right',
+              type: 'checkbox',
+              default: false,
+            },
           message_spylinks:
             {
               label: 'MESSAGES: Show direct links to spy and combat reports in message lists (WARNING: This marks all reports as read on first visit).',

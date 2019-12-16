@@ -8,9 +8,7 @@ module.exports = {
   output: {
     filename: 'last-war-manager.user.js',
     path: path.resolve(__dirname, 'dist'),
-    sourceMapFilename: 'last-war-manager.user.js.map',
   },
-  devtool: 'source-map',
   target: 'web',
   module: {
     rules: [

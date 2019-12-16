@@ -50,7 +50,7 @@ export default {
           case 'newPrivateMessage': lwmJQ(el).prepend('<i class="fas fa-envelope-open"></i>'); break;
           case 'privateMessageList': lwmJQ(el).prepend('<i class="fas fa-envelope"></i>'); break;
           case 'notifiscationMessageList': lwmJQ(el).prepend('<i class="fas fa-bell"></i>'); break;
-          case 'reportMessageList': lwmJQ(el).prepend('<i class="fas fa-bomb"></i>'); break;
+          case 'reportMessageList': lwmJQ(el).prepend('<i class="fas fa-bomb"></i>'); lwmJQ(el).html(lwmJQ(el).html().replace('Kampf-Berichte', 'KBs')); break;
           case 'adminMessageList': lwmJQ(el).prepend('<i class="fas fa-user-cog"></i>'); break;
           case 'delitedMessageList': lwmJQ(el).prepend('<i class="fas fa-trash-alt"></i>'); break;
           case 'flottenbewegungen': lwmJQ(el).prepend('<i class="fas fa-wifi"></i>'); break;
