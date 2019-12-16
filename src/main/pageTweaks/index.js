@@ -1318,6 +1318,14 @@ const pageTweaks = {
   bank(responseJSON) {
     config.promises.content = getPromise('#bankDiv');
     config.promises.content.then(() => {
+      // null checks
+      if (typeof responseJSON.interest === 'undefined'
+          || typeof responseJSON.resource === 'undefined'
+          || typeof responseJSON.bank_limit === 'undefined') {
+        throwError();
+        config.loadStates.content = false;
+        return;
+      }
       const calcInterest = parseFloat(responseJSON.interest) < 0 ? 0 : parseFloat(responseJSON.interest) / 100;
       // add button to fill bank minus interest
       const $wrapper = lwmJQ('<div class="buttonRow" style="width: 100%; margin-left: 0;"></div>');

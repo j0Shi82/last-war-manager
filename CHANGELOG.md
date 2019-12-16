@@ -1,5 +1,7 @@
 # Changelog
 
+## v1.1.0
+
 ## v1.0.0
 - Hovering over resource boxes now reveals percentage capacity numbers
 - The Manager now offers an option to show the planet image (default is false)
@@ -15,10 +17,7 @@
   - Ability to choose between showing the memo on top of the page or inline
 - **UEBERSICHT**
   - LWM now supports SmartView
-  - Highlight empty building and research slots => cliks directly lead to the building and research page
-
-## v0.9.0
-- The fleet addon can be toggled and received a slight design change
+  - Highlight empty building and research slots => clicks directly lead to the building and research page
 
 ## v0.8.0
 

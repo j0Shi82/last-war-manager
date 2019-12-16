@@ -8,7 +8,9 @@ module.exports = {
   output: {
     filename: 'last-war-manager.user.js',
     path: path.resolve(__dirname, 'dist'),
+    sourceMapFilename: 'last-war-manager.user.js.map',
   },
+  devtool: 'source-map',
   target: 'web',
   module: {
     rules: [
@@ -76,7 +78,7 @@ module.exports = {
               + '// @grant         GM_getResourceText\n'
               + '// @grant         GM_addStyle\n'
               + '// @run-at        document-start\n'
-              + '// @version       1.0.0\n'
+              + '// @version       1.1.0\n'
               + '// ==/UserScript==\n',
     }),
   ],

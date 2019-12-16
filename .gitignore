@@ -1,2 +1,5 @@
 node_modules
 dist/statistics.html
+*.map
+*.log
+.sentryclirc

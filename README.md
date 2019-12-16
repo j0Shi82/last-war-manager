@@ -10,7 +10,7 @@ LWM uses the [Tampermonkey](https://tampermonkey.net/) extension that's availabl
 
 - [OpenUserJS](https://openuserjs.org/scripts/j0shi82/Last_War_Manager)
 - [GreaseFork](https://greasyfork.org/en/scripts/379871-last-war-manager)
-- [GitHub](https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/last-war-manager.user.js)
+- [GitHub](https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/dist/last-war-manager.user.js)
 
 The GitHub repository also includes a UserStyle file that only includes the visual changes. It is however included in the script and doesn't work independently anyway. You can try to install it on top in case you run into some trouble, but it will probably be discontinued soon. It stems from an earlier version.
 
@@ -38,7 +38,7 @@ A German feedback thread can be found on the [official message board](http://for
   - Resources get added to the planets on the overview
   - Ability to switch planets by clicking the coord table headers
   - Fleet warning distance shows on the overview page
-  - Highlight empty building and research slots
+  - Highlight empty building and research slots => clicks directly lead to the building and research page
 - **PRODUCTION**
   - Ability to hide ships (workaround for a known issue that prevents users to delete ship designs)
   - Filter to only show ships that meet certain criteria

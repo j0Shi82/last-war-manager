@@ -55,7 +55,7 @@ const addOns = {
         data: { lwm_ignoreProcess: 1 },
         timeout: config.promises.interval.ajaxTimeout,
         success: (data) => {
-          if (data === '500') return;
+          if (data === '500' || typeof data.resource === 'undefined') return;
           siteWindow.Roheisen = parseInt(data.resource.Roheisen, 10);
           siteWindow.Kristall = parseInt(data.resource.Kristall, 10);
           siteWindow.Frubin = parseInt(data.resource.Frubin, 10);
@@ -479,7 +479,7 @@ const addOns = {
 
       const dataResearchBefore = JSON.stringify(addOns.calendar.getData('research', config.gameData.playerID));
       addOns.calendar.deleteCat('research', config.gameData.playerID);
-      if (data.research_info.ResearchName !== '') {
+      if (typeof data.research_info !== 'undefined' && data.research_info.ResearchName !== '') {
         addOns.calendar.store({
           playerID: config.gameData.playerID,
           playerName: config.gameData.playerName,
