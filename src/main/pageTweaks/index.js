@@ -1035,45 +1035,6 @@ const pageTweaks = {
       // move observation and search div
       lwmJQ('.headerOfGalaxyViewPage').insertBefore(lwmJQ('#tableForChangingPlanet'));
 
-      // replace galaxy switch with a dropdown
-      lwmJQ('.inputSearchGalaxyValDiv').find('span').hide();
-      const currentGalaxy = lwmJQ('#galaxy_view_search').text();
-      if (!lwmJQ('#lwm_galaxyDropdown').length) {
-        const $galaxyDropdown = lwmJQ('<select id="lwm_galaxyDropdown"></select>');
-        for (let i = 0; i < 7; i += 1) {
-          $galaxyDropdown.append(`<option val="${i + 1}">${i + 1}</option>`);
-        }
-        $galaxyDropdown.change((e) => {
-          const galaxy = lwmJQ(e.target).val();
-          lwmJQ('#galaxy_view_search').html(galaxy);
-          siteWindow.insertOptionTag();
-          const system = lwmJQ('#system_view').val() || '';
-          const uriData = `galaxy_search=${galaxy}&system_search=${system}&galaxy=${config.gameData.planetCoords.galaxy}&system=${config.gameData.planetCoords.system}&planet=${config.gameData.planetCoords.planet}`;
-          siteWindow.jQuery.ajax({
-            url: `/ajax_request/get_galaxy_view_info.php?${uriData}`,
-            timeout: config.promises.interval.ajaxTimeout,
-            error() { throwError(); },
-            success(data) {
-              if (data === '-1') {
-                siteWindow.location.reload();
-              } else if (data === '500') {
-                siteWindow.location.reload();
-              } else if (!data) {
-                siteWindow.logoutRequest();
-              } else {
-                const planetInfo = data.info_for_planets;
-                const { allSystems } = data;
-
-                siteWindow.loadGalaxyViewPage(planetInfo, allSystems, null, galaxy, system);
-              }
-            },
-            dataType: 'json',
-          });
-        });
-        lwmJQ('.inputSearchGalaxyValDiv').find('#galaxy_view_search').after($galaxyDropdown);
-      }
-      lwmJQ('#lwm_galaxyDropdown').val(currentGalaxy);
-
       // add search icons
       replaceElementsHtmlWithIcon(lwmJQ('.formButtonGalaxyView'), 'fas fa-search');
 
