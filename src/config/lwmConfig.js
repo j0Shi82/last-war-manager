@@ -38,6 +38,7 @@ const config = {
     gameData: false,
     content: false,
     submenu: false,
+    fleetaddon: false,
     lastLoadedPage: null,
   },
   unsafeWindow: {
@@ -90,6 +91,9 @@ const config = {
     calendar: [],
     planetData: {},
     fleetDivState: true,
+    fleetFilterCoordState: '',
+    fleetFilterTypeState: '',
+    fleetFilterStatusState: '',
 
     set: (data) => {
       if (typeof data.lastTradeCoords !== 'undefined') config.lwm.lastTradeCoords = data.lastTradeCoords;
@@ -102,6 +106,9 @@ const config = {
       if (typeof data.calendar !== 'undefined') config.lwm.calendar = data.calendar;
       if (typeof data.planetData !== 'undefined') config.lwm.planetData = data.planetData;
       if (typeof data.fleetDivState !== 'undefined') config.lwm.fleetDivState = data.fleetDivState;
+      if (typeof data.fleetFilterCoordState !== 'undefined') config.lwm.fleetFilterCoordState = data.fleetFilterCoordState;
+      if (typeof data.fleetFilterTypeState !== 'undefined') config.lwm.fleetFilterTypeState = data.fleetFilterTypeState;
+      if (typeof data.fleetFilterStatusState !== 'undefined') config.lwm.fleetFilterStatusState = data.fleetFilterStatusState;
       if (typeof data.menu !== 'undefined') {
         Object.keys(data.menu).forEach((key) => {
           if (typeof gmConfig.fields[key] !== 'undefined') gmConfig.set(key, data.menu[key]);
@@ -120,6 +127,9 @@ const config = {
       gmSetValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
       gmSetValue('lwm_planetData', JSON.stringify(config.lwm.planetData));
       gmSetValue('lwm_fleetDivState', JSON.stringify(config.lwm.fleetDivState));
+      gmSetValue('lwm_fleetFilterCoordState', JSON.stringify(config.lwm.fleetFilterCoordState));
+      gmSetValue('lwm_fleetFilterTypeState', JSON.stringify(config.lwm.fleetFilterTypeState));
+      gmSetValue('lwm_fleetFilterStatusState', JSON.stringify(config.lwm.fleetFilterStatusState));
 
       // wait for gameData, then process
       getLoadStatePromise('gameData').then(() => { config.setGMValues(); }, () => { Sentry.captureMessage('gameData promise rejected'); throwError(); });
@@ -340,7 +350,6 @@ const config = {
           config.gameData.fleetInfo[type] = lwmJQ.grep(config.gameData.fleetInfo[type], (fleet) => fleet.Status === '3' || moment(fleet.ComeTime || fleet.DefendingTime || fleet.time).valueOf() > moment().valueOf());
         });
         gmSetValue('fleetInfo', JSON.stringify(config.gameData.fleetInfo));
-        addOns.showFleetActivityGlobally(siteWindow.active_page);
 
         // add fleet warning to uebersicht
         if (siteWindow.active_page === 'ubersicht') {

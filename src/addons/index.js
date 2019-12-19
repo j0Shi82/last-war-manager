@@ -37,8 +37,6 @@ const addOns = {
     if (gmConfig.get('addon_clock')) addOns.addClockInterval();
   },
   unload() {
-    if (addOns.config.fleetRefreshInterval !== null) { clearInterval(addOns.config.fleetRefreshInterval); addOns.config.fleetRefreshInterval = null; }
-    if (addOns.config.tradeRefreshInterval !== null) { clearInterval(addOns.config.tradeRefreshInterval); addOns.config.tradeRefreshInterval = null; }
     if (addOns.config.capacityRefreshInterval !== null) {
       clearInterval(addOns.config.capacityRefreshInterval);
       addOns.config.capacityRefreshInterval = null;
@@ -315,6 +313,7 @@ const addOns = {
     deleteCat(cat, playerID, coords = null) {
       config.lwm.calendar = config.lwm.calendar.filter((e) => !(e.type === cat
         && e.playerID === playerID && (e.coords === coords || coords === null)));
+      console.log('deleteCat', cat, playerID, coords, config.lwm.calendar);
     },
     getData(cat = null, playerID = null, coords = null) {
       return config.lwm.calendar.filter((entry) => ((entry.type === cat || cat === null)

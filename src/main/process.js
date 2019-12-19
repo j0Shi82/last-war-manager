@@ -40,6 +40,7 @@ const finalizePageLoad = () => {
 export default (page, xhr, preserveSubmenu) => {
   // set the loadState to true to init content processing
   config.loadStates.content = true;
+  config.loadStates.fleetaddon = true;
   config.loadStates.lastLoadedPage = page;
 
   // reject current promises to cancel pending loads
