@@ -37,6 +37,18 @@ export default () => {
     lwmJQ('#newTradeOfferDiv td:eq(0)').prepend('<div><h3><u>Angebot</u></h3></div>');
     lwmJQ('#newTradeOfferDiv td:eq(1)').prepend('<div><h3><u>Forderung</u></h3></div>');
 
+    siteWindow.document.querySelectorAll('#newTradeOfferDiv td input').forEach((el) => {
+      const div = createElementFromHTML('<div class="lwm-res-offer-wrap"></div>');
+      const { parentNode } = el;
+      div.appendChild(el);
+      const icon = createElementFromHTML('<i style="font-size: 1.5em;" class="fas fa-times-circle"></i>');
+      icon.addEventListener('click', (e) => {
+        e.target.previousSibling.value = '0';
+      });
+      div.appendChild(icon);
+      parentNode.appendChild(div);
+    });
+
     // save coords in lastused config
     const savedCoords = config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string];
     docQuery('[onclick*=\'submitNewOfferTrade\']').addEventListener('click', () => {
@@ -86,7 +98,7 @@ export default () => {
     // add own chords to select
     const select = docQuery('#lwm-own-coords');
     select.appendChild(createElementFromHTML('<option value=\'\'>Planet wählen</option>'));
-    select.addEventListener('change', () => {
+    select.addEventListener('change', (e) => {
       if (select.value === '') {
         docQuery('#galaxyTrade').value = '';
         docQuery('#systemTrade').value = '';
@@ -95,6 +107,13 @@ export default () => {
         docQuery('#galaxyTrade').value = config.gameData.planets[select.value].galaxy;
         docQuery('#systemTrade').value = config.gameData.planets[select.value].system;
         docQuery('#planetTrade').value = config.gameData.planets[select.value].planet;
+        if (select.selectedOptions[0].text.search('SAVE') !== -1) {
+          buttonSecureAll.click();
+        } else {
+          siteWindow.document.querySelectorAll('.lwm-res-offer-wrap i').forEach((el) => {
+            el.click();
+          });
+        }
       }
     });
     config.gameData.planets.forEach((coords, i) => {
@@ -102,7 +121,9 @@ export default () => {
             && pi(coords.system) === siteWindow.my_system
             && pi(coords.planet) === siteWindow.my_planet) return true;
       const option = createElementFromHTML(`<option value='${i}'>${coords.galaxy}x${coords.system}x${coords.planet}</option>`);
+      const option2 = createElementFromHTML(`<option value='${i}'>${coords.galaxy}x${coords.system}x${coords.planet} (SAVE)</option>`);
       select.appendChild(option);
+      select.appendChild(option2);
 
       return true;
     });

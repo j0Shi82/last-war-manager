@@ -1202,29 +1202,49 @@ td.constructionName,
   margin-left: 5px;
 }
 
-#newTradeOfferDiv td input {
-  background-repeat: no-repeat;
-  background-size: contain;
-  width: 90%;
-  margin: 5px 5% 5px 5% !important;
+#newTradeOfferDiv td {
+  input {
+    background-repeat: no-repeat;
+    background-size: contain;
+    width: 90%;
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+    // margin: 5px 5% 5px 5% !important;
 
-  &#my_eisen,
-  &#his_eisen { background-image: url(https://last-war.de/images/main_screen/footer/R1.png); }
+    &#my_eisen,
+    &#his_eisen { background-image: url(https://last-war.de/images/main_screen/footer/R1.png); }
 
-  &#my_kristall,
-  &#his_kristall { background-image: url(https://last-war.de/images/main_screen/footer/R2.png); }
+    &#my_kristall,
+    &#his_kristall { background-image: url(https://last-war.de/images/main_screen/footer/R2.png); }
 
-  &#my_frubin,
-  &#his_frubin { background-image: url(https://last-war.de/images/main_screen/footer/R3.png); }
+    &#my_frubin,
+    &#his_frubin { background-image: url(https://last-war.de/images/main_screen/footer/R3.png); }
 
-  &#my_orizin,
-  &#his_orizin { background-image: url(https://last-war.de/images/main_screen/footer/R4.png); }
+    &#my_orizin,
+    &#his_orizin { background-image: url(https://last-war.de/images/main_screen/footer/R4.png); }
 
-  &#my_frurozin,
-  &#his_frurozin { background-image: url(https://last-war.de/images/main_screen/footer/R5.png); }
+    &#my_frurozin,
+    &#his_frurozin { background-image: url(https://last-war.de/images/main_screen/footer/R5.png); }
 
-  &#my_gold,
-  &#his_gold { background-image: url(https://last-war.de/images/main_screen/footer/R6.png); }
+    &#my_gold,
+    &#his_gold { background-image: url(https://last-war.de/images/main_screen/footer/R6.png); }
+  }
+
+  .lwm-res-offer-wrap {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+
+    &:first-child {
+      margin-top: 10px;
+    }
+
+    i {
+      cursor: pointer;
+    }
+  }
 }
 
 #tradeOfferComment {
