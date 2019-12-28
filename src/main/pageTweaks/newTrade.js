@@ -98,7 +98,7 @@ export default () => {
     // add own chords to select
     const select = docQuery('#lwm-own-coords');
     select.appendChild(createElementFromHTML('<option value=\'\'>Planet wählen</option>'));
-    select.addEventListener('change', (e) => {
+    select.addEventListener('change', () => {
       if (select.value === '') {
         docQuery('#galaxyTrade').value = '';
         docQuery('#systemTrade').value = '';

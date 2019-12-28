@@ -310,7 +310,7 @@ export default async (page) => {
         break;
       default: break;
     }
-    fleetRowElements.push(createElementFromHTML(`<tr data-type="${fleetData.Type || ''}" data-status="${fleetData.Status || ''}" data-coords="${fleetData.homePlanet}"><td>${fleetInfoString}${speedString}</td><td>${fleetTimeString}</td><td id='${fleetClock}'>${getFleetTimerString(fleetTimeString)}</td></tr>`));
+    fleetRowElements.push(createElementFromHTML(`<tr class="lwm-hideable lwm-fleet" data-type="${fleetData.Type || ''}" data-status="${fleetData.Status || ''}" data-coords="${fleetData.homePlanet}"><td>${fleetInfoString}${speedString}</td><td>${fleetTimeString}</td><td id='${fleetClock}'>${getFleetTimerString(fleetTimeString)}</td></tr>`));
   });
 
   // sort table by time

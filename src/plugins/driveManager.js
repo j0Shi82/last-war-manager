@@ -15,7 +15,6 @@ const driveManager = () => {
   const API_KEY = 'AIzaSyA7VHXY213eg3suaarrMmrbOlX8T9hVwrc';
   const DISCOVERY_DOCS = ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'];
   const SCOPES = 'https://www.googleapis.com/auth/drive.appfolder https://www.googleapis.com/auth/drive.file';
-  let saveFileID = null;
 
   const signIn = () => {
     gapi.auth2.getAuthInstance().signIn();
@@ -39,16 +38,15 @@ const driveManager = () => {
     getLoadStatePromise('gameData').then(() => { config.setGMValues(); }, () => { Sentry.captureMessage('gameData promise rejected'); throwError(); });
   };
 
-  const getConfig = () => {
+  const getConfig = (saveFileID) => {
     // console.log('gapi.client.drive.files.get');
     gapi.client.drive.files.get({
       fileId: saveFileID,
       alt: 'media',
     }).then((response) => {
-      // console.log(response);
+      console.log(response);
       if (response.status === 200) {
         config.lwm.gDriveFileID = saveFileID;
-        gmSetValue('lwm_gDriveFileID', config.lwm.gDriveFileID);
         config.lwm.set(response.result);
         // config.loadStates.gdrive = false; <-- loadState is updated in config.lwm.set()
       } else {
@@ -106,7 +104,7 @@ const driveManager = () => {
       coords_trades: gmConfig.get('coords_trades'),
     };
 
-    // console.log('gapi.client.request',saveObj);
+    console.log('gapi.client.request', saveObj);
     gapi.client.request({
       path: `/upload/drive/v3/files/${config.lwm.gDriveFileID}`,
       method: 'PATCH',
@@ -139,10 +137,9 @@ const driveManager = () => {
       resource: fileMetadata,
       fields: 'id,name',
     }).then((response) => {
-      // console.log(response);
+      console.log(response);
       if (response.status === 200) {
         config.lwm.gDriveFileID = response.result.id;
-        gmSetValue('lwm_gDriveFileID', config.lwm.gDriveFileID);
         config.loadStates.gdrive = false;
         saveConfig();
       } else {
@@ -159,35 +156,26 @@ const driveManager = () => {
   const updateSigninStatus = (status) => {
     if (status && gmConfig.get('confirm_drive_sync')) {
       // console.log('gapi.client.drive.files.list');
-      // if config file was already loaded, return and resolve gdrive load
-      gmGetValue('lwm_gDriveFileID', null).then((ID) => {
-        config.lwm.gDriveFileID = ID;
-        if (config.lwm.gDriveFileID !== null) {
-          getLoadStatePromise('gameData').then(() => { config.setGMValues(); }, () => { Sentry.captureMessage('gameData promise rejected'); throwError(); });
+      gapi.client.drive.files.list({
+        q: 'name="lwm_config.json"',
+        spaces: 'appDataFolder',
+        fields: 'files(id)',
+      }).then((response) => {
+        // console.log(response);
+        if (response.status === 200) {
+          if (response.result.files.length === 0) {
+            createConfig();
+          } else {
+            getConfig(response.result.files[0].id);
+          }
         } else {
-          gapi.client.drive.files.list({
-            q: 'name="lwm_config.json"',
-            spaces: 'appDataFolder',
-            fields: 'files(id)',
-          }).then((response) => {
-            // console.log(response);
-            if (response.status === 200) {
-              if (response.result.files.length === 0) {
-                createConfig();
-              } else {
-                saveFileID = response.result.files[0].id;
-                getConfig();
-              }
-            } else {
-              console.error(`files.create: ${response}`);
-              handleError();
-            }
-          }, (error) => {
-            Sentry.captureException(error);
-            console.error(JSON.stringify(error, null, 2));
-            handleError();
-          });
+          console.error(`files.create: ${response}`);
+          handleError();
         }
+      }, (error) => {
+        Sentry.captureException(error);
+        console.error(JSON.stringify(error, null, 2));
+        handleError();
       });
     } else {
       handleError();
@@ -195,9 +183,9 @@ const driveManager = () => {
   };
 
   /**
-             *  Initializes the API client library and sets up sign-in state
-             *  listeners.
-             */
+   *  Initializes the API client library and sets up sign-in state
+   *  listeners.
+   */
   const initClient = () => {
     // console.log('gapi.client.init');
     gapi.client.init({
@@ -216,8 +204,8 @@ const driveManager = () => {
   };
 
   /**
-             *  On load, called to load the auth2 library and API client library.
-             */
+   *  On load, called to load the auth2 library and API client library.
+   */
   const handleClientLoad = (g) => {
     gapi = g;
     gapi.load('client:auth2', {
