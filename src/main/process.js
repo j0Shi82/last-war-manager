@@ -93,6 +93,7 @@ export default (page, xhr, preserveSubmenu) => {
 
   // replace arrows is a function that we want to do on so many pages that it's enough to just call it globally
   pageTweaks.replaceArrows();
+  pageTweaks.replaceHrefAnchors();
 
   /* addons */
   /* config.isPageLoad is currently set to false here because it's the last thing that runs */

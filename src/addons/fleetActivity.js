@@ -251,14 +251,14 @@ export default async (page) => {
     const oppCoords = `<b>${fleetData.Galaxy_send}x${fleetData.System_send}x${fleetData.Planet_send}</b>`;
     const oppNick = fleetData.Nickname_send;
     const ownCoords = `<b>${fleetData.homePlanet}</b>`;
-    const lkomSendLink = `<i class="fas fa-wifi faa-flash animated" onclick="changeContent('flotten_view', 'third', 'Flotten-Kommando', '${fleetData.id}')" style="cursor:hand;margin-right:5px;color:#66f398"></i>`;
-    const lkomBackLink = `<i class="fas fa-info-circle" onclick="changeContent('flotten_view', 'third', 'Flotten-Kommando', '${fleetData.id}')" style="cursor:hand;margin-right:5px;color:#3c3ff5"></i>`;
+    const lkomSendLink = `<i class="fas fa-wifi faa-flash animated" onclick="changeContent('flotten_view', 'third', 'Flotten-Kommando', '${fleetData.id}')" style="cursor:pointer;margin-right:5px;color:#66f398"></i>`;
+    const lkomBackLink = `<i class="fas fa-info-circle" onclick="changeContent('flotten_view', 'third', 'Flotten-Kommando', '${fleetData.id}')" style="cursor:pointer;margin-right:5px;color:#3c3ff5"></i>`;
     const speedString = ` <span class='lwm_fleet_duration' style='font-style:italic;'>Flugdauer: ${convertSecondsToHHMMSS(fleetData.total_secounds)}.</span>`;
 
     const existingObs = getActiveObs([fleetData.Galaxy_send, fleetData.System_send, fleetData.Planet_send]);
     const spydrones = config.gameData.spionageInfos.planetenscanner_drons.filter((el) => el.engine_type === 'IOB' && parseInt(el.number, 10) > 0);
     // eslint-disable-next-line no-nested-ternary
-    const obsLink = existingObs.length ? `<i onclick="${gmConfig.get('obs_opentabs') ? `window.open('view/content/new_window/observationen_view.php?id=${existingObs[0].id}')` : `openObservationWindow(${existingObs[0].id})`}" style="cursor:hand;" class="fas fa-search-plus fa2x"></i>` : (spydrones.length ? '<i style="cursor:hand;" class="fas fa-search fa2x"></i>' : '');
+    const obsLink = existingObs.length ? `<i onclick="${gmConfig.get('obs_opentabs') ? `window.open('view/content/new_window/observationen_view.php?id=${existingObs[0].id}')` : `openObservationWindow(${existingObs[0].id})`}" style="cursor:pointer;" class="fas fa-search-plus fa2x"></i>` : (spydrones.length ? `<i data-coords="${fleetData.Galaxy_send}x${fleetData.System_send}x${fleetData.Planet_send}" style="cursor:pointer;" class="fas fa-search fa2x"></i>` : '');
 
     const fleetDataStatus = parseInt(fleetData.Status, 10);
 
@@ -328,8 +328,8 @@ export default async (page) => {
   });
 
   // add spionage action
-  docQuery('#lwm_folottenbewegungenPageDiv table tbody tr').querySelectorAll('.fa-search').forEach((el) => {
-    el.addEventListener('click', (e) => { performSpionage(e.target.closest('tr').getAttribute('data-coords').split('x')); });
+  siteWindow.document.querySelectorAll('#lwm_folottenbewegungenPageDiv table tbody tr .fa-search').forEach((el) => {
+    el.addEventListener('click', (e) => { performSpionage(e.target.getAttribute('data-coords').split('x')); });
   });
   // populate selects
   filterSelectOptions.coords.forEach((el) => { docQuery('#lwm_folottenbewegungenPageDiv #lwm_fleetFilter_coords').appendChild(el); });

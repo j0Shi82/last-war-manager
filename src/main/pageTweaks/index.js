@@ -38,6 +38,19 @@ const pageTweaks = {
       config.loadStates.content = false;
     });
   },
+  replaceHrefAnchors: () => {
+    getLoadStatePromise('content').then(() => {
+      siteWindow.document.querySelectorAll('[href=\'#\']').forEach((el) => {
+        el.addEventListener('click', (e) => {
+          e.preventDefault();
+        });
+      });
+    }).catch((e) => {
+      Sentry.captureException(e);
+      // console.log(e);
+      throwError();
+    });
+  },
   replaceArrows: () => {
     getLoadStatePromise('content').then(() => {
       lwmJQ('.arrow-left,.arrow-left-recycle,.spionage-arrow-left,.raumdock-arrow-left').removeClass('arrow-left arrow-left-recycle spionage-arrow-left raumdock-arrow-left').addClass('fa-2x fas fa-angle-left');

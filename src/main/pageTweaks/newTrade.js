@@ -67,9 +67,9 @@ export default () => {
     });
 
     // add button to save all res
-    const buttonSaveAll = createElementFromHTML('<a class="formButtonNewMessage" style="float: none;" href="#">All Resourcen sichern</a>');
+    const buttonAll = createElementFromHTML('<a class="formButtonNewMessage" style="float: none;" href="#">Alle Resourcen</a>');
     if (isPremium()) {
-      buttonSaveAll.addEventListener('click', () => {
+      buttonAll.addEventListener('click', () => {
         docQuery('#my_eisen').value = Math.round((siteWindow.Roheisen - ((siteWindow.Roheisen * siteWindow.lose) / 100)));
         docQuery('#my_kristall').value = Math.round((siteWindow.Kristall - ((siteWindow.Kristall * siteWindow.lose) / 100)));
         docQuery('#my_frubin').value = Math.round((siteWindow.Frubin - ((siteWindow.Frubin * siteWindow.lose) / 100)));
@@ -80,17 +80,28 @@ export default () => {
         docQuery('#his_gold').value = '0';
         docQuery('#tradeOfferComment').value = '';
       });
-      lastTR.querySelector('td:nth-child(2) .buttonRow').appendChild(buttonSaveAll);
+      lastTR.querySelector('td:nth-child(2) .buttonRow').appendChild(buttonAll);
     }
 
     // add button to secure all res
     const buttonSecureAll = createElementFromHTML('<a class="formButtonNewMessage" style="float: none;" href="#">Savehandel</a>');
     if (isPremium()) {
       buttonSecureAll.addEventListener('click', () => {
-        buttonSaveAll.click();
+        buttonAll.click();
         docQuery('#his_gold').value = '99999999';
         docQuery('#his_eisen').value = '0';
         docQuery('#tradeOfferComment').value = '###LWM::SAVE###';
+
+        const selectedCoords = `${docQuery('#galaxyTrade').value}x${docQuery('#systemTrade').value}x${docQuery('#planetTrade').value}`;
+        const currentPlanetCoords = `${siteWindow.my_galaxy}x${siteWindow.my_system}x${siteWindow.my_planet}`;
+        if (docQuery('#lwm-own-coords').options.length > 1
+            && (
+              config.gameData.planets.filter((el) => el.string === selectedCoords).length === 0
+              || selectedCoords === currentPlanetCoords
+            )) {
+          docQuery('#lwm-own-coords').selectedIndex = 1;
+          docQuery('#lwm-own-coords').dispatchEvent(new siteWindow.Event('change'));
+        }
       });
       lastTR.querySelector('td:nth-child(2) .buttonRow').appendChild(buttonSecureAll);
     }
@@ -107,13 +118,6 @@ export default () => {
         docQuery('#galaxyTrade').value = config.gameData.planets[select.value].galaxy;
         docQuery('#systemTrade').value = config.gameData.planets[select.value].system;
         docQuery('#planetTrade').value = config.gameData.planets[select.value].planet;
-        if (select.selectedOptions[0].text.search('SAVE') !== -1) {
-          buttonSecureAll.click();
-        } else {
-          siteWindow.document.querySelectorAll('.lwm-res-offer-wrap i').forEach((el) => {
-            el.click();
-          });
-        }
       }
     });
     config.gameData.planets.forEach((coords, i) => {
@@ -121,11 +125,23 @@ export default () => {
             && pi(coords.system) === siteWindow.my_system
             && pi(coords.planet) === siteWindow.my_planet) return true;
       const option = createElementFromHTML(`<option value='${i}'>${coords.galaxy}x${coords.system}x${coords.planet}</option>`);
-      const option2 = createElementFromHTML(`<option value='${i}'>${coords.galaxy}x${coords.system}x${coords.planet} (SAVE)</option>`);
       select.appendChild(option);
-      select.appendChild(option2);
 
       return true;
+    });
+
+    // sync text boxes to select
+    siteWindow.document.querySelectorAll('#galaxyTrade,#systemTrade,#planetTrade').forEach((el) => {
+      el.addEventListener('change', () => {
+        const selectedCoords = `${docQuery('#galaxyTrade').value}x${docQuery('#systemTrade').value}x${docQuery('#planetTrade').value}`;
+        const currentPlanetCoords = `${siteWindow.my_galaxy}x${siteWindow.my_system}x${siteWindow.my_planet}`;
+        if (config.gameData.planets.filter((planet) => planet.string === selectedCoords).length === 0
+            || selectedCoords === currentPlanetCoords) {
+          docQuery('#lwm-own-coords').selectedIndex = 0;
+        } else {
+          docQuery('#lwm-own-coords').selectedIndex = config.gameData.planets.map((planet) => planet.string).indexOf(selectedCoords);
+        }
+      });
     });
 
     // add div with saved coords
