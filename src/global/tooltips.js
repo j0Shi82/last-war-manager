@@ -11,25 +11,26 @@ const { document } = siteWindow;
 
 const addResourceTooltips = (el) => {
   // add time that's needed to reach capacity
-  const resTotal = siteWindow.getResourcePerHour();
   const resTypes = ['Roheisen', 'Kristall', 'Frubin', 'Orizin', 'Frurozin', 'Gold'];
   const resValue = [siteWindow.Roheisen, siteWindow.Kristall, siteWindow.Frubin, siteWindow.Orizin, siteWindow.Frurozin, siteWindow.Gold];
   const incomingRes = getIncomingResArray();
 
   const typeIndex = resTypes.indexOf(el.querySelector('.resourceName').innerText);
-  const capacityFormatted = siteWindow.jQuery.number(siteWindow.resourceCapacityArray[typeIndex], 0, ',', '.');
-  const hoursTillFull = (siteWindow.resourceCapacityArray[typeIndex] - resValue[typeIndex] - incomingRes[typeIndex])
-                        / (resTotal[0][resTypes[typeIndex].toLowerCase()]);
-  const elHourstillFull = createElementFromHTML(`<div class='lwm-resourceClock ${hoursTillFull < 8 ? 'redBackground' : ''}' id='clock_lwm_${resTypes[typeIndex]}'>${moment.duration(hoursTillFull, 'hours').format('HH:mm:ss', { trim: false, forceLength: true })}</div>`);
+  const capacityReached = resValue[typeIndex] + incomingRes[typeIndex] > siteWindow.resourceCapacityArray[typeIndex];
+  const resourceFormatted = siteWindow.jQuery.number(resValue[typeIndex] + incomingRes[typeIndex], 0, ',', '.');
+  const elResourceAmount = `<div class="${(capacityReached ? 'redBackground ' : '')}resourceAmount lwm-resourceAmount">${resourceFormatted}</div>`;
 
-  const elCapacity = `<div class="resourceAmount lwm-resourceCapacity">${capacityFormatted}</div>`;
-  const elPerc = `<div class="resourceAmount lwm-resourceAmount">(${((parseInt(siteWindow[el.querySelector('.resourceName').innerText], 10) / parseInt(siteWindow[`${el.querySelector('.resourceName').innerText}LagerCapacity`], 10)) * 100).toFixed(2)}%)</div>`;
+  const capacityFormatted = siteWindow.jQuery.number(siteWindow.resourceCapacityArray[typeIndex], 0, ',', '.');
+  const elCapacity = `<div class="resourceAmount lwm-resourceCapacity">(${capacityFormatted})</div>`;
+
+  const perc = (resValue[typeIndex] + incomingRes[typeIndex]) / siteWindow.resourceCapacityArray[typeIndex];
+  const elPerc = `<div class="${(capacityReached ? 'redBackground ' : '')}resourceName lwm-resourcePerc">${(perc * 100).toFixed(2)}%</div>`;
   siteWindow.jQuery(el).contents().css({
     display: 'none',
   });
+  siteWindow.jQuery(el).append(elResourceAmount);
   siteWindow.jQuery(el).append(elCapacity);
-  siteWindow.jQuery(el).append(elPerc);
-  siteWindow.jQuery(el).append(elHourstillFull); setDataForClocks();
+  siteWindow.jQuery(el).append(elPerc); setDataForClocks();
   siteWindow.jQuery(el).css({
     display: 'flex',
     justifyContent: 'center',
@@ -39,9 +40,9 @@ const addResourceTooltips = (el) => {
 };
 
 const removeResourceTooltips = (el) => {
-  siteWindow.jQuery(el).find('.lwm-resourceCapacity').remove();
   siteWindow.jQuery(el).find('.lwm-resourceAmount').remove();
-  siteWindow.jQuery(el).find('.lwm-resourceClock').remove();
+  siteWindow.jQuery(el).find('.lwm-resourceCapacity').remove();
+  siteWindow.jQuery(el).find('.lwm-resourcePerc').remove();
   siteWindow.jQuery(el).contents().css({
     display: '',
   });
@@ -60,16 +61,20 @@ const isTouchDevice = () => ('ontouchstart' in siteWindow)
 export default () => {
   /* tooltip manipulation */
   /* resource tooltips */
-  siteWindow.jQuery('.resourceBox').each((i, el) => {
-    siteWindow.jQuery(el).on('mouseenter', () => {
+  siteWindow.jQuery('#Footer').on('mouseenter', () => {
+    siteWindow.jQuery('.resourceBox').each((i, el) => {
       if (!isTouchDevice()) addResourceTooltips(el);
     });
+  });
 
-    siteWindow.jQuery(el).on('mouseleave blur', () => {
+  siteWindow.jQuery('#Footer').on('mouseleave blur', () => {
+    siteWindow.jQuery('.resourceBox').each((i, el) => {
       removeResourceTooltips(el);
     });
+  });
 
-    siteWindow.jQuery(el).on('click', () => {
+  siteWindow.jQuery('#Footer').on('click', () => {
+    siteWindow.jQuery('.resourceBox').each((i, el) => {
       if (siteWindow.jQuery(el).find('.lwm-resourceCapacity').length) {
         if (isTouchDevice()) removeResourceTooltips(el);
       } else if (isTouchDevice()) addResourceTooltips(el);

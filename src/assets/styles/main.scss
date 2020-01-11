@@ -397,13 +397,19 @@ i.icon-galaxy {
 
   .lwm-resourceCapacity {
     position: static;
-    font-size: 1.25em;
+    font-size: 1em;
   }
 
   .lwm-resourceAmount,
   .lwm-resourceClock {
     position: static;
-    font-size: 1em;
+    font-size: 1.25em;
+  }
+
+  .lwm-resourcePerc {
+    position: static;
+    top: 0;
+    left: 0;
   }
 }
 
