@@ -1,3 +1,5 @@
+/* eslint-disable no-alert */
+/* eslint-disable no-restricted-globals */
 import { gmConfig, siteWindow, gmSetValue } from 'config/globals';
 import config from 'config/lwmConfig';
 import driveManager from 'plugins/driveManager';
@@ -271,6 +273,20 @@ export default () => {
               labelPos: 'right',
               type: 'checkbox',
               default: false,
+            },
+          reset_settings:
+            {
+              section: [gmConfig.create('Reset'), 'WARNING: This will delete all LWM data saved in the browser and Google Drive.'],
+              label: 'Reset',
+              type: 'button',
+              click() { // Function to call when button is clicked
+                // eslint-disable-next-line no-undef
+                const r = confirm('WARNING: This will delete all LWM data saved in the browser and Google Drive (if connected).');
+                if (r === true) {
+                  config.lwm.reset();
+                  if (config.lwm.gDriveFileID !== null) driveManager.save();
+                }
+              },
             },
         },
       events:

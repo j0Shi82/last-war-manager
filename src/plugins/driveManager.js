@@ -44,7 +44,7 @@ const driveManager = () => {
       fileId: saveFileID,
       alt: 'media',
     }).then((response) => {
-      console.log(response);
+      // console.log(response);
       if (response.status === 200) {
         config.lwm.gDriveFileID = saveFileID;
         config.lwm.set(response.result);
@@ -60,11 +60,11 @@ const driveManager = () => {
     });
   };
 
-  const saveConfig = () => {
+  const saveConfig = (driveID = config.lwm.gDriveFileID) => {
     // check whether config is ready
     if (config.loadStates.gdrive) {
       // console.log('gapi.client.request failed due to config.loadStates.gdrive');
-      return;
+      return Promise.resolve();
     }
     // save
     const saveObj = JSON.parse(JSON.stringify(config.lwm));
@@ -104,9 +104,9 @@ const driveManager = () => {
       coords_trades: gmConfig.get('coords_trades'),
     };
 
-    console.log('gapi.client.request', saveObj);
+    // console.log('gapi.client.request', saveObj);
     gapi.client.request({
-      path: `/upload/drive/v3/files/${config.lwm.gDriveFileID}`,
+      path: `/upload/drive/v3/files/${driveID}`,
       method: 'PATCH',
       params: {
         uploadType: 'media',
@@ -137,7 +137,7 @@ const driveManager = () => {
       resource: fileMetadata,
       fields: 'id,name',
     }).then((response) => {
-      console.log(response);
+      // console.log(response);
       if (response.status === 200) {
         config.lwm.gDriveFileID = response.result.id;
         config.loadStates.gdrive = false;

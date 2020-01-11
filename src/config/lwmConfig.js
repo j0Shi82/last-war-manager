@@ -5,7 +5,6 @@ import { getLoadStatePromise } from 'utils/loadPromises';
 import { Sentry } from 'plugins/sentry';
 import { throwError } from 'utils/helper';
 import { getSpionageInfo, getObsInfo } from 'utils/requests';
-import addOns from 'addons/index';
 import moment from 'moment';
 import driveManager from 'plugins/driveManager';
 
@@ -94,6 +93,29 @@ const config = {
     fleetFilterCoordState: '',
     fleetFilterTypeState: '',
     fleetFilterStatusState: '',
+
+    reset: () => {
+      const driveActive = gmConfig.get('confirm_drive_sync');
+
+      config.lwm.lastTradeCoords = {};
+      config.lwm.lastFleetCoords = {};
+      config.lwm.productionFilters = {};
+      config.lwm.hiddenShips = {};
+      config.lwm.resProd = {};
+      // config.lwm.gDriveFileID = null;
+      config.lwm.raidPrios = [];
+      config.lwm.planetInfo = {};
+      config.lwm.calendar = [];
+      config.lwm.planetData = {};
+      config.lwm.fleetDivState = true;
+      config.lwm.fleetFilterCoordState = '';
+      config.lwm.fleetFilterTypeState = '';
+      config.lwm.fleetFilterStatusState = '';
+
+      gmConfig.reset();
+      if (driveActive) gmConfig.set('confirm_drive_sync', true); // prevent logging out of drive
+      gmConfig.save(); // then save to reset values in drive
+    },
 
     set: (data) => {
       if (typeof data.lastTradeCoords !== 'undefined') config.lwm.lastTradeCoords = data.lastTradeCoords;
