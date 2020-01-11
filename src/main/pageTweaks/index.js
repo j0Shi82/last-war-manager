@@ -344,6 +344,10 @@ const pageTweaks = {
             // remove deny button from save trades of other planets
             if (offer.comment === '###LWM::SAVE###' && !isMyPlanet && !offer.my) $tradeDiv.find('tr').last().remove();
             if (offer.comment === '###LWM::SAVE###' && isMyPlanet) $tradeDiv.find('.buttonRow').first().remove();
+
+            // remove trades from save trades of other planets
+            if (offer.comment === '###LWM::SAVE###' && !isMyPlanet && !offer.my) $tradeDiv.hide();
+            if (offer.comment === '###LWM::SAVE###' && isMyPlanet) $tradeDiv.hide();
           });
 
           // attach events to delete trades
