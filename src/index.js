@@ -118,6 +118,7 @@ const installMain = () => {
           case 'get_spionage_info': config.gameData.spionageInfos = xhr.responseJSON; break;
           case 'get_trade_offers':
             config.gameData.tradeInfo = xhr.responseJSON;
+            config.getGameData.setTradeData();
             addOns.checkCapacities();
             addOns.calendar.storeTrades(xhr.responseJSON);
             break;

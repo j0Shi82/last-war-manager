@@ -89,6 +89,7 @@ const config = {
     planetInfo: {},
     calendar: [],
     planetData: {},
+    tradeData: {},
     fleetDivState: true,
     fleetFilterCoordState: '',
     fleetFilterTypeState: '',
@@ -107,6 +108,7 @@ const config = {
       config.lwm.planetInfo = {};
       config.lwm.calendar = [];
       config.lwm.planetData = {};
+      config.lwm.tradeData = {};
       config.lwm.fleetDivState = true;
       config.lwm.fleetFilterCoordState = '';
       config.lwm.fleetFilterTypeState = '';
@@ -127,6 +129,7 @@ const config = {
       if (typeof data.planetInfo !== 'undefined') config.lwm.planetInfo = data.planetInfo;
       if (typeof data.calendar !== 'undefined') config.lwm.calendar = data.calendar;
       if (typeof data.planetData !== 'undefined') config.lwm.planetData = data.planetData;
+      if (typeof data.tradeData !== 'undefined') config.lwm.tradeData = data.tradeData;
       if (typeof data.fleetDivState !== 'undefined') config.lwm.fleetDivState = data.fleetDivState;
       if (typeof data.fleetFilterCoordState !== 'undefined') config.lwm.fleetFilterCoordState = data.fleetFilterCoordState;
       if (typeof data.fleetFilterTypeState !== 'undefined') config.lwm.fleetFilterTypeState = data.fleetFilterTypeState;
@@ -148,6 +151,7 @@ const config = {
       gmSetValue('lwm_planetInfo', JSON.stringify(config.lwm.planetInfo));
       gmSetValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
       gmSetValue('lwm_planetData', JSON.stringify(config.lwm.planetData));
+      gmSetValue('lwm_tradeData', JSON.stringify(config.lwm.tradeData));
       gmSetValue('lwm_fleetDivState', JSON.stringify(config.lwm.fleetDivState));
       gmSetValue('lwm_fleetFilterCoordState', JSON.stringify(config.lwm.fleetFilterCoordState));
       gmSetValue('lwm_fleetFilterTypeState', JSON.stringify(config.lwm.fleetFilterTypeState));
@@ -244,10 +248,15 @@ const config = {
         try { config.lwm.calendar = JSON.parse(data); } catch (e) { config.lwm.calendar = []; }
         gmSetValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
 
-        return gmGetValue('lwm_planetData', '[]');
+        return gmGetValue('lwm_planetData', '{}');
       })
       .then((data) => {
-        try { config.lwm.planetData = JSON.parse(data); } catch (e) { config.lwm.planetData = []; }
+        try { config.lwm.planetData = JSON.parse(data); } catch (e) { config.lwm.planetData = {}; }
+
+        return gmGetValue('lwm_tradeData', '{}');
+      })
+      .then((data) => {
+        try { config.lwm.tradeData = JSON.parse(data); } catch (e) { config.lwm.tradeData = {}; }
 
         return gmGetValue('lwm_planetData_temp', '{}');
       })
@@ -323,6 +332,27 @@ const config = {
         slots: config.gameData.overviewInfo.number_of_slots - config.gameData.overviewInfo.number_of_buildings,
       };
       gmSetValue('lwm_planetInfo', JSON.stringify(config.lwm.planetInfo));
+    },
+    setTradeData: () => {
+      // add current trades
+      if (typeof config.lwm.tradeData[config.gameData.playerID] === 'undefined') config.lwm.tradeData[config.gameData.playerID] = {};
+      if (typeof config.lwm.tradeData[config.gameData.playerID][config.gameData.planetCoords.string] === 'undefined') {
+        config.lwm.tradeData[config.gameData.playerID][config.gameData.planetCoords.string] = [];
+      }
+      config.gameData.tradeInfo.trade_offers.forEach((trade) => {
+        trade.expires = new Date().valueOf() + (trade.sec * 1000);
+        trade.isSave = trade.my === 1 && trade.comment === '###LWM::SAVE###';
+        config.lwm.tradeData[config.gameData.playerID][config.gameData.planetCoords.string].push(trade);
+      });
+      // invalidate expired trades
+      Object.keys(config.lwm.tradeData).forEach((playerID) => {
+        Object.keys(config.lwm.tradeData[playerID]).forEach((coordString) => {
+          config.lwm.tradeData[playerID][coordString] = config.lwm.tradeData[playerID][coordString].filter(
+            (trade) => trade.expires >= new Date().valueOf(),
+          );
+        });
+      });
+      gmSetValue('lwm_tradeData', JSON.stringify(config.lwm.tradeData));
     },
     planetInformation: () => siteWindow.jQuery.ajax({
       url: '/ajax_request/get_all_planets_information.php',
