@@ -111,7 +111,7 @@ const installMain = () => {
             config.getGameData.addFleetInfo(xhr.responseJSON);
             // skip on first load because we can't be sure that everything is set up
             if (!config.loadStates.gdrive) addOns.calendar.storeFleets(xhr.responseJSON);
-            addOns.showFleetActivityGlobally(siteWindow.active_page);
+            addOns.showFleetActivityGlobally(config.loadStates.lastLoadedPage);
             break;
           case 'get_inbox_message': config.gameData.messageData = xhr.responseJSON; break;
           case 'get_info_for_observationen_page': config.gameData.observationInfo = xhr.responseJSON; break;

@@ -90,10 +90,6 @@ const config = {
     calendar: [],
     planetData: {},
     tradeData: {},
-    fleetDivState: true,
-    fleetFilterCoordState: '',
-    fleetFilterTypeState: '',
-    fleetFilterStatusState: '',
 
     reset: () => {
       const driveActive = gmConfig.get('confirm_drive_sync');
@@ -109,10 +105,6 @@ const config = {
       config.lwm.calendar = [];
       config.lwm.planetData = {};
       config.lwm.tradeData = {};
-      config.lwm.fleetDivState = true;
-      config.lwm.fleetFilterCoordState = '';
-      config.lwm.fleetFilterTypeState = '';
-      config.lwm.fleetFilterStatusState = '';
 
       gmConfig.reset();
       if (driveActive) gmConfig.set('confirm_drive_sync', true); // prevent logging out of drive
@@ -130,10 +122,6 @@ const config = {
       if (typeof data.calendar !== 'undefined') config.lwm.calendar = data.calendar;
       if (typeof data.planetData !== 'undefined') config.lwm.planetData = data.planetData;
       if (typeof data.tradeData !== 'undefined') config.lwm.tradeData = data.tradeData;
-      if (typeof data.fleetDivState !== 'undefined') config.lwm.fleetDivState = data.fleetDivState;
-      if (typeof data.fleetFilterCoordState !== 'undefined') config.lwm.fleetFilterCoordState = data.fleetFilterCoordState;
-      if (typeof data.fleetFilterTypeState !== 'undefined') config.lwm.fleetFilterTypeState = data.fleetFilterTypeState;
-      if (typeof data.fleetFilterStatusState !== 'undefined') config.lwm.fleetFilterStatusState = data.fleetFilterStatusState;
       if (typeof data.menu !== 'undefined') {
         Object.keys(data.menu).forEach((key) => {
           if (typeof gmConfig.fields[key] !== 'undefined') gmConfig.set(key, data.menu[key]);
@@ -152,10 +140,6 @@ const config = {
       gmSetValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
       gmSetValue('lwm_planetData', JSON.stringify(config.lwm.planetData));
       gmSetValue('lwm_tradeData', JSON.stringify(config.lwm.tradeData));
-      gmSetValue('lwm_fleetDivState', JSON.stringify(config.lwm.fleetDivState));
-      gmSetValue('lwm_fleetFilterCoordState', JSON.stringify(config.lwm.fleetFilterCoordState));
-      gmSetValue('lwm_fleetFilterTypeState', JSON.stringify(config.lwm.fleetFilterTypeState));
-      gmSetValue('lwm_fleetFilterStatusState', JSON.stringify(config.lwm.fleetFilterStatusState));
 
       // wait for gameData, then process
       getLoadStatePromise('gameData').then(() => { config.setGMValues(); }, () => { Sentry.captureMessage('gameData promise rejected'); throwError(); });
@@ -269,11 +253,6 @@ const config = {
 
         gmSetValue('lwm_planetData_temp', '{}'); // clear temp
         gmSetValue('lwm_planetData', JSON.stringify(config.lwm.planetData));
-
-        return gmGetValue('lwm_fleetDivState', true);
-      })
-      .then((data) => {
-        gmSetValue('lwm_fleetDivState', data);
 
         config.loadStates.gdrive = false; // <-- this ends gdrive setup on first load
         if (gmConfig.get('confirm_drive_sync')) driveManager.save();

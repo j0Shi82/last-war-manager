@@ -23,7 +23,7 @@ const addOns = {
     clockInterval: null,
   },
   load() {
-    if (gmConfig.get('addon_fleet') && siteWindow.active_page !== 'flottenbewegungen') {
+    if (gmConfig.get('addon_fleet') && config.loadStates.lastLoadedPage !== 'flottenbewegungen') {
       if (!Object.keys(config.gameData.spionageInfos).length || !Object.keys(config.gameData.observationInfo).length) {
         getObsInfo()
           .then(() => getSpionageInfo())
