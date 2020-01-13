@@ -313,7 +313,7 @@ const addOns = {
     deleteCat(cat, playerID, coords = null) {
       config.lwm.calendar = config.lwm.calendar.filter((e) => !(e.type === cat
         && e.playerID === playerID && (e.coords === coords || coords === null)));
-      console.log('deleteCat', cat, playerID, coords, config.lwm.calendar);
+      // console.log('deleteCat', cat, playerID, coords, config.lwm.calendar);
     },
     getData(cat = null, playerID = null, coords = null) {
       return config.lwm.calendar.filter((entry) => ((entry.type === cat || cat === null)

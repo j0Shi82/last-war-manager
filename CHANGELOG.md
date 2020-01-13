@@ -1,15 +1,21 @@
 # Changelog
 
 ## v1.1.0
+- In the LWM menu there's now a button to delete the data set by the script. This can be used to wipe old data and is especially useful at the start of new rounds
 - **OVERVIEW**
   - There's a new option to enable hinting at vacant multi building slots (defaults to false)
 - **TRADE**
   - The trade window has been reworked and de-cluttered
+  - The save button now automatically adds coords of the first available own planet to keep saving res a two-click effort
+  - Add statistics of currently saved res
+  - Completely hide LWM save trades, not just the buttons (feedback required)
 - **MESSAGES**
   - Shorten submenu labels to avoid a spacing issue
 - **FLEET**
   - If drones are hidden in the LWM settings, you can still reveal them by specifically picking them in the fleet type dropdown
   - The fleet container is now collapsible
+- **RESOURCE MENU**
+  - The resource tooltips now shows the sum of all incoming resources, storage capacity, and a countdown indicating when capacity will be reached
 
 ## v1.0.0
 - Hovering over resource boxes now reveals percentage capacity numbers

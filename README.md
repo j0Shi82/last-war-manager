@@ -32,7 +32,7 @@ A German feedback thread can be found on the [official message board](http://for
   - Option to exclude drones from fleet activity
 - Security confirmations for buildings, researches, and production pages (optional)
 - All arrow keys that add or remove ships or defense bulk add them when you hold the mouse button
-- Resources on the main page get highlighted when running trade would exceed their storage capacity
+- Resources on the main page get highlighted when running trade would exceed their storage capacity and feature a hover tooltip with additional information
 - Settings page that lets you control what the script should do
 - **OVERVIEW**
   - Resources get added to the planets on the overview
@@ -59,11 +59,12 @@ A German feedback thread can be found on the [official message board](http://for
      - Save trades are recognized by the script and can not be canceled from another planet
    - Trades that would exceed storage capacities when accepted/denied are highlighted
    - Option to bulk accept / deny trades
+   - Statistics of currently active trades
 - **BANK**
   - Buttons to fill bank and withdraw interest
 - **RESOURCES**
   - New table that shows hourly and daily production for all planets
-  - The page now shows the time until capacities are reached for all resources
+  - The page shows the time until capacities are reached for all resources
 - **PLANETS**
   - Delete button is gone
   - Change button is gone. Instead, you can change planets by clicking on the coords
