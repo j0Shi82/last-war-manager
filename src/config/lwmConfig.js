@@ -336,9 +336,8 @@ const config = {
     setTradeData: () => {
       // add current trades
       if (typeof config.lwm.tradeData[config.gameData.playerID] === 'undefined') config.lwm.tradeData[config.gameData.playerID] = {};
-      if (typeof config.lwm.tradeData[config.gameData.playerID][config.gameData.planetCoords.string] === 'undefined') {
-        config.lwm.tradeData[config.gameData.playerID][config.gameData.planetCoords.string] = [];
-      }
+      config.lwm.tradeData[config.gameData.playerID][config.gameData.planetCoords.string] = [];
+
       config.gameData.tradeInfo.trade_offers.forEach((trade) => {
         trade.expires = new Date().valueOf() + (trade.sec * 1000);
         trade.isSave = trade.my === 1 && trade.comment === '###LWM::SAVE###';
@@ -353,6 +352,7 @@ const config = {
         });
       });
       gmSetValue('lwm_tradeData', JSON.stringify(config.lwm.tradeData));
+      if (gmConfig.get('confirm_drive_sync')) driveManager.save();
     },
     planetInformation: () => siteWindow.jQuery.ajax({
       url: '/ajax_request/get_all_planets_information.php',

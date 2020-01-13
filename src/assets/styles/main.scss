@@ -395,13 +395,13 @@ i.icon-galaxy {
   border-radius: 10px;
   height: 75px;
 
+  .lwm-resourceClock,
   .lwm-resourceCapacity {
     position: static;
     font-size: 1em;
   }
 
-  .lwm-resourceAmount,
-  .lwm-resourceClock {
+  .lwm-resourceAmount {
     position: static;
     font-size: 1.25em;
   }
@@ -1170,6 +1170,10 @@ td.constructionName,
 /* LOADER END */
 
 /* TRADE */
+#lwm_tradeStats {
+  margin-bottom: 20px;
+}
+
 @media (max-width: 850px) {
   #newTradeOfferDiv {
     .lwm-trade-coords {
