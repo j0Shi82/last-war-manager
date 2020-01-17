@@ -79,6 +79,21 @@ export default () => {
         if (docQuery('#his_eisen').value === '0') docQuery('#his_eisen').value = '1';
         docQuery('#his_gold').value = '0';
         docQuery('#tradeOfferComment').value = '';
+
+        // get config default coords and fill in
+        const defaultCoords = `${gmConfig.get('coords_galaxy_main')}x${gmConfig.get('coords_system_main')}x${gmConfig.get('coords_planet_main')}`;
+        const currentPlanetCoords = `${siteWindow.my_galaxy}x${siteWindow.my_system}x${siteWindow.my_planet}`;
+        if (gmConfig.get('coords_galaxy_main') !== '0'
+            && gmConfig.get('coords_system_main') !== '0'
+            && gmConfig.get('coords_planet_main') !== '0'
+            && docQuery('#galaxyTrade').value === ''
+            && docQuery('#systemTrade').value === ''
+            && docQuery('#planetTrade').value === ''
+            && defaultCoords !== currentPlanetCoords) {
+          docQuery('#galaxyTrade').value = gmConfig.get('coords_galaxy_main');
+          docQuery('#systemTrade').value = gmConfig.get('coords_system_main');
+          docQuery('#planetTrade').value = gmConfig.get('coords_planet_main');
+        }
       });
       lastTR.querySelector('td:nth-child(2) .buttonRow').appendChild(buttonAll);
     }

@@ -82,7 +82,7 @@ export default () => {
             },
           coords_fleets:
             {
-              section: [gmConfig.create('Coords History'), 'The script saves a history of coordinates for different pages. Pick how many you want to store (10 - 50).'],
+              section: [gmConfig.create('Coords and Trades'), 'The script saves a history of coordinates for different pages and allows you to set defaults.'],
               label: 'Fleet Targets',
               labelPos: 'right',
               type: 'int',
@@ -98,6 +98,39 @@ export default () => {
               min: 10,
               max: 50,
               default: 10,
+            },
+          coords_galaxy_main:
+            {
+              section: 'Save All Default Coords',
+              type: 'int',
+              min: 1,
+              max: 7,
+              default: 0,
+              label: 'x',
+              labelPos: 'right',
+            },
+          coords_system_main:
+            {
+              type: 'int',
+              min: 1,
+              max: 100,
+              default: 0,
+              label: 'x',
+              labelPos: 'right',
+            },
+          coords_planet_main:
+            {
+              type: 'int',
+              min: 1,
+              max: 100,
+              default: 0,
+            },
+          confirm_hideTrades:
+            {
+              label: 'Hide save trades on target planet',
+              labelPos: 'right',
+              type: 'checkbox',
+              default: false,
             },
           menu_clipboard:
             {
@@ -303,7 +336,61 @@ export default () => {
             }
           },
         },
-      css: '#lwmSettings_addon_fleet_exclude_drones_var { margin-left: 20px !important; } #lwmSettings_section_4 .config_var { width: 33%; display: inline-block;}',
+      css: `
+        body#lwmSettings {
+          width: 90%;
+          margin-left: 5%;
+          height: 90%;
+          margin-top: 5%;
+          background: transparent !important;
+          background-color: transparent !important;
+        }
+        
+        body#lwmSettings #lwmSettings_wrapper {
+          background-color: #7cf3f1;
+          padding: 10px;
+        }
+        
+        body#lwmSettings input,
+        body#lwmSettings button {
+          border-color: #000;
+          background-color: #4290a157;
+          color: #000;
+        }
+        
+        body#lwmSettings .section_desc {
+          border-color: #000;
+          background-color: #4290a157;
+          color: #000;
+        }
+        
+        #lwmSettings_coords_system_main_var,
+        #lwmSettings_coords_planet_main_var,
+        #lwmSettings_coords_galaxy_main_var {
+          display: inline-block;
+        }
+
+        #lwmSettings_coords_galaxy_main_var,
+        #lwmSettings_coords_system_main_var,
+        #lwmSettings_coords_planet_main_var {
+          width: 45px;
+        }
+
+        #lwmSettings_coords_system_main_var input,
+        #lwmSettings_coords_planet_main_var input,
+        #lwmSettings_coords_galaxy_main_var input {
+          width: 30px;
+        }
+
+        #lwmSettings_section_header_3.section_header {
+          background: transparent;
+          border: none;
+          color: unset;
+          text-align: left;
+        }
+
+        #lwmSettings_addon_fleet_exclude_drones_var { margin-left: 20px !important; } 
+        #lwmSettings_section_5 .config_var { width: 33%; display: inline-block;}`,
     },
   );
 };

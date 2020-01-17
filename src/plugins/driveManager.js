@@ -102,6 +102,10 @@ const driveManager = () => {
       confirm_research: gmConfig.get('confirm_research'),
       coords_fleets: gmConfig.get('coords_fleets'),
       coords_trades: gmConfig.get('coords_trades'),
+      coords_galaxy_main: gmConfig.get('coords_galaxy_main'),
+      coords_system_main: gmConfig.get('coords_system_main'),
+      coords_planet_main: gmConfig.get('coords_planet_main'),
+      confirm_hideTrades: gmConfig.get('confirm_hideTrades'),
     };
 
     // console.log('gapi.client.request', saveObj);

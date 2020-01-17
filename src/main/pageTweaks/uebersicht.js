@@ -128,9 +128,10 @@ export default () => {
     }
 
     // add fleet warning distance
+    const distanceText = config.gameData.fleetInfo.View_Units ? `${siteWindow.jQuery.number(config.gameData.fleetInfo.View_Units, 0, ',', '.')} SU` : 'loading...';
     lwmJQ('.Posle').last().next().find('tr')
       .last()
-      .after('<tr><td class="Pola">Frühwarnung:</td><td class="Pola lwm_fleetwarning"></td></tr>');
+      .after(`<tr><td class="Pola">Frühwarnung:</td><td class="Pola lwm_fleetwarning">${distanceText}</td></tr>`);
 
     config.loadStates.content = false;
   }).catch((e) => {

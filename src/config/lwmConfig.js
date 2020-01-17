@@ -380,6 +380,10 @@ const config = {
           // delete fleets that arrived
           config.gameData.fleetInfo[type] = lwmJQ.grep(config.gameData.fleetInfo[type], (fleet) => fleet.Status === '3' || moment(fleet.ComeTime || fleet.DefendingTime || fleet.time).valueOf() > moment().valueOf());
         });
+
+        // add fleet distance warning
+        config.gameData.fleetInfo.View_Units = fleetData.View_Units;
+
         gmSetValue('fleetInfo', JSON.stringify(config.gameData.fleetInfo));
 
         // add fleet warning to uebersicht
