@@ -53,12 +53,12 @@ const installMain = () => {
     uiChanges();
 
     // set google drive load state to true here so other can listen to it
-    config.loadStates.gdrive = true;
+    if (gmConfig.get('confirm_drive_sync')) config.loadStates.gdrive = true;
     config.loadStates.gameData = true;
 
     setFirstLoadStatusMsg('LOADING... Game Data...');
     config.getGameData.all();
-    siteWindow.jQuery.getScript('//apis.google.com/js/api.js').then(() => {
+    if (gmConfig.get('confirm_drive_sync')) siteWindow.jQuery.getScript('//apis.google.com/js/api.js').then(() => {
       setFirstLoadStatusMsg('LOADING... Google Drive...');
       driveManager.init(siteWindow.gapi);
     }, () => { setFirstLoadStatusMsg('LOADING... ERROR...'); Sentry.captureMessage('Google API fetch failed'); throwError(); });
