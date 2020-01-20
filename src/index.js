@@ -52,8 +52,12 @@ const installMain = () => {
 
     uiChanges();
 
-    // set google drive load state to true here so other can listen to it
-    if (gmConfig.get('confirm_drive_sync')) config.loadStates.gdrive = true;
+    // set google drive load state to true if config set here so other can listen to it
+    var promiseToWaitFor = 'gameData';
+	  if (gmConfig.get('confirm_drive_sync')) {
+		  config.loadStates.gdrive = true;
+		  promiseToWaitFor = 'gdrive';
+	  }
     config.loadStates.gameData = true;
 
     setFirstLoadStatusMsg('LOADING... Game Data...');
@@ -62,7 +66,7 @@ const installMain = () => {
       setFirstLoadStatusMsg('LOADING... Google Drive...');
       driveManager.init(siteWindow.gapi);
     }, () => { setFirstLoadStatusMsg('LOADING... ERROR...'); Sentry.captureMessage('Google API fetch failed'); throwError(); });
-    getLoadStatePromise('gdrive').then(() => {
+    getLoadStatePromise(promiseToWaitFor).then(() => {
       setFirstLoadStatusMsg('LOADING... Page Setup...');
       // wait for gameData and google because some stuff depends on it
       hotkeySetup();
