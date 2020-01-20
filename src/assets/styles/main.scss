@@ -1178,6 +1178,10 @@ td.constructionName,
   margin-bottom: 20px;
 }
 
+#tradeOfferDiv tr.empty.green {
+  background-color: #3baf11;
+}
+
 @media (max-width: 850px) {
   #newTradeOfferDiv {
     .lwm-trade-coords {
