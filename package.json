@@ -36,7 +36,6 @@
     "moment-duration-format": "^2.3.2",
     "numeral": "^2.0.6",
     "webpack": "^5.2.0",
-    "webpack-inject-plugin": "^1.5.4",
     "webpack-sources": "^2.0.1"
   },
   "resolutions": {
