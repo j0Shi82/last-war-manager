@@ -1,5 +1,5 @@
 import {
-  gmConfig, siteWindow, gmGetValue, gmSetValue,
+  gmConfig, siteWindow,
 } from 'config/globals';
 import { getLoadStatePromise } from 'utils/loadPromises';
 import { Sentry } from 'plugins/sentry';
@@ -109,7 +109,7 @@ const driveManager = () => {
     };
 
     // console.log('gapi.client.request', saveObj);
-    gapi.client.request({
+    return gapi.client.request({
       path: `/upload/drive/v3/files/${driveID}`,
       method: 'PATCH',
       params: {

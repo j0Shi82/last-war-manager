@@ -2,7 +2,12 @@
     "presets": 
     [
         [
-            "@babel/preset-modules"
+            "@babel/preset-env", {
+                "bugfixes": true,
+                "targets": {
+                    "esmodules": true
+                }
+            }
         ]
     ]
 }

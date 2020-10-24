@@ -102,8 +102,12 @@ const installMain = () => {
       if (pageSavesResponse(page)) {
         switch (page) {
           case 'get_ubersicht_info':
-            config.gameData.overviewInfo = xhr.responseJSON;
-            addOns.calendar.storeOverview(xhr.responseJSON);
+            // wait until gdrive / setGMValues has been processed
+            // otherwise this could lead to overwriting a previously saved config with empty values
+            getLoadStatePromise('gdrive').then(() => {
+              config.gameData.overviewInfo = xhr.responseJSON;
+              addOns.calendar.storeOverview(xhr.responseJSON);
+            }, () => { Sentry.captureMessage('gdrive promise rejected while waiting for get_ubersicht_info'); throwError(); });
             break;
           case 'get_production_info': config.getGameData.setProductionInfos(xhr.responseJSON); break;
           case 'get_aktuelle_production_info': addOns.calendar.storeProd(xhr.responseJSON); break;

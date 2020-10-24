@@ -2,8 +2,6 @@
 
 Last War Manager (LWM) is a Tampermonkey script for the [Last War Browsergame](https://last-war.de). It features both visual and functional upgrades to the user interface.
 
-In the current early stages of development, the main goal is getting new features up. We'll deal with performance, security, and code streamlining / improvement later.
-
 # Install
 
 LWM uses the [Tampermonkey](https://tampermonkey.net/) extension that's available for all major browsers. Grab Tampermonkey and then install the script from one of the following sources:
@@ -12,7 +10,9 @@ LWM uses the [Tampermonkey](https://tampermonkey.net/) extension that's availabl
 - [GreaseFork](https://greasyfork.org/en/scripts/379871-last-war-manager)
 - [GitHub](https://raw.githubusercontent.com/j0Shi82/last-war-manager/master/dist/last-war-manager.user.js)
 
-The GitHub repository also includes a UserStyle file that only includes the visual changes. It is however included in the script and doesn't work independently anyway. You can try to install it on top in case you run into some trouble, but it will probably be discontinued soon. It stems from an earlier version.
+## Mobile Restrictions
+
+Currently LWM is only usable on Android using the FireFox Nightly Edition. Follow [this](https://blog.mozilla.org/addons/2020/09/29/expanded-extension-support-in-firefox-for-android-nightly/) instructions to activate Tampermonkey and use UserScripts on Android. iOS does not allow UserScripts at all.
 
 # Feedback & Suggestions
 

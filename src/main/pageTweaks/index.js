@@ -381,7 +381,7 @@ const pageTweaks = {
                         + '</tbody></table>'
                     + '</div>');
 
-      if (!addOns.calendar.truncateData()) driveManager.save();
+      if (gmConfig.get('confirm_drive_sync') && !addOns.calendar.truncateData()) driveManager.save();
 
       const entries = document.createDocumentFragment();
       lwmJQ.each(config.lwm.calendar, (i, entry) => {
