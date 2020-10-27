@@ -11,6 +11,7 @@ import momentDurationFormatSetup from 'moment-duration-format';
 import driveManager from 'plugins/driveManager';
 
 import showFleetActivityGlobally from 'addons/fleetActivity';
+import addCustomResourceCounter from 'addons/resourceTicks';
 
 momentDurationFormatSetup(moment);
 
@@ -21,6 +22,7 @@ const addOns = {
     tradeRefreshInterval: null,
     capacityRefreshInterval: null,
     clockInterval: null,
+    resourceCounter: null,
   },
   load() {
     if (gmConfig.get('addon_fleet') && config.loadStates.lastLoadedPage !== 'flottenbewegungen') {
@@ -35,6 +37,9 @@ const addOns = {
 
     addOns.refreshTrades();
     if (gmConfig.get('addon_clock')) addOns.addClockInterval();
+    if (gmConfig.get('res_updates') && addOns.config.resourceCounter === null) {
+      addOns.config.resourceCounter = addOns.addCustomResourceCounter();
+    }
   },
   unload() {
     if (addOns.config.capacityRefreshInterval !== null) {
@@ -42,6 +47,10 @@ const addOns = {
       addOns.config.capacityRefreshInterval = null;
     }
     if (addOns.config.clockInterval !== null) { clearInterval(addOns.config.clockInterval); addOns.config.clockInterval = null; }
+    if (addOns.config.resourceCounter !== null) {
+      addOns.config.resourceCounter.stop();
+      addOns.config.resourceCounter = null;
+    }
   },
   // refresh trades every minute to make it unnecessary to visit the trade page for trade to go through
   refreshTrades() {
@@ -122,6 +131,7 @@ const addOns = {
     }, 1000);
   },
   showFleetActivityGlobally,
+  addCustomResourceCounter,
   calendar: {
     storeOverview(data) {
       const dataBuildingBefore = JSON.stringify(addOns.calendar.getData('building', config.gameData.playerID));

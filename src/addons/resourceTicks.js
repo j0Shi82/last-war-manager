@@ -6,6 +6,7 @@ import calculateResourcePerSec from 'utils/resourceTickLastWarFuncs';
 
 export default () => {
   siteWindow.stopWorkerForResource();
+  siteWindow.stopWorkerForResource = () => {};
 
   const resWorker = provideIntervalWorker(() => {
     const {
@@ -121,12 +122,12 @@ export default () => {
       }
     }
 
-    siteWindow.document.querySelector('#roheisenAmount').html(siteWindow.jQuery.number(Math.floor(Roheisen), 0, ',', '.'));
-    siteWindow.document.querySelector('#kristallAmount').html(siteWindow.jQuery.number(Math.floor(Kristall), 0, ',', '.'));
-    siteWindow.document.querySelector('#frubinAmount').html(siteWindow.jQuery.number(Math.floor(Frubin), 0, ',', '.'));
-    siteWindow.document.querySelector('#orizinAmount').html(siteWindow.jQuery.number(Math.floor(Orizin), 0, ',', '.'));
-    siteWindow.document.querySelector('#frurozinAmount').html(siteWindow.jQuery.number(Math.floor(Frurozin), 0, ',', '.'));
-    siteWindow.document.querySelector('#goldAmount').html(siteWindow.jQuery.number(Math.floor(Gold), 0, ',', '.'));
+    siteWindow.document.querySelector('#roheisenAmount').innerHTML = siteWindow.jQuery.number(Math.floor(Roheisen), 0, ',', '.');
+    siteWindow.document.querySelector('#kristallAmount').innerHTML = siteWindow.jQuery.number(Math.floor(Kristall), 0, ',', '.');
+    siteWindow.document.querySelector('#frubinAmount').innerHTML = siteWindow.jQuery.number(Math.floor(Frubin), 0, ',', '.');
+    siteWindow.document.querySelector('#orizinAmount').innerHTML = siteWindow.jQuery.number(Math.floor(Orizin), 0, ',', '.');
+    siteWindow.document.querySelector('#frurozinAmount').innerHTML = siteWindow.jQuery.number(Math.floor(Frurozin), 0, ',', '.');
+    siteWindow.document.querySelector('#goldAmount').innerHTML = siteWindow.jQuery.number(Math.floor(Gold), 0, ',', '.');
 
     siteWindow.Roheisen_Full_Storage = Math.round((Roheisen * 100) / RoheisenLagerCapacity);
     siteWindow.Kristall_Full_Storage = Math.round((Kristall * 100) / KristallLagerCapacity);
@@ -147,96 +148,96 @@ export default () => {
     let i;
 
     for (i = 0; i <= Roheisen_Storage_mod_10; i += 1) {
-      if (siteWindow.document.querySelector(`#roheisenStorageBox${i}`).css('opacity') === 0.2) {
-        siteWindow.document.querySelector(`#roheisenStorageBox${i}`).css('opacity', '1.0');
+      if (siteWindow.jQuery(`#roheisenStorageBox${i}`).css('opacity') === 0.2) {
+        siteWindow.jQuery(`#roheisenStorageBox${i}`).css('opacity', '1.0');
       }
     }
 
     Roheisen_Storage_mod_10 += 1;
 
     for (i = Roheisen_Storage_mod_10; i <= 10; i += 1) {
-      if (siteWindow.document.querySelector(`#roheisenStorageBox${i}`).css('opacity') === 1.0) {
-        siteWindow.document.querySelector(`#roheisenStorageBox${i}`).css('opacity', '0.2');
+      if (siteWindow.jQuery(`#roheisenStorageBox${i}`).css('opacity') === 1.0) {
+        siteWindow.jQuery(`#roheisenStorageBox${i}`).css('opacity', '0.2');
       } else {
         break;
       }
     }
 
     for (i = 0; i <= Kristall_Storage_mod_10; i += 1) {
-      if (siteWindow.document.querySelector(`#kristallStorageBox${i}`).css('opacity') === 0.2) {
-        siteWindow.document.querySelector(`#kristallStorageBox${i}`).css('opacity', '1.0');
+      if (siteWindow.jQuery(`#kristallStorageBox${i}`).css('opacity') === 0.2) {
+        siteWindow.jQuery(`#kristallStorageBox${i}`).css('opacity', '1.0');
       }
     }
 
     Kristall_Storage_mod_10 += 1;
 
     for (i = Kristall_Storage_mod_10; i <= 10; i += 1) {
-      if (siteWindow.document.querySelector(`#kristallStorageBox${i}`).css('opacity') === 1.0) {
-        siteWindow.document.querySelector(`#kristallStorageBox${i}`).css('opacity', '0.2');
+      if (siteWindow.jQuery(`#kristallStorageBox${i}`).css('opacity') === 1.0) {
+        siteWindow.jQuery(`#kristallStorageBox${i}`).css('opacity', '0.2');
       } else {
         break;
       }
     }
 
     for (i = 0; i <= Frubin_Storage_mod_10; i += 1) {
-      if (siteWindow.document.querySelector(`#frubinStorageBox${i}`).css('opacity') === 0.2) {
-        siteWindow.document.querySelector(`#frubinStorageBox${i}`).css('opacity', '1.0');
+      if (siteWindow.jQuery(`#frubinStorageBox${i}`).css('opacity') === 0.2) {
+        siteWindow.jQuery(`#frubinStorageBox${i}`).css('opacity', '1.0');
       }
     }
 
     Frubin_Storage_mod_10 += 1;
 
     for (i = Frubin_Storage_mod_10; i <= 10; i += 1) {
-      if (siteWindow.document.querySelector(`#frubinStorageBox${i}`).css('opacity') === 1.0) {
-        siteWindow.document.querySelector(`#frubinStorageBox${i}`).css('opacity', '0.2');
+      if (siteWindow.jQuery(`#frubinStorageBox${i}`).css('opacity') === 1.0) {
+        siteWindow.jQuery(`#frubinStorageBox${i}`).css('opacity', '0.2');
       } else {
         break;
       }
     }
 
     for (i = 0; i <= Orizin_Storage_mod_10; i += 1) {
-      if (siteWindow.document.querySelector(`#orizinStorageBox${i}`).css('opacity') === 0.2) {
-        siteWindow.document.querySelector(`#orizinStorageBox${i}`).css('opacity', '1.0');
+      if (siteWindow.jQuery(`#orizinStorageBox${i}`).css('opacity') === 0.2) {
+        siteWindow.jQuery(`#orizinStorageBox${i}`).css('opacity', '1.0');
       }
     }
 
     Orizin_Storage_mod_10 += 1;
 
     for (i = Orizin_Storage_mod_10; i <= 10; i += 1) {
-      if (siteWindow.document.querySelector(`#orizinStorageBox${i}`).css('opacity') === 1.0) {
-        siteWindow.document.querySelector(`#orizinStorageBox${i}`).css('opacity', '0.2');
+      if (siteWindow.jQuery(`#orizinStorageBox${i}`).css('opacity') === 1.0) {
+        siteWindow.jQuery(`#orizinStorageBox${i}`).css('opacity', '0.2');
       } else {
         break;
       }
     }
 
     for (i = 0; i <= Frurozin_Storage_mod_10; i += 1) {
-      if (siteWindow.document.querySelector(`#frurozinStorageBox${i}`).css('opacity') === 0.2) {
-        siteWindow.document.querySelector(`#frurozinStorageBox${i}`).css('opacity', '1.0');
+      if (siteWindow.jQuery(`#frurozinStorageBox${i}`).css('opacity') === 0.2) {
+        siteWindow.jQuery(`#frurozinStorageBox${i}`).css('opacity', '1.0');
       }
     }
 
     Frurozin_Storage_mod_10 += 1;
 
     for (i = Frurozin_Storage_mod_10; i <= 10; i += 1) {
-      if (siteWindow.document.querySelector(`#frurozinStorageBox${i}`).css('opacity') === 1.0) {
-        siteWindow.document.querySelector(`#frurozinStorageBox${i}`).css('opacity', '0.2');
+      if (siteWindow.jQuery(`#frurozinStorageBox${i}`).css('opacity') === 1.0) {
+        siteWindow.jQuery(`#frurozinStorageBox${i}`).css('opacity', '0.2');
       } else {
         break;
       }
     }
 
     for (i = 0; i <= Gold_Storage_mod_10; i += 1) {
-      if (siteWindow.document.querySelector(`#goldStorageBox${i}`).css('opacity') === 0.2) {
-        siteWindow.document.querySelector(`#goldStorageBox${i}`).css('opacity', '1.0');
+      if (siteWindow.jQuery(`#goldStorageBox${i}`).css('opacity') === 0.2) {
+        siteWindow.jQuery(`#goldStorageBox${i}`).css('opacity', '1.0');
       }
     }
 
     Gold_Storage_mod_10 += 1;
 
     for (i = Gold_Storage_mod_10; i <= 10; i += 1) {
-      if (siteWindow.document.querySelector(`#goldStorageBox${i}`).css('opacity') === 1.0) {
-        siteWindow.document.querySelector(`#goldStorageBox${i}`).css('opacity', '0.2');
+      if (siteWindow.jQuery(`#goldStorageBox${i}`).css('opacity') === 1.0) {
+        siteWindow.jQuery(`#goldStorageBox${i}`).css('opacity', '0.2');
       } else {
         break;
       }
