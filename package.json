@@ -47,7 +47,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-push": "yarn build && git add dist/last-war-manager.user.js git commit -m \"building fresh dist before push\""
+      "pre-push": "yarn build && git add dist/last-war-manager.user.js && git commit -m \"building fresh dist before push\""
     }
   }
 }
