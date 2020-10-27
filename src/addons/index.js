@@ -53,12 +53,12 @@ const addOns = {
         timeout: config.promises.interval.ajaxTimeout,
         success: (data) => {
           if (data === '500' || typeof data.resource === 'undefined') return;
-          siteWindow.Roheisen = parseInt(data.resource.Roheisen, 10);
-          siteWindow.Kristall = parseInt(data.resource.Kristall, 10);
-          siteWindow.Frubin = parseInt(data.resource.Frubin, 10);
-          siteWindow.Orizin = parseInt(data.resource.Orizin, 10);
-          siteWindow.Frurozin = parseInt(data.resource.Frurozin, 10);
-          siteWindow.Gold = parseInt(data.resource.Gold, 10);
+          // siteWindow.Roheisen = parseInt(data.resource.Roheisen, 10);
+          // siteWindow.Kristall = parseInt(data.resource.Kristall, 10);
+          // siteWindow.Frubin = parseInt(data.resource.Frubin, 10);
+          // siteWindow.Orizin = parseInt(data.resource.Orizin, 10);
+          // siteWindow.Frurozin = parseInt(data.resource.Frurozin, 10);
+          // siteWindow.Gold = parseInt(data.resource.Gold, 10);
         },
         error() { throwError(); },
         dataType: 'json',

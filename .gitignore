@@ -3,3 +3,4 @@ dist/statistics.html
 *.map
 *.log
 .sentryclirc
+.vscode

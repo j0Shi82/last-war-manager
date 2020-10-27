@@ -189,6 +189,13 @@ export default () => {
               type: 'checkbox',
               default: true,
             },
+          res_updates:
+            {
+              label: 'RESOURCES: Deactivate Last-War resource counter and replace with a better one.',
+              labelPos: 'right',
+              type: 'checkbox',
+              default: true,
+            },
           fleet_saveprios:
             {
               label: 'FLEET: Save the last resource raid priorities.',

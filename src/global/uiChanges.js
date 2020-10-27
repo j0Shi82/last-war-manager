@@ -14,9 +14,11 @@ const isPremium = () => siteWindow.premium_account === 1;
 
 export default () => {
   /* delete propassssss */
+  lwmJQ('#propassssss').trigger('blur');
   lwmJQ('#propassssss,#loader,.ui-loader').remove();
 
   // add mobile support
+  lwmJQ('meta[name=\'viewport\']').remove();
   lwmJQ('head').append('<meta name="viewport" content="width=device-width, initial-scale=1.0">');
 
   // attach loader for first page load
