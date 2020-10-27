@@ -9,7 +9,8 @@
   "scripts": {
     "build:dev": "webpack --mode development && yarn addTmMeta",
     "build": "webpack --mode production && yarn addTmMeta",
-    "addTmMeta": "node src/scripts/tamperMonkeyPrepend.js"
+    "addTmMeta": "node src/scripts/tamperMonkeyPrepend.js",
+    "prePush": "yarn build && git add dist/last-war-manager.user.js && git commit -m \"building fresh dist before push\" && exit 0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.3",
@@ -47,7 +48,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-push": "yarn build && git add dist/last-war-manager.user.js && git commit -m \"building fresh dist before push\""
+      "pre-push": "yarn prePush"
     }
   }
 }
