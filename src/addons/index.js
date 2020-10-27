@@ -173,7 +173,7 @@ const addOns = {
       const dataResearchAfter = JSON.stringify(addOns.calendar.getData('research', config.gameData.playerID));
 
       gmSetValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
-      if (gmConfig.get('confirm_drive_sync') && (!addOns.calendar.truncateData() || dataResearchBefore !== dataResearchAfter || dataBuildingBefore !== dataBuildingAfter)) driveManager.save();
+      if ((!addOns.calendar.truncateData() || dataResearchBefore !== dataResearchAfter || dataBuildingBefore !== dataBuildingAfter) && gmConfig.get('confirm_drive_sync')) driveManager.save();
     },
     storeFleets(data) {
       const lang = config.const.lang.fleet;
