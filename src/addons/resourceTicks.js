@@ -1,14 +1,15 @@
 /* eslint-disable camelcase */
 
 import { siteWindow } from 'config/globals';
-import provideIntervalWorker from 'utils/intervalWorker';
+// import provideIntervalWorker from 'utils/intervalWorker';
 import calculateResourcePerSec from 'utils/resourceTickLastWarFuncs';
+import * as workerTimers from 'worker-timers';
 
 export default () => {
   siteWindow.stopWorkerForResource();
   siteWindow.stopWorkerForResource = () => {};
 
-  const resWorker = provideIntervalWorker(() => {
+  const resWorker = workerTimers.setInterval(() => {
     const {
       Energy, lvlRoheisen, lvlKristall, lvlFrubin, lvlOrizin, lvlFrurozin, lvlGold, planeten_klass, rase,
       Roheisen, Kristall, Frubin, Orizin, Frurozin, Gold, RoheisenLagerCapacity, KristallLagerCapacity,
