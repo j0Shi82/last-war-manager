@@ -9,11 +9,14 @@ export default () => {
   siteWindow.stopWorkerForResource();
   siteWindow.stopWorkerForResource = () => {};
 
-  const resWorker = workerTimers.setInterval(() => {
+  let {
+    Roheisen, Kristall, Frubin, Orizin, Frurozin, Gold,
+  } = siteWindow;
+
+  return workerTimers.setInterval(() => {
     const {
       Energy, lvlRoheisen, lvlKristall, lvlFrubin, lvlOrizin, lvlFrurozin, lvlGold, planeten_klass, rase,
-      Roheisen, Kristall, Frubin, Orizin, Frurozin, Gold, RoheisenLagerCapacity, KristallLagerCapacity,
-      FrubinLagerCapacity, OrizinLagerCapacity, FrurozinLagerCapacity, GoldLagerCapacity,
+      RoheisenLagerCapacity, KristallLagerCapacity, FrubinLagerCapacity, OrizinLagerCapacity, FrurozinLagerCapacity, GoldLagerCapacity,
     } = siteWindow;
 
     let energyProc = 0.5;
@@ -36,40 +39,40 @@ export default () => {
     const sek_Gold = response_from_function[5] * energyProc;
 
     if (Roheisen + sek_Roheisen < RoheisenLagerCapacity) {
-      siteWindow.Roheisen = Roheisen + sek_Roheisen;
+      Roheisen += sek_Roheisen;
     } else {
-      siteWindow.Roheisen = RoheisenLagerCapacity;
+      Roheisen = RoheisenLagerCapacity;
     }
 
     if (Kristall + sek_Kristall < KristallLagerCapacity) {
-      siteWindow.Kristall = Kristall + sek_Kristall;
+      Kristall += sek_Kristall;
     } else {
-      siteWindow.Kristall = KristallLagerCapacity;
+      Kristall = KristallLagerCapacity;
     }
 
-    if (Frubin + sek_Frubin < FrubinLagerCapacity) { siteWindow.Frubin = Frubin + sek_Frubin; } else { siteWindow.Frubin = FrubinLagerCapacity; }
+    if (Frubin + sek_Frubin < FrubinLagerCapacity) { Frubin += sek_Frubin; } else { Frubin = FrubinLagerCapacity; }
 
-    if (Orizin + sek_Orizin < OrizinLagerCapacity) { siteWindow.Orizin = Orizin + sek_Orizin; } else { siteWindow.Orizin = OrizinLagerCapacity; }
+    if (Orizin + sek_Orizin < OrizinLagerCapacity) { Orizin += sek_Orizin; } else { Orizin = OrizinLagerCapacity; }
 
     if (Frurozin + sek_Frurozin < FrurozinLagerCapacity) {
-      siteWindow.Frurozin = Frurozin + sek_Frurozin;
+      Frurozin += sek_Frurozin;
     } else {
-      siteWindow.Frurozin = FrurozinLagerCapacity;
+      Frurozin = FrurozinLagerCapacity;
     }
 
     if (Gold + sek_Gold < GoldLagerCapacity) {
-      siteWindow.Gold = Gold + sek_Gold;
+      Gold += sek_Gold;
     } else {
-      siteWindow.Gold = GoldLagerCapacity;
+      Gold = GoldLagerCapacity;
     }
 
     if (siteWindow.roheisen_kredit_rest > 0) {
       if (siteWindow.roheisen_kredit_rest > siteWindow.roheisen_kredit_per_sec) {
-        siteWindow.Roheisen -= siteWindow.roheisen_kredit_per_sec;
+        Roheisen -= siteWindow.roheisen_kredit_per_sec;
 
         siteWindow.roheisen_kredit_rest -= siteWindow.roheisen_kredit_per_sec;
       } else {
-        siteWindow.Roheisen -= siteWindow.roheisen_kredit_rest;
+        Roheisen -= siteWindow.roheisen_kredit_rest;
 
         siteWindow.roheisen_kredit_rest = 0;
       }
@@ -77,11 +80,11 @@ export default () => {
 
     if (siteWindow.kristall_kredit_rest > 0) {
       if (siteWindow.kristall_kredit_rest > siteWindow.kristall_kredit_per_sec) {
-        siteWindow.Kristall -= siteWindow.kristall_kredit_per_sec;
+        Kristall -= siteWindow.kristall_kredit_per_sec;
 
         siteWindow.kristall_kredit_rest -= siteWindow.kristall_kredit_per_sec;
       } else {
-        siteWindow.Kristall -= siteWindow.kristall_kredit_rest;
+        Kristall -= siteWindow.kristall_kredit_rest;
 
         siteWindow.kristall_kredit_rest = 0;
       }
@@ -89,11 +92,11 @@ export default () => {
 
     if (siteWindow.frubin_kredit_rest > 0) {
       if (siteWindow.frubin_kredit_rest > siteWindow.frubin_kredit_per_sec) {
-        siteWindow.Frubin -= siteWindow.frubin_kredit_per_sec;
+        Frubin -= siteWindow.frubin_kredit_per_sec;
 
         siteWindow.frubin_kredit_rest -= siteWindow.frubin_kredit_per_sec;
       } else {
-        siteWindow.Frubin -= siteWindow.frubin_kredit_rest;
+        Frubin -= siteWindow.frubin_kredit_rest;
 
         siteWindow.frubin_kredit_rest = 0;
       }
@@ -101,11 +104,11 @@ export default () => {
 
     if (siteWindow.orizin_kredt_rest > 0) {
       if (siteWindow.orizin_kredt_rest > siteWindow.orizin_kredt_per_sec) {
-        siteWindow.Orizin -= siteWindow.orizin_kredt_per_sec;
+        Orizin -= siteWindow.orizin_kredt_per_sec;
 
         siteWindow.orizin_kredt_rest -= siteWindow.orizin_kredt_per_sec;
       } else {
-        siteWindow.Orizin -= siteWindow.orizin_kredt_rest;
+        Orizin -= siteWindow.orizin_kredt_rest;
 
         siteWindow.orizin_kredt_rest = 0;
       }
@@ -113,11 +116,11 @@ export default () => {
 
     if (siteWindow.frurozin_kredit_rest > 0) {
       if (siteWindow.frurozin_kredit_rest > siteWindow.frurozin_kredit_per_sec) {
-        siteWindow.Frurozin -= siteWindow.frurozin_kredit_per_sec;
+        Frurozin -= siteWindow.frurozin_kredit_per_sec;
 
         siteWindow.frurozin_kredit_rest -= siteWindow.frurozin_kredit_per_sec;
       } else {
-        siteWindow.Frurozin -= siteWindow.frurozin_kredit_rest;
+        Frurozin -= siteWindow.frurozin_kredit_rest;
 
         siteWindow.frurozin_kredit_rest = 0;
       }

@@ -9,6 +9,7 @@ import {
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
 import driveManager from 'plugins/driveManager';
+import * as workerTimers from 'worker-timers';
 
 import showFleetActivityGlobally from 'addons/fleetActivity';
 import addCustomResourceCounter from 'addons/resourceTicks';
@@ -48,7 +49,7 @@ const addOns = {
     }
     if (addOns.config.clockInterval !== null) { clearInterval(addOns.config.clockInterval); addOns.config.clockInterval = null; }
     if (addOns.config.resourceCounter !== null) {
-      addOns.config.resourceCounter.stop();
+      workerTimers.clearInterval(addOns.config.resourceCounter);
       addOns.config.resourceCounter = null;
     }
   },
