@@ -4,6 +4,7 @@ import {
 import { getLoadStatePromise } from 'utils/loadPromises';
 import { Sentry } from 'plugins/sentry';
 import { throwError } from 'utils/helper';
+import { reloadTickResources } from 'addons/resourceTicks';
 import { getSpionageInfo, getObsInfo } from 'utils/requests';
 import moment from 'moment';
 import driveManager from 'plugins/driveManager';
@@ -69,6 +70,7 @@ const config = {
     },
     planets: [],
     planetInformation: [],
+    resources: [0, 0, 0, 0, 0, 0],
     spionageInfos: {},
     productionInfos: [],
     overviewInfo: {},
@@ -292,6 +294,19 @@ const config = {
           getObsInfo();
         }
       });
+    },
+    setResources: (data) => {
+      if (
+        data[0] !== config.gameData.resources[0]
+        || data[1] !== config.gameData.resources[1]
+        || data[2] !== config.gameData.resources[2]
+        || data[3] !== config.gameData.resources[3]
+        || data[4] !== config.gameData.resources[4]
+        || data[5] !== config.gameData.resources[5]
+      ) {
+        reloadTickResources();
+        config.gameData.resources = data;
+      }
     },
     setProductionInfos: (data) => {
       lwmJQ.each(data, (i, cat) => {

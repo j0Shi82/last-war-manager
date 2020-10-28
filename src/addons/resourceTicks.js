@@ -3,15 +3,27 @@
 import { siteWindow } from 'config/globals';
 // import provideIntervalWorker from 'utils/intervalWorker';
 import calculateResourcePerSec from 'utils/resourceTickLastWarFuncs';
+import config from 'config/lwmConfig';
 import * as workerTimers from 'worker-timers';
+
+let {
+  Roheisen, Kristall, Frubin, Orizin, Frurozin, Gold,
+} = siteWindow;
+
+const reloadTickResources = () => {
+  Roheisen = siteWindow.Roheisen;
+  Kristall = siteWindow.Kristall;
+  Frubin = siteWindow.Frubin;
+  Orizin = siteWindow.Orizin;
+  Frurozin = siteWindow.Frurozin;
+  Gold = siteWindow.Gold;
+};
+
+export { reloadTickResources };
 
 export default () => {
   siteWindow.stopWorkerForResource();
   siteWindow.stopWorkerForResource = () => {};
-
-  let {
-    Roheisen, Kristall, Frubin, Orizin, Frurozin, Gold,
-  } = siteWindow;
 
   return workerTimers.setInterval(() => {
     const {

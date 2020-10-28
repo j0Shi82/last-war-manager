@@ -130,6 +130,23 @@ const installMain = () => {
             break;
         }
 
+        // set resources
+        if ([
+          'get_trade_offers', 'get_flottenbewegungen_info', 'get_ubersicht_info', 'put_building', 'put_research',
+          'cancel_building', 'cancel_research',
+        ].includes(page)) {
+          // resources can be in different keys
+          const fe = xhr.responseJSON.roheisen || xhr.responseJSON.Roheisen || xhr.responseJSON.resource.roheisen;
+          const kris = xhr.responseJSON.kristall || xhr.responseJSON.Kristall || xhr.responseJSON.resource.kristall;
+          const frub = xhr.responseJSON.frubin || xhr.responseJSON.Frubin || xhr.responseJSON.resource.frubin;
+          const ori = xhr.responseJSON.orizin || xhr.responseJSON.Orizin || xhr.responseJSON.resource.orizin;
+          const fruro = xhr.responseJSON.frurozin || xhr.responseJSON.Frurozin || xhr.responseJSON.resource.frurozin;
+          const gold = xhr.responseJSON.gold || xhr.responseJSON.Gold || xhr.responseJSON.resource.gold;
+          if (fe && kris && frub && ori && fruro && gold) {
+            config.getGameData.setResources([fe, kris, frub, ori, fruro, gold]);
+          }
+        }
+
         // separate case to refresh drones after a fleet action (which may or may not be a dron action)
         if (['put_fleets', 'delete_fleets', 'put_change_flotten'].includes(page)) {
           getSpionageInfo();
