@@ -3,7 +3,6 @@
 import { siteWindow } from 'config/globals';
 // import provideIntervalWorker from 'utils/intervalWorker';
 import calculateResourcePerSec from 'utils/resourceTickLastWarFuncs';
-import config from 'config/lwmConfig';
 import * as workerTimers from 'worker-timers';
 
 let {

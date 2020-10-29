@@ -7,11 +7,21 @@ import config from 'config/lwmConfig';
 import { getActiveObs, setDataForClocks } from 'utils/helper';
 import { createElementFromHTML, docQuery } from 'utils/domHelper';
 import { convertSecondsToHHMMSS, dayjs } from 'utils/dateHelper';
+import * as workerTimers from 'worker-timers';
 // import moment from 'moment';
 
 const { document } = siteWindow;
 
 let fleetRefreshInterval = null;
+
+const killFleetActivityTimer = () => {
+  if (fleetRefreshInterval !== null) {
+    workerTimers.clearInterval(fleetRefreshInterval);
+    fleetRefreshInterval = null;
+  }
+};
+
+export { killFleetActivityTimer };
 
 export default async (page) => {
   // no fleet config set, return
@@ -376,7 +386,7 @@ export default async (page) => {
 
   // add refresh interval
   if (fleetRefreshInterval === null) {
-    fleetRefreshInterval = setInterval(() => {
+    fleetRefreshInterval = workerTimers.setInterval(() => {
       getFlottenbewegungenInfo();
     }, 30000);
   }

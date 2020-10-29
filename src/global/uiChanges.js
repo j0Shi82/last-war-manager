@@ -271,7 +271,7 @@ export default () => {
   lwmJQ('.first_line .menu_box:nth-last-child(2)').after($managerButton);
 
   // add manager unload on logout
-  lwmJQ('#logout').click(() => { uninstall(); });
+  lwmJQ('#logout').on('click', () => { uninstall(); });
 
   // move galaxy view and resources into same container
   lwmJQ('.galaxyView').appendTo('.resourceBoxs');

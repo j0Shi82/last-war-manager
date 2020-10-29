@@ -11,7 +11,7 @@ import momentDurationFormatSetup from 'moment-duration-format';
 import driveManager from 'plugins/driveManager';
 import * as workerTimers from 'worker-timers';
 
-import showFleetActivityGlobally from 'addons/fleetActivity';
+import showFleetActivityGlobally, { killFleetActivityTimer } from 'addons/fleetActivity';
 import addCustomResourceCounter from 'addons/resourceTicks';
 
 momentDurationFormatSetup(moment);
@@ -43,11 +43,12 @@ const addOns = {
     }
   },
   unload() {
+    killFleetActivityTimer();
     if (addOns.config.capacityRefreshInterval !== null) {
-      clearInterval(addOns.config.capacityRefreshInterval);
+      workerTimers.clearInterval(addOns.config.capacityRefreshInterval);
       addOns.config.capacityRefreshInterval = null;
     }
-    if (addOns.config.clockInterval !== null) { clearInterval(addOns.config.clockInterval); addOns.config.clockInterval = null; }
+    if (addOns.config.clockInterval !== null) { workerTimers.clearInterval(addOns.config.clockInterval); addOns.config.clockInterval = null; }
     if (addOns.config.resourceCounter !== null) {
       workerTimers.clearInterval(addOns.config.resourceCounter);
       addOns.config.resourceCounter = null;
@@ -80,7 +81,7 @@ const addOns = {
 
     // refresh interval
     if (addOns.config.tradeRefreshInterval !== null) return; // allready installed
-    addOns.config.tradeRefreshInterval = setInterval(() => {
+    addOns.config.tradeRefreshInterval = workerTimers.setInterval(() => {
       requestTrades();
     }, 60000);
   },
@@ -99,14 +100,14 @@ const addOns = {
 
     // add invterval
     if (addOns.config.capacityRefreshInterval === null) {
-      addOns.config.capacityRefreshInterval = setInterval(() => {
+      addOns.config.capacityRefreshInterval = workerTimers.setInterval(() => {
         addOns.checkCapacities();
       }, 10000);
     }
   },
   addClockInterval() {
     if (addOns.config.clockInterval !== null) return;
-    addOns.config.clockInterval = setInterval(() => {
+    addOns.config.clockInterval = workerTimers.setInterval(() => {
       lwmJQ('[id*=\'clock\'],[id*=\'Clock\']').each((i, el) => {
         const self = lwmJQ(el);
         // skip elements that don't have data attribute

@@ -136,14 +136,21 @@ const installMain = () => {
           'cancel_building', 'cancel_research',
         ].includes(page)) {
           // resources can be in different keys
-          const fe = xhr.responseJSON.roheisen || xhr.responseJSON.Roheisen || xhr.responseJSON.resource.roheisen;
-          const kris = xhr.responseJSON.kristall || xhr.responseJSON.Kristall || xhr.responseJSON.resource.kristall;
-          const frub = xhr.responseJSON.frubin || xhr.responseJSON.Frubin || xhr.responseJSON.resource.frubin;
-          const ori = xhr.responseJSON.orizin || xhr.responseJSON.Orizin || xhr.responseJSON.resource.orizin;
-          const fruro = xhr.responseJSON.frurozin || xhr.responseJSON.Frurozin || xhr.responseJSON.resource.frurozin;
-          const gold = xhr.responseJSON.gold || xhr.responseJSON.Gold || xhr.responseJSON.resource.gold;
-          if (fe && kris && frub && ori && fruro && gold) {
-            config.getGameData.setResources([fe, kris, frub, ori, fruro, gold]);
+          try {
+            const response = JSON.parse(xhr.responseText);
+            const fe = response.roheisen || response.Roheisen || response.resource.roheisen || response.resource.Roheisen;
+            const kris = response.kristall || response.Kristall || response.resource.kristall || response.resource.Kristall;
+            const frub = response.frubin || response.Frubin || response.resource.frubin || response.resource.Frubin;
+            const ori = response.orizin || response.Orizin || response.resource.orizin || response.resource.Orizin;
+            const fruro = response.frurozin || response.Frurozin || response.resource.frurozin || response.resource.Frurozin;
+            const gold = response.gold || response.Gold || response.resource.gold || response.resource.Gold;
+            if (fe && kris && frub && ori && fruro && gold) {
+              config.getGameData.setResources([fe, kris, frub, ori, fruro, gold]);
+            } else {
+              console.warn('could not parse responseText for setResources function', xhr.responseText);
+            }
+          } catch (e) {
+            console.warn('could not parse responseText for setResources function', xhr.responseText);
           }
         }
 
@@ -175,9 +182,7 @@ const installMain = () => {
       }
     });
 
-    // reload addOns on focus
-    // addOns contain timer that may pause when the tab in the browser is not active, hence the reload
-    siteWindow.jQuery(siteWindow).focus(() => { addOns.load(siteWindow.active_page); });
+    // siteWindow.jQuery(siteWindow).focus(() => { addOns.load(siteWindow.active_page); });
   });
 };
 
