@@ -1,11 +1,11 @@
 import {
   gmConfig, siteWindow, lwmJQ, gmSetValue, gmGetValue,
 } from 'config/globals';
-import { getObsInfo, getSpionageInfo, getFlottenbewegungenInfo } from 'utils/requests';
-import config from 'config/lwmConfig';
 import {
-  throwError, getIncomingResArray,
-} from 'utils/helper';
+  getObsInfo, getSpionageInfo, getFlottenbewegungenInfo, getTradeOffers,
+} from 'utils/requests';
+import config from 'config/lwmConfig';
+import { getIncomingResArray } from 'utils/helper';
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
 import driveManager from 'plugins/driveManager';
@@ -23,7 +23,7 @@ const addOns = {
     tradeRefreshInterval: null,
     capacityRefreshInterval: null,
     clockInterval: null,
-    resourceCounter: null,
+    resourceIntervals: null,
   },
   load() {
     if (gmConfig.get('addon_fleet') && config.loadStates.lastLoadedPage !== 'flottenbewegungen') {
@@ -38,8 +38,8 @@ const addOns = {
 
     addOns.refreshTrades();
     if (gmConfig.get('addon_clock')) addOns.addClockInterval();
-    if (gmConfig.get('res_updates') && addOns.config.resourceCounter === null) {
-      addOns.config.resourceCounter = addOns.addCustomResourceCounter();
+    if (gmConfig.get('res_updates') && addOns.config.resourceIntervals === null) {
+      addOns.config.resourceIntervals = addOns.addCustomResourceCounter();
     }
   },
   unload() {
@@ -49,40 +49,20 @@ const addOns = {
       addOns.config.capacityRefreshInterval = null;
     }
     if (addOns.config.clockInterval !== null) { workerTimers.clearInterval(addOns.config.clockInterval); addOns.config.clockInterval = null; }
-    if (addOns.config.resourceCounter !== null) {
-      workerTimers.clearInterval(addOns.config.resourceCounter);
+    if (addOns.config.resourceIntervals !== null) {
+      addOns.config.resourceIntervals();
       addOns.config.resourceCounter = null;
     }
   },
   // refresh trades every minute to make it unnecessary to visit the trade page for trade to go through
   refreshTrades() {
-    const requestTrades = () => {
-      const uriData = `galaxy_check=${config.gameData.planetCoords.galaxy}&system_check=${config.gameData.planetCoords.system}&planet_check=${config.gameData.planetCoords.planet}`;
-      siteWindow.jQuery.ajax({
-        url: `/ajax_request/get_trade_offers.php?${uriData}`,
-        data: { lwm_ignoreProcess: 1 },
-        timeout: config.promises.interval.ajaxTimeout,
-        success: (data) => {
-          if (data === '500' || typeof data.resource === 'undefined') return;
-          // siteWindow.Roheisen = parseInt(data.resource.Roheisen, 10);
-          // siteWindow.Kristall = parseInt(data.resource.Kristall, 10);
-          // siteWindow.Frubin = parseInt(data.resource.Frubin, 10);
-          // siteWindow.Orizin = parseInt(data.resource.Orizin, 10);
-          // siteWindow.Frurozin = parseInt(data.resource.Frurozin, 10);
-          // siteWindow.Gold = parseInt(data.resource.Gold, 10);
-        },
-        error() { throwError(); },
-        dataType: 'json',
-      });
-    };
-
     // always refresh trades once after login or planet change
-    if (config.firstLoad) requestTrades();
+    if (config.firstLoad) getTradeOffers();
 
     // refresh interval
     if (addOns.config.tradeRefreshInterval !== null) return; // allready installed
     addOns.config.tradeRefreshInterval = workerTimers.setInterval(() => {
-      requestTrades();
+      getTradeOffers();
     }, 60000);
   },
   // checks whether trades would surpass resource capacities and highlights a warning
