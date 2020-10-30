@@ -4,6 +4,7 @@ import { siteWindow } from 'config/globals';
 // import provideIntervalWorker from 'utils/intervalWorker';
 import calculateResourcePerSec from 'utils/resourceTickLastWarFuncs';
 import * as workerTimers from 'worker-timers';
+import { getRohstoffeKreditInfo, getTradeOffers } from 'utils/requests';
 
 let {
   Roheisen, Kristall, Frubin, Orizin, Frurozin, Gold,
@@ -24,7 +25,11 @@ export default () => {
   siteWindow.stopWorkerForResource();
   siteWindow.stopWorkerForResource = () => {};
 
-  return workerTimers.setInterval(() => {
+  const resRefreshInterval = workerTimers.setInterval(() => {
+    getRohstoffeKreditInfo().done(() => getTradeOffers()).fail(() => {});
+  }, 60000);
+
+  const resIncrementInterval = workerTimers.setInterval(() => {
     const {
       Energy, lvlRoheisen, lvlKristall, lvlFrubin, lvlOrizin, lvlFrurozin, lvlGold, planeten_klass, rase,
       RoheisenLagerCapacity, KristallLagerCapacity, FrubinLagerCapacity, OrizinLagerCapacity, FrurozinLagerCapacity, GoldLagerCapacity,
@@ -258,4 +263,9 @@ export default () => {
       }
     }
   }, 1000);
+
+  return () => {
+    workerTimers.clearInterval(resIncrementInterval);
+    workerTimers.clearInterval(resRefreshInterval);
+  };
 };

@@ -25,6 +25,18 @@ const getObsInfo = () => siteWindow.jQuery.ajax({
   data: { lwm_ignoreProcess: 1 },
   timeout: config.promises.interval.ajaxTimeout,
 });
+const getTradeOffers = () => siteWindow.jQuery.ajax({
+  url: `/ajax_request/get_trade_offers.php?galaxy_check=${config.gameData.planetCoords.galaxy}&system_check=${config.gameData.planetCoords.system}&planet_check=${config.gameData.planetCoords.planet}`,
+  dataType: 'json',
+  data: { lwm_ignoreProcess: 1 },
+  timeout: config.promises.interval.ajaxTimeout,
+});
+const getRohstoffeKreditInfo = () => siteWindow.jQuery.ajax({
+  url: `/ajax_request/get_rohstoffe_kredit_info.php?galaxy_check=${config.gameData.planetCoords.galaxy}&system_check=${config.gameData.planetCoords.system}&planet_check=${config.gameData.planetCoords.planet}`,
+  dataType: 'json',
+  data: { lwm_ignoreProcess: 1 },
+  timeout: config.promises.interval.ajaxTimeout,
+});
 const changePlanet = (coords) => {
   const coordsSplit = coords.split('x');
   return siteWindow.jQuery.ajax({
@@ -47,5 +59,5 @@ const changePlanet = (coords) => {
 };
 
 export {
-  getFlottenbewegungenInfo, getSpionageInfo, getObsInfo, changePlanet, getUebersichtInfo,
+  getFlottenbewegungenInfo, getSpionageInfo, getObsInfo, changePlanet, getUebersichtInfo, getTradeOffers, getRohstoffeKreditInfo,
 };
