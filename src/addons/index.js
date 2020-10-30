@@ -209,7 +209,7 @@ const addOns = {
             type: 'fleet',
             name: fleetData.id || 0,
             duration: 0,
-            text: `Flotte Typ ${lang.types[fleetData.Type] || fleetData.name} mit Status ${lang.status[fleetData.Status || 1]} und Coords ${fleetData.Galaxy_send || fleetData.galaxy}x${fleetData.System_send || fleetData.system}x${fleetData.Planet_send || fleetData.planet}`,
+            text: `Flotte Typ ${lang.types[fleetData.Type] || fleetData.name || 'Handelsposten'} mit Status ${lang.status[fleetData.Status || 1]} und Coords ${fleetData.Galaxy_send || fleetData.galaxy || siteWindow.my_galaxy}x${fleetData.System_send || fleetData.system || siteWindow.my_system}x${fleetData.Planet_send || fleetData.planet || siteWindow.my_planet}`,
             ts: moment(time).valueOf(),
           });
           return true;
