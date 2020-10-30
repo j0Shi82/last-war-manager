@@ -68,58 +68,56 @@ export default () => {
 
     // add button to save all res
     const buttonAll = createElementFromHTML('<a class="formButtonNewMessage" style="float: none;" href="#">Alle Resourcen</a>');
-    if (isPremium()) {
-      buttonAll.addEventListener('click', () => {
+    buttonAll.addEventListener('click', () => {
+      if (isPremium()) {
         docQuery('#my_eisen').value = Math.round((siteWindow.Roheisen - ((siteWindow.Roheisen * siteWindow.lose) / 100)));
         docQuery('#my_kristall').value = Math.round((siteWindow.Kristall - ((siteWindow.Kristall * siteWindow.lose) / 100)));
         docQuery('#my_frubin').value = Math.round((siteWindow.Frubin - ((siteWindow.Frubin * siteWindow.lose) / 100)));
         docQuery('#my_orizin').value = Math.round((siteWindow.Orizin - ((siteWindow.Orizin * siteWindow.lose) / 100)));
         docQuery('#my_frurozin').value = Math.round((siteWindow.Frurozin - ((siteWindow.Frurozin * siteWindow.lose) / 100)));
         docQuery('#my_gold').value = Math.round((siteWindow.Gold - ((siteWindow.Gold * siteWindow.lose) / 100)));
-        if (docQuery('#his_eisen').value === '0') docQuery('#his_eisen').value = '1';
-        docQuery('#his_gold').value = '0';
-        docQuery('#tradeOfferComment').value = '';
+      }
+      if (docQuery('#his_eisen').value === '0') docQuery('#his_eisen').value = '1';
+      docQuery('#his_gold').value = '0';
+      docQuery('#tradeOfferComment').value = '';
 
-        // get config default coords and fill in
-        const defaultCoords = `${gmConfig.get('coords_galaxy_main')}x${gmConfig.get('coords_system_main')}x${gmConfig.get('coords_planet_main')}`;
-        const currentPlanetCoords = `${siteWindow.my_galaxy}x${siteWindow.my_system}x${siteWindow.my_planet}`;
-        if (gmConfig.get('coords_galaxy_main') !== '0'
+      // get config default coords and fill in
+      const defaultCoords = `${gmConfig.get('coords_galaxy_main')}x${gmConfig.get('coords_system_main')}x${gmConfig.get('coords_planet_main')}`;
+      const currentPlanetCoords = `${siteWindow.my_galaxy}x${siteWindow.my_system}x${siteWindow.my_planet}`;
+      if (gmConfig.get('coords_galaxy_main') !== '0'
             && gmConfig.get('coords_system_main') !== '0'
             && gmConfig.get('coords_planet_main') !== '0'
             && docQuery('#galaxyTrade').value === ''
             && docQuery('#systemTrade').value === ''
             && docQuery('#planetTrade').value === ''
             && defaultCoords !== currentPlanetCoords) {
-          docQuery('#galaxyTrade').value = gmConfig.get('coords_galaxy_main');
-          docQuery('#systemTrade').value = gmConfig.get('coords_system_main');
-          docQuery('#planetTrade').value = gmConfig.get('coords_planet_main');
-        }
-      });
-      lastTR.querySelector('td:nth-child(2) .buttonRow').appendChild(buttonAll);
-    }
+        docQuery('#galaxyTrade').value = gmConfig.get('coords_galaxy_main');
+        docQuery('#systemTrade').value = gmConfig.get('coords_system_main');
+        docQuery('#planetTrade').value = gmConfig.get('coords_planet_main');
+      }
+    });
+    if (isPremium()) lastTR.querySelector('td:nth-child(2) .buttonRow').appendChild(buttonAll);
 
     // add button to secure all res
     const buttonSecureAll = createElementFromHTML('<a class="formButtonNewMessage" style="float: none;" href="#">Savehandel</a>');
-    if (isPremium()) {
-      buttonSecureAll.addEventListener('click', () => {
-        buttonAll.click();
-        docQuery('#his_gold').value = '99999999';
-        docQuery('#his_eisen').value = '0';
-        docQuery('#tradeOfferComment').value = '###LWM::SAVE###';
+    buttonSecureAll.addEventListener('click', () => {
+      buttonAll.click();
+      docQuery('#his_gold').value = '99999999';
+      docQuery('#his_eisen').value = '0';
+      docQuery('#tradeOfferComment').value = '###LWM::SAVE###';
 
-        const selectedCoords = `${docQuery('#galaxyTrade').value}x${docQuery('#systemTrade').value}x${docQuery('#planetTrade').value}`;
-        const currentPlanetCoords = `${siteWindow.my_galaxy}x${siteWindow.my_system}x${siteWindow.my_planet}`;
-        if (docQuery('#lwm-own-coords').options.length > 1
+      const selectedCoords = `${docQuery('#galaxyTrade').value}x${docQuery('#systemTrade').value}x${docQuery('#planetTrade').value}`;
+      const currentPlanetCoords = `${siteWindow.my_galaxy}x${siteWindow.my_system}x${siteWindow.my_planet}`;
+      if (docQuery('#lwm-own-coords').options.length > 1
             && (
               config.gameData.planets.filter((el) => el.string === selectedCoords).length === 0
               || selectedCoords === currentPlanetCoords
             )) {
-          docQuery('#lwm-own-coords').selectedIndex = 1;
-          docQuery('#lwm-own-coords').dispatchEvent(new siteWindow.Event('change'));
-        }
-      });
-      lastTR.querySelector('td:nth-child(2) .buttonRow').appendChild(buttonSecureAll);
-    }
+        docQuery('#lwm-own-coords').selectedIndex = 1;
+        docQuery('#lwm-own-coords').dispatchEvent(new siteWindow.Event('change'));
+      }
+    });
+    lastTR.querySelector('td:nth-child(2) .buttonRow').appendChild(buttonSecureAll);
 
     // add own chords to select
     const select = docQuery('#lwm-own-coords');
