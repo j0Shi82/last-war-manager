@@ -32,6 +32,7 @@ export default () => {
     // install handler to attach report links on browsing message pages
     if (!config.pages.inbox.reportHandler) {
       document.addEventListener('click', (e) => {
+        if (!['get_inbox_message', 'get_message_info'].includes(config.loadStates.lastLoadedPage)) return;
         if (!e.target.classList.contains('formButton')) return;
         if (e.target.getAttribute('onclick').search(/nextPage|previousPage/) === -1) return;
         if (![2, 4].includes(siteWindow.window.current_view_type)) return;
