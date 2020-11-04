@@ -4,7 +4,6 @@ import { siteWindow } from 'config/globals';
 // import provideIntervalWorker from 'utils/intervalWorker';
 import calculateResourcePerSec from 'utils/resourceTickLastWarFuncs';
 import * as workerTimers from 'worker-timers';
-import { getRohstoffeKreditInfo, getTradeOffers } from 'utils/requests';
 
 let {
   Roheisen, Kristall, Frubin, Orizin, Frurozin, Gold,
@@ -19,17 +18,21 @@ const reloadTickResources = () => {
   Gold = siteWindow.Gold;
 };
 
+let resIncrementIntervalTime = new Date();
+
 export { reloadTickResources };
 
 export default () => {
   siteWindow.stopWorkerForResource();
   siteWindow.stopWorkerForResource = () => {};
 
-  const resRefreshInterval = workerTimers.setInterval(() => {
-    getRohstoffeKreditInfo().done(() => getTradeOffers()).fail(() => {});
-  }, 60000);
+  resIncrementIntervalTime = new Date();
 
   const resIncrementInterval = workerTimers.setInterval(() => {
+    const now = new Date();
+    const deltaTimeFactor = ((now - resIncrementIntervalTime) / 1000);
+    resIncrementIntervalTime = now;
+
     const {
       Energy, lvlRoheisen, lvlKristall, lvlFrubin, lvlOrizin, lvlFrurozin, lvlGold, planeten_klass, rase,
       RoheisenLagerCapacity, KristallLagerCapacity, FrubinLagerCapacity, OrizinLagerCapacity, FrurozinLagerCapacity, GoldLagerCapacity,
@@ -44,7 +47,7 @@ export default () => {
 
     const lvlBuildings = [lvlRoheisen, lvlKristall, lvlFrubin, lvlOrizin, lvlFrurozin, lvlGold];
 
-    const response_from_function = calculateResourcePerSec(lvlBuildings, planeten_klass, rase);
+    const response_from_function = calculateResourcePerSec(lvlBuildings, planeten_klass, rase).map((v) => v * deltaTimeFactor);
 
     const sek_Roheisen = response_from_function[0] * energyProc;
     const sek_Kristall = response_from_function[1] * energyProc;
@@ -83,10 +86,10 @@ export default () => {
     }
 
     if (siteWindow.roheisen_kredit_rest > 0) {
-      if (siteWindow.roheisen_kredit_rest > siteWindow.roheisen_kredit_per_sec) {
-        Roheisen -= siteWindow.roheisen_kredit_per_sec;
+      if (siteWindow.roheisen_kredit_rest > (siteWindow.roheisen_kredit_per_sec * deltaTimeFactor)) {
+        Roheisen -= siteWindow.roheisen_kredit_per_sec * deltaTimeFactor;
 
-        siteWindow.roheisen_kredit_rest -= siteWindow.roheisen_kredit_per_sec;
+        siteWindow.roheisen_kredit_rest -= (siteWindow.roheisen_kredit_per_sec * deltaTimeFactor);
       } else {
         Roheisen -= siteWindow.roheisen_kredit_rest;
 
@@ -95,10 +98,10 @@ export default () => {
     }
 
     if (siteWindow.kristall_kredit_rest > 0) {
-      if (siteWindow.kristall_kredit_rest > siteWindow.kristall_kredit_per_sec) {
-        Kristall -= siteWindow.kristall_kredit_per_sec;
+      if (siteWindow.kristall_kredit_rest > (siteWindow.kristall_kredit_per_sec * deltaTimeFactor)) {
+        Kristall -= siteWindow.kristall_kredit_per_sec * deltaTimeFactor;
 
-        siteWindow.kristall_kredit_rest -= siteWindow.kristall_kredit_per_sec;
+        siteWindow.kristall_kredit_rest -= siteWindow.kristall_kredit_per_sec * deltaTimeFactor;
       } else {
         Kristall -= siteWindow.kristall_kredit_rest;
 
@@ -107,10 +110,10 @@ export default () => {
     }
 
     if (siteWindow.frubin_kredit_rest > 0) {
-      if (siteWindow.frubin_kredit_rest > siteWindow.frubin_kredit_per_sec) {
-        Frubin -= siteWindow.frubin_kredit_per_sec;
+      if (siteWindow.frubin_kredit_rest > (siteWindow.frubin_kredit_per_sec * deltaTimeFactor)) {
+        Frubin -= siteWindow.frubin_kredit_per_sec * deltaTimeFactor;
 
-        siteWindow.frubin_kredit_rest -= siteWindow.frubin_kredit_per_sec;
+        siteWindow.frubin_kredit_rest -= siteWindow.frubin_kredit_per_sec * deltaTimeFactor;
       } else {
         Frubin -= siteWindow.frubin_kredit_rest;
 
@@ -119,10 +122,10 @@ export default () => {
     }
 
     if (siteWindow.orizin_kredt_rest > 0) {
-      if (siteWindow.orizin_kredt_rest > siteWindow.orizin_kredt_per_sec) {
-        Orizin -= siteWindow.orizin_kredt_per_sec;
+      if (siteWindow.orizin_kredt_rest > (siteWindow.orizin_kredt_per_sec * deltaTimeFactor)) {
+        Orizin -= siteWindow.orizin_kredt_per_sec * deltaTimeFactor;
 
-        siteWindow.orizin_kredt_rest -= siteWindow.orizin_kredt_per_sec;
+        siteWindow.orizin_kredt_rest -= siteWindow.orizin_kredt_per_sec * deltaTimeFactor;
       } else {
         Orizin -= siteWindow.orizin_kredt_rest;
 
@@ -131,10 +134,10 @@ export default () => {
     }
 
     if (siteWindow.frurozin_kredit_rest > 0) {
-      if (siteWindow.frurozin_kredit_rest > siteWindow.frurozin_kredit_per_sec) {
-        Frurozin -= siteWindow.frurozin_kredit_per_sec;
+      if (siteWindow.frurozin_kredit_rest > (siteWindow.frurozin_kredit_per_sec * deltaTimeFactor)) {
+        Frurozin -= siteWindow.frurozin_kredit_per_sec * deltaTimeFactor;
 
-        siteWindow.frurozin_kredit_rest -= siteWindow.frurozin_kredit_per_sec;
+        siteWindow.frurozin_kredit_rest -= siteWindow.frurozin_kredit_per_sec * deltaTimeFactor;
       } else {
         Frurozin -= siteWindow.frurozin_kredit_rest;
 
@@ -155,8 +158,6 @@ export default () => {
     siteWindow.Orizin_Full_Storage = Math.round((Orizin * 100) / OrizinLagerCapacity);
     siteWindow.Frurozin_Full_Storage = Math.round((Frurozin * 100) / FrurozinLagerCapacity);
     siteWindow.Gold_Full_Storage = Math.round((Gold * 100) / GoldLagerCapacity);
-
-    // od 10 pravugaonika koliko je popunjeno ;)
 
     let Roheisen_Storage_mod_10 = Math.round(siteWindow.Roheisen_Full_Storage / 10);
     let Kristall_Storage_mod_10 = Math.round(siteWindow.Kristall_Full_Storage / 10);

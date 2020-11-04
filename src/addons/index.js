@@ -24,6 +24,7 @@ const addOns = {
     capacityRefreshInterval: null,
     clockInterval: null,
     resourceIntervals: null,
+    clockIntervalTime: new Date(),
   },
   load() {
     if (gmConfig.get('addon_fleet') && config.loadStates.lastLoadedPage !== 'flottenbewegungen') {
@@ -87,20 +88,24 @@ const addOns = {
   },
   addClockInterval() {
     if (addOns.config.clockInterval !== null) return;
+    addOns.config.clockIntervalTime = new Date();
     addOns.config.clockInterval = workerTimers.setInterval(() => {
+      const now = new Date();
+      const deltaTime = (now - addOns.config.clockIntervalTime) / 1000;
+      addOns.config.clockIntervalTime = now;
       lwmJQ('[id*=\'clock\'],[id*=\'Clock\']').each((i, el) => {
         const self = lwmJQ(el);
         // skip elements that don't have data attribute
         if (typeof self.data('clock_seconds') === 'undefined') return true;
 
-        const data = parseInt(self.data('clock_seconds'), 10) - 1;
+        const data = parseFloat(self.data('clock_seconds')) - deltaTime;
         self.data('clock_seconds', data);
         if (data < 0) {
           self.html('--:--:--');
         } else {
-          const md = moment.duration(data, 'seconds');
+          const md = moment.duration(parseInt(data, 10), 'seconds');
           self
-            .attr('title', moment().add(data, 'seconds').format('YYYY-MM-DD HH:mm:ss'))
+            .attr('title', moment().add(parseInt(data, 10), 'seconds').format('YYYY-MM-DD HH:mm:ss'))
             .addClass('popover')
             .html(md.format('HH:mm:ss', {
               trim: false,
