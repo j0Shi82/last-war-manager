@@ -24,7 +24,7 @@ export default () => {
     // we do this after updating loadstate to not slow down page load
     const addReportLink = (message) => {
       const type = message.subject.search(/Kampfbericht/) !== -1 ? 'view_report_attack' : 'planetenscanner_view';
-      const linkElement = createElementFromHTML(`<a target='_blank' href='https://last-war.de/${type}.php?id=${message.reportID}&user=${config.gameData.playerID}'><i style='margin-left: 5px;' class='fas fa-external-link-alt'></i></a>`);
+      const linkElement = createElementFromHTML(`<a target='_blank' href='${siteWindow.location.origin}/${type}.php?id=${message.reportID}&user=${config.gameData.playerID}'><i style='margin-left: 5px;' class='fas fa-external-link-alt'></i></a>`);
       const msgEl = docQuery(`[onclick*='${message.id}']`);
       if (msgEl !== null) msgEl.parentNode.appendChild(linkElement);
     };

@@ -245,6 +245,11 @@ select {
 
 #lwm_menu_toggle i {
   cursor: pointer;
+
+  &.inactive {
+    color: #862121;
+    cursor: default;
+  }
 }
 
 #lwm_menu_toggle {

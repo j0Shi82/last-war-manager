@@ -76,7 +76,6 @@ export default {
         return true;
       });
 
-
       if (lwmWindow.matchMedia('(min-width: 849px)').matches) {
         // layout fix v0.9.0
         let $secondMenuLine = lwmJQ('.menu .secound_line');
@@ -95,7 +94,6 @@ export default {
         lwmJQ('#link .navButton, #veticalLink .navButton').appendTo($submenuLinkBox);
         $submenuLinkBox.toggleClass('active', $submenuLinkBox.find('.navButton').length > 0);
       }
-
 
       config.loadStates.submenu = false;
     }).catch((e) => {

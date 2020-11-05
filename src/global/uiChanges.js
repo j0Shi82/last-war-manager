@@ -13,6 +13,9 @@ const { document, alert } = lwmWindow;
 const isPremium = () => siteWindow.premium_account === 1;
 
 export default () => {
+  // attach loader for first page load
+  lwmJQ('body').append('<div class="loader lwm-firstload"></div><div class="status lwm-firstload"></div>');
+
   /* delete propassssss */
   lwmJQ('#propassssss').trigger('blur');
   lwmJQ('#propassssss,#loader,.ui-loader').remove();
@@ -20,9 +23,6 @@ export default () => {
   // add mobile support
   lwmJQ('meta[name=\'viewport\']').remove();
   lwmJQ('head').append('<meta name="viewport" content="width=device-width, initial-scale=1.0">');
-
-  // attach loader for first page load
-  lwmJQ('body').append('<div class="loader lwm-firstload"></div><div class="status lwm-firstload"></div>');
 
   // remove native mobile support
   lwmJQ('#portrait_screen').remove();
@@ -44,11 +44,31 @@ export default () => {
                                     + '</div>');
   $menuToggle.find('.fa-home').click(() => { siteWindow.changeContent('ubersicht', 'first', 'Übersicht'); });
   $menuToggle.find('.fa-warehouse').click(() => { siteWindow.changeContent('construction', 'first', 'Konstruktion'); });
-  $menuToggle.find('.fa-database').click(() => { siteWindow.changeContent('research', 'first', 'Forschung'); });
-  $menuToggle.find('.fa-shield-alt').click(() => { siteWindow.changeContent('verteidigung', 'first', 'Verteidigung'); });
-  $menuToggle.find('.fa-fighter-jet').click(() => { siteWindow.changeContent('produktion', 'first', 'Produktion'); });
+  if (siteWindow.lvlForschungszentrale > 0) {
+    $menuToggle.find('.fa-database').click(() => { siteWindow.changeContent('research', 'first', 'Forschung'); });
+  } else {
+    $menuToggle.find('.fa-database').addClass('inactive');
+  }
+  if (siteWindow.lvlVerteidigungsstation > 0) {
+    $menuToggle.find('.fa-shield-alt').click(() => { siteWindow.changeContent('verteidigung', 'first', 'Verteidigung'); });
+  } else {
+    $menuToggle.find('.fa-shield-alt').addClass('inactive');
+  }
+  $menuToggle.find('.fa-fighter-jet').click(() => {
+    if (siteWindow.lvlRaumschiffFabrik > 0) {
+      siteWindow.changeContent('produktion', 'first', 'Produktion');
+    } else {
+      $menuToggle.find('.fa-fighter-jet').addClass('inactive');
+    }
+  });
   $menuToggle.find('.fa-plane-departure').click(() => { siteWindow.changeContent('flottenkommando', 'second', 'Flotten-Kommando'); });
-  $menuToggle.find('.fa-handshake').click(() => { siteWindow.changeContent('new_trade_offer', 'second', 'Handelsangebot'); });
+  $menuToggle.find('.fa-handshake').click(() => {
+    if (siteWindow.lvlHandelszentrum > 0) {
+      siteWindow.changeContent('new_trade_offer', 'second', 'Handelsangebot');
+    } else {
+      siteWindow.changeContent('trade_offer', 'first', 'Handel');
+    }
+  });
   $menuToggle.find('.fa-envelope').click(() => { siteWindow.changeContent('inbox', 'first', 'Nachrichten', 'notifiscationMessageList'); });
   $menuToggle.find('.icon-galaxy').click(() => { siteWindow.changeContent('galaxy_view', 'first', 'Galaxieansicht'); });
   $menuToggle.find('.fa-sign-out-alt').click(() => { siteWindow.logoutRequest(); });
