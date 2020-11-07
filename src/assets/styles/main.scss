@@ -247,7 +247,7 @@ select {
   cursor: pointer;
 
   &.inactive {
-    color: #862121;
+    color:rgba(0, 0, 0, 0.25);
     cursor: default;
   }
 }
@@ -678,6 +678,15 @@ tr th:first-child,
 
 .headerOfGalaxyViewPage .formButtonGalaxyView i {
   line-height: 2em;
+}
+
+.menu_box.inactive {
+  border: 2px groove rgba(124, 243, 241, 0.25);
+  // background-color: rgb(66 144 161 / 17%);
+  background-color: none;
+  color: rgba(124, 243, 253, 0.25);
+  pointer-events: none;
+  cursor: default;
 }
 
 .menu_box i + span {

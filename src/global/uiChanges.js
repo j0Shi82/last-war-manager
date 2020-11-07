@@ -54,21 +54,17 @@ export default () => {
   } else {
     $menuToggle.find('.fa-shield-alt').addClass('inactive');
   }
-  $menuToggle.find('.fa-fighter-jet').click(() => {
-    if (siteWindow.lvlRaumschiffFabrik > 0) {
-      siteWindow.changeContent('produktion', 'first', 'Produktion');
-    } else {
-      $menuToggle.find('.fa-fighter-jet').addClass('inactive');
-    }
-  });
+  if (siteWindow.lvlRaumschiffFabrik > 0) {
+    $menuToggle.find('.fa-fighter-jet').click(() => { siteWindow.changeContent('produktion', 'first', 'Produktion'); });
+  } else {
+    $menuToggle.find('.fa-fighter-jet').addClass('inactive');
+  }
   $menuToggle.find('.fa-plane-departure').click(() => { siteWindow.changeContent('flottenkommando', 'second', 'Flotten-Kommando'); });
-  $menuToggle.find('.fa-handshake').click(() => {
-    if (siteWindow.lvlHandelszentrum > 0) {
-      siteWindow.changeContent('new_trade_offer', 'second', 'Handelsangebot');
-    } else {
-      siteWindow.changeContent('trade_offer', 'first', 'Handel');
-    }
-  });
+  if (siteWindow.lvlHandelszentrum > 0) {
+    $menuToggle.find('.fa-handshake').click(() => { siteWindow.changeContent('new_trade_offer', 'second', 'Handelsangebot'); });
+  } else {
+    siteWindow.changeContent('trade_offer', 'first', 'Handel');
+  }
   $menuToggle.find('.fa-envelope').click(() => { siteWindow.changeContent('inbox', 'first', 'Nachrichten', 'notifiscationMessageList'); });
   $menuToggle.find('.icon-galaxy').click(() => { siteWindow.changeContent('galaxy_view', 'first', 'Galaxieansicht'); });
   $menuToggle.find('.fa-sign-out-alt').click(() => { siteWindow.logoutRequest(); });
@@ -200,8 +196,11 @@ export default () => {
   lwmJQ('#ubersicht').prepend('<i class="fas fa-home"></i>');
   lwmJQ('#construction').prepend('<i class="fas fa-warehouse"></i>');
   lwmJQ('#research').prepend('<i class="fas fa-database"></i>');
+  if (siteWindow.lvlForschungszentrale < 1) lwmJQ('#research').addClass('inactive');
   lwmJQ('#verteidigung').prepend('<i class="fas fa-shield-alt"></i>');
+  if (siteWindow.lvlVerteidigungsstation < 1) lwmJQ('#verteidigung').addClass('inactive');
   lwmJQ('#produktion').prepend('<i class="fas fa-fighter-jet"></i>');
+  if (siteWindow.lvlRaumschiffFabrik < 1) lwmJQ('#produktion').addClass('inactive');
   lwmJQ('#flottenbewegungen').after(lwmJQ('#flottenbewegungen').clone().prepend('<i class="far fa-calendar"></i>').attr('id', 'calendar'));
   lwmJQ('#calendar span').text('Kalender');
   if (isPremium()) {

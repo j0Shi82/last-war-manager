@@ -17,8 +17,9 @@ const config = {
           1: 'Att',
           2: 'Transport',
           3: 'Def',
-          4: 'Drone',
+          4: 'Kolo',
           5: 'Transfer',
+          6: 'Drone',
         },
         status: {
           1: 'Incoming',
