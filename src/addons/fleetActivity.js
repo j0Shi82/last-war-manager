@@ -231,19 +231,19 @@ export default async (page) => {
 
   config.gameData.fleetInfo.all_informations.forEach((fleetData) => {
     // add missing info for drones
-    fleetData.Type = '4'; fleetData.Status = '1';
+    fleetData.Type = '6'; fleetData.Status = '1';
     filter.add(fleetData);
     fleetRowElements.push(createElementFromHTML(`<tr class="lwm-hideable lwm-fleet" data-type="${fleetData.Type || ''}" data-status="${fleetData.Status || ''}" data-coords="${fleetData.homePlanet}"><td>${iconDrone}Eigene ${fleetData.name} von Planet <b>${fleetData.homePlanet}</b> ist unterwegs nach ( <b>${fleetData.galaxy}x${fleetData.system}</b> )</td><td>${fleetData.time}</td><td id='clock_${fleetData.clock_id}'>${getFleetTimerString(fleetData.time)}</td></tr>`));
   });
 
   config.gameData.fleetInfo.dron_observationens.forEach((fleetData) => {
-    fleetData.Type = '4'; fleetData.Status = '1';
+    fleetData.Type = '6'; fleetData.Status = '1';
     filter.add(fleetData);
     fleetRowElements.push(createElementFromHTML(`<tr class="lwm-hideable lwm-fleet" data-type="${fleetData.Type || ''}" data-status="${fleetData.Status || ''}" data-coords="${fleetData.homePlanet}"><td>${iconDrone}Eigene ${fleetData.name} von Planet <b>${fleetData.homePlanet}</b> ist unterwegs nach ( <b>${fleetData.galaxy}x${fleetData.system}x${fleetData.planet}</b> )</td><td>${fleetData.time}</td><td id='clock_${fleetData.clock_id}'>${getFleetTimerString(fleetData.time)}</td></tr>`));
   });
 
   config.gameData.fleetInfo.dron_planetenscanners.forEach((fleetData) => {
-    fleetData.Type = '4'; fleetData.Status = '1';
+    fleetData.Type = '6'; fleetData.Status = '1';
     filter.add(fleetData);
     fleetRowElements.push(createElementFromHTML(`<tr class="lwm-hideable lwm-fleet" data-type="${fleetData.Type || ''}" data-status="${fleetData.Status || ''}" data-coords="${fleetData.homePlanet}"><td>${iconDrone}Eigene ${fleetData.name} von Planet <b>${fleetData.homePlanet}</b> ist unterwegs nach ( <b>${fleetData.galaxy}x${fleetData.system}x${fleetData.planet}</b> )</td><td>${fleetData.time}</td><td id='clock_${fleetData.clock_id}'>${getFleetTimerString(fleetData.time)}</td></tr>`));
   });
