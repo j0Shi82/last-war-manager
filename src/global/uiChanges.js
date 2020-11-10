@@ -63,7 +63,7 @@ export default () => {
   if (siteWindow.lvlHandelszentrum > 0) {
     $menuToggle.find('.fa-handshake').click(() => { siteWindow.changeContent('new_trade_offer', 'second', 'Handelsangebot'); });
   } else {
-    siteWindow.changeContent('trade_offer', 'first', 'Handel');
+    $menuToggle.find('.fa-handshake').click(() => { siteWindow.changeContent('trade_offer', 'first', 'Handel'); });
   }
   $menuToggle.find('.fa-envelope').click(() => { siteWindow.changeContent('inbox', 'first', 'Nachrichten', 'notifiscationMessageList'); });
   $menuToggle.find('.icon-galaxy').click(() => { siteWindow.changeContent('galaxy_view', 'first', 'Galaxieansicht'); });
