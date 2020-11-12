@@ -9,13 +9,8 @@ let {
   Roheisen, Kristall, Frubin, Orizin, Frurozin, Gold,
 } = siteWindow;
 
-const reloadTickResources = () => {
-  Roheisen = siteWindow.Roheisen;
-  Kristall = siteWindow.Kristall;
-  Frubin = siteWindow.Frubin;
-  Orizin = siteWindow.Orizin;
-  Frurozin = siteWindow.Frurozin;
-  Gold = siteWindow.Gold;
+const reloadTickResources = (data) => {
+  [Roheisen, Kristall, Frubin, Orizin, Frurozin, Gold] = data;
 };
 
 let resIncrementIntervalTime = new Date();

@@ -305,7 +305,7 @@ const config = {
         || data[4] !== config.gameData.resources[4]
         || data[5] !== config.gameData.resources[5]
       ) {
-        reloadTickResources();
+        reloadTickResources(data);
         config.gameData.resources = data;
       }
     },
