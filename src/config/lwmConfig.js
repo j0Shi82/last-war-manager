@@ -76,6 +76,7 @@ const config = {
     productionInfos: [],
     overviewInfo: {},
     messageData: {},
+    newTradeOfferInfo: {},
     fleetInfo: {},
     fleetSendData: {},
     observationInfo: {},
@@ -298,20 +299,20 @@ const config = {
     },
     setResources: (data) => {
       if (
-        data[0] !== config.gameData.resources[0]
-        || data[1] !== config.gameData.resources[1]
-        || data[2] !== config.gameData.resources[2]
-        || data[3] !== config.gameData.resources[3]
-        || data[4] !== config.gameData.resources[4]
-        || data[5] !== config.gameData.resources[5]
+        parseInt(data[0], 10) !== config.gameData.resources[0]
+        || parseInt(data[1], 10) !== config.gameData.resources[1]
+        || parseInt(data[2], 10) !== config.gameData.resources[2]
+        || parseInt(data[3], 10) !== config.gameData.resources[3]
+        || parseInt(data[4], 10) !== config.gameData.resources[4]
+        || parseInt(data[5], 10) !== config.gameData.resources[5]
       ) {
         reloadTickResources(data);
-        config.gameData.resources = data;
+        config.gameData.resources = data.map((el) => parseInt(el, 10));
       }
     },
     setProductionInfos: (data) => {
       lwmJQ.each(data, (i, cat) => {
-        if (!lwmJQ.isArray(cat)) return true;
+        if (!Array.isArray(cat)) return true;
         lwmJQ.each(cat, (j, ship) => {
           config.gameData.productionInfos.push(ship);
         });

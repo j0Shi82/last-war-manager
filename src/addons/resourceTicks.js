@@ -10,7 +10,7 @@ let {
 } = siteWindow;
 
 const reloadTickResources = (data) => {
-  [Roheisen, Kristall, Frubin, Orizin, Frurozin, Gold] = data;
+  [Roheisen, Kristall, Frubin, Orizin, Frurozin, Gold] = data.map((el) => parseInt(el, 10));
 };
 
 let resIncrementIntervalTime = new Date();

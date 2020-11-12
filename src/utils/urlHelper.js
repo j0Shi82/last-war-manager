@@ -7,7 +7,7 @@ const pageTriggersLoadingSpinner = (url, page) => {
 };
 
 const pageSavesResponse = (page) => {
-  const saveResponsePages = ['get_production_info', 'get_aktuelle_production_info', 'get_ubersicht_info', 'get_flottenbewegungen_info', 'get_inbox_message', 'get_info_for_observationen_page', 'get_spionage_info', 'get_trade_offers', 'put_fleets', 'delete_fleets', 'put_change_flotten', 'put_building', 'cancel_building', 'put_research', 'cancel_research'];
+  const saveResponsePages = ['get_production_info', 'get_aktuelle_production_info', 'get_ubersicht_info', 'get_flottenbewegungen_info', 'get_inbox_message', 'get_info_for_observationen_page', 'get_spionage_info', 'get_trade_offers', 'put_fleets', 'delete_fleets', 'put_change_flotten', 'put_building', 'cancel_building', 'put_research', 'cancel_research', 'get_new_trade_offer_info'];
 
   return saveResponsePages.includes(page);
 };

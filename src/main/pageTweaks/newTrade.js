@@ -128,16 +128,16 @@ export default () => {
         docQuery('#systemTrade').value = '';
         docQuery('#planetTrade').value = '';
       } else {
-        docQuery('#galaxyTrade').value = config.gameData.planets[select.value].galaxy;
-        docQuery('#systemTrade').value = config.gameData.planets[select.value].system;
-        docQuery('#planetTrade').value = config.gameData.planets[select.value].planet;
+        docQuery('#galaxyTrade').value = config.gameData.newTradeOfferInfo.offer_cords[select.value].galaxy;
+        docQuery('#systemTrade').value = config.gameData.newTradeOfferInfo.offer_cords[select.value].system;
+        docQuery('#planetTrade').value = config.gameData.newTradeOfferInfo.offer_cords[select.value].planet;
       }
     });
-    config.gameData.planets.forEach((coords, i) => {
-      if (pi(coords.galaxy) === siteWindow.my_galaxy
-            && pi(coords.system) === siteWindow.my_system
-            && pi(coords.planet) === siteWindow.my_planet) return true;
-      const option = createElementFromHTML(`<option value='${i}'>${coords.galaxy}x${coords.system}x${coords.planet}</option>`);
+    config.gameData.newTradeOfferInfo.offer_cords.forEach((coords, i) => {
+      if (pi(coords.galaxy) === pi(siteWindow.my_galaxy)
+            && pi(coords.system) === pi(siteWindow.my_system)
+            && pi(coords.planet) === pi(siteWindow.my_planet)) return true;
+      const option = createElementFromHTML(`<option value='${i}'>${coords.galaxy}x${coords.system}x${coords.planet}${coords.description ? ` ${coords.description}` : ''}</option>`);
       select.appendChild(option);
 
       return true;
