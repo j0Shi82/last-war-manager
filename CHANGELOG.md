@@ -3,11 +3,15 @@
 ## v1.2.0 - 1.2.1
 
 - **FEATURES**
-  - New optional addon to replace the native resource tick timer. The LWM one works more accuretaly in most situations and stays activated in inactive browser windows.
+  - New optional addon to replace the native resource tick timer. The LWM one works more accurately in most situations and stays activated in inactive browser windows.
   - Non-premium users now have access to the Save-All button, but it does not auto-fill res any longer, just provides the other values for LWM saves.
+  - Show custom coords for premium users on new trade page
+  - Disable items in the main menu if player hasn't build the corresponding buildings yet
+  - Change drone fleet type to be able to distinguish between colonization flights
 - **BUGFIX**
   - Fixed a bug that caused fleets from trade post to not get properly parsed for the calendar addon
-  - fixed a bug that caused click handlers designed for inbox to fire on other pages as well
+  - Fixed a bug that caused click handlers designed for inbox to fire on other pages as well
+  - Fixed a bug that caused the gm config to throw errors on save
 
 ## v1.1.0
 - In the LWM menu there's now a button to delete the data set by the script. This can be used to wipe old data and is especially useful at the start of new rounds
