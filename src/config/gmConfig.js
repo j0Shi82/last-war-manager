@@ -103,7 +103,7 @@ export default () => {
             {
               section: 'Save All Default Coords',
               type: 'int',
-              min: 1,
+              min: 0,
               max: 7,
               default: 0,
               label: 'x',
@@ -112,7 +112,7 @@ export default () => {
           coords_system_main:
             {
               type: 'int',
-              min: 1,
+              min: 0,
               max: 100,
               default: 0,
               label: 'x',
@@ -121,7 +121,7 @@ export default () => {
           coords_planet_main:
             {
               type: 'int',
-              min: 1,
+              min: 0,
               max: 100,
               default: 0,
             },
@@ -185,6 +185,13 @@ export default () => {
           trade_highlights:
             {
               label: 'TRADES: Highlight trades and resources that would exceed storage capacities.',
+              labelPos: 'right',
+              type: 'checkbox',
+              default: true,
+            },
+          res_updates:
+            {
+              label: 'RESOURCES: Deactivate Last-War resource counter and replace with a better one.',
               labelPos: 'right',
               type: 'checkbox',
               default: true,

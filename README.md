@@ -33,6 +33,7 @@ A German feedback thread can be found on the [official message board](http://for
 - Security confirmations for buildings, researches, and production pages (optional)
 - All arrow keys that add or remove ships or defense bulk add them when you hold the mouse button
 - Resources on the main page get highlighted when running trade would exceed their storage capacity and feature a hover tooltip with additional information
+- Replace native resource tick interval with one that works in inactive browser windows
 - Settings page that lets you control what the script should do
 - **OVERVIEW**
   - Resources get added to the planets on the overview

@@ -24,7 +24,7 @@ export default () => {
     // we do this after updating loadstate to not slow down page load
     const addReportLink = (message) => {
       const type = message.subject.search(/Kampfbericht/) !== -1 ? 'view_report_attack' : 'planetenscanner_view';
-      const linkElement = createElementFromHTML(`<a target='_blank' href='https://last-war.de/${type}.php?id=${message.reportID}&user=${config.gameData.playerID}'><i style='margin-left: 5px;' class='fas fa-external-link-alt'></i></a>`);
+      const linkElement = createElementFromHTML(`<a target='_blank' href='${siteWindow.location.origin}/${type}.php?id=${message.reportID}&user=${config.gameData.playerID}'><i style='margin-left: 5px;' class='fas fa-external-link-alt'></i></a>`);
       const msgEl = docQuery(`[onclick*='${message.id}']`);
       if (msgEl !== null) msgEl.parentNode.appendChild(linkElement);
     };
@@ -32,6 +32,7 @@ export default () => {
     // install handler to attach report links on browsing message pages
     if (!config.pages.inbox.reportHandler) {
       document.addEventListener('click', (e) => {
+        if (!['get_inbox_message', 'get_message_info'].includes(config.loadStates.lastLoadedPage)) return;
         if (!e.target.classList.contains('formButton')) return;
         if (e.target.getAttribute('onclick').search(/nextPage|previousPage/) === -1) return;
         if (![2, 4].includes(siteWindow.window.current_view_type)) return;

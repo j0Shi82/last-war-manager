@@ -1,6 +1,6 @@
 import initSentry, { Sentry } from 'plugins/sentry';
 import {
-  siteWindow, gmSetValue, gmConfig,
+  siteWindow, gmSetValue, gmConfig, lwmJQ,
 } from 'config/globals';
 import addOns from 'addons/index';
 import config from 'config/lwmConfig';
@@ -9,7 +9,7 @@ import { throwError } from 'utils/helper';
 import {
   pageTriggersLoadingSpinner, pageSavesResponse, pagePreservesSubmenu, pageProcessesContent,
 } from 'utils/urlHelper';
-import { getSpionageInfo, getUebersichtInfo } from 'utils/requests';
+import { getSpionageInfo, getUebersichtInfo, getTradeOffers } from 'utils/requests';
 import { getLoadStatePromise } from 'utils/loadPromises';
 import submenu from 'main/submenu';
 import process from 'main/process';
@@ -17,6 +17,10 @@ import uiChanges from 'global/uiChanges';
 import initGmConfig from 'config/gmConfig';
 import hotkeySetup from 'global/hotkeySetup';
 import 'assets/styles/main.scss';
+
+// add mobile support
+lwmJQ('meta[name=\'viewport\']').remove();
+lwmJQ('head').append('<meta name="viewport" content="width=device-width, initial-scale=1.0">');
 
 const { document, location } = siteWindow;
 const docQuery = (query) => document.querySelector(query);
@@ -120,6 +124,7 @@ const installMain = () => {
           case 'get_inbox_message': config.gameData.messageData = xhr.responseJSON; break;
           case 'get_info_for_observationen_page': config.gameData.observationInfo = xhr.responseJSON; break;
           case 'get_spionage_info': config.gameData.spionageInfos = xhr.responseJSON; break;
+          case 'get_new_trade_offer_info': config.gameData.newTradeOfferInfo = xhr.responseJSON; break;
           case 'get_trade_offers':
             config.gameData.tradeInfo = xhr.responseJSON;
             config.getGameData.setTradeData();
@@ -128,6 +133,42 @@ const installMain = () => {
             break;
           default:
             break;
+        }
+
+        // resource listener logic
+        if (gmConfig.get('res_updates')) {
+          if ([
+            'execute_action', 'bank_transaction', 'put_handelsposten_ships', 'put_flotten', 'put_upgrade_planet_defense', 'put_defense',
+            'bank_transaction', 'put_kredit', 'recycling_ships',
+          ].includes(page)) {
+            // these calls modify res, but do not return the new values
+            // so we need to call something that does
+            getTradeOffers();
+          }
+
+          if ([
+            'get_trade_offers', 'put_new_trade_offer', 'delete_trade_offer', 'accept_trade_offer', 'decline_trade_offer', 'get_max_resource_for_new_trade_offer',
+            'delete_aktuelle_produktion', 'get_flottenbewegungen_info', 'send_flotten',
+            'get_ubersicht_info', 'put_building', 'put_research', 'cancel_building', 'cancel_research',
+          ].includes(page)) {
+          // resources can be in different keys
+            try {
+              const response = JSON.parse(xhr.responseText);
+              const fe = response.roheisen || response.Roheisen || response.resource.roheisen || response.resource.Roheisen;
+              const kris = response.kristall || response.Kristall || response.resource.kristall || response.resource.Kristall;
+              const frub = response.frubin || response.Frubin || response.resource.frubin || response.resource.Frubin;
+              const ori = response.orizin || response.Orizin || response.resource.orizin || response.resource.Orizin;
+              const fruro = response.frurozin || response.Frurozin || response.resource.frurozin || response.resource.Frurozin;
+              const gold = response.gold || response.Gold || response.resource.gold || response.resource.Gold;
+              if (fe && kris && frub && ori && fruro && gold) {
+                config.getGameData.setResources([fe, kris, frub, ori, fruro, gold]);
+              } else {
+                console.warn('could not parse responseText for setResources function', xhr.responseText);
+              }
+            } catch (e) {
+              console.warn('could not parse responseText for setResources function', xhr.responseText);
+            }
+          }
         }
 
         // separate case to refresh drones after a fleet action (which may or may not be a dron action)
@@ -158,9 +199,7 @@ const installMain = () => {
       }
     });
 
-    // reload addOns on focus
-    // addOns contain timer that may pause when the tab in the browser is not active, hence the reload
-    siteWindow.jQuery(siteWindow).focus(() => { addOns.load(siteWindow.active_page); });
+    // siteWindow.jQuery(siteWindow).focus(() => { addOns.load(siteWindow.active_page); });
   });
 };
 

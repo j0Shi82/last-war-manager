@@ -4,6 +4,7 @@ import {
 import { getLoadStatePromise } from 'utils/loadPromises';
 import { Sentry } from 'plugins/sentry';
 import { throwError } from 'utils/helper';
+import { reloadTickResources } from 'addons/resourceTicks';
 import { getSpionageInfo, getObsInfo } from 'utils/requests';
 import moment from 'moment';
 import driveManager from 'plugins/driveManager';
@@ -16,8 +17,9 @@ const config = {
           1: 'Att',
           2: 'Transport',
           3: 'Def',
-          4: 'Drone',
+          4: 'Kolo',
           5: 'Transfer',
+          6: 'Drone',
         },
         status: {
           1: 'Incoming',
@@ -69,10 +71,12 @@ const config = {
     },
     planets: [],
     planetInformation: [],
+    resources: [0, 0, 0, 0, 0, 0],
     spionageInfos: {},
     productionInfos: [],
     overviewInfo: {},
     messageData: {},
+    newTradeOfferInfo: {},
     fleetInfo: {},
     fleetSendData: {},
     observationInfo: {},
@@ -293,9 +297,22 @@ const config = {
         }
       });
     },
+    setResources: (data) => {
+      if (
+        parseInt(data[0], 10) !== config.gameData.resources[0]
+        || parseInt(data[1], 10) !== config.gameData.resources[1]
+        || parseInt(data[2], 10) !== config.gameData.resources[2]
+        || parseInt(data[3], 10) !== config.gameData.resources[3]
+        || parseInt(data[4], 10) !== config.gameData.resources[4]
+        || parseInt(data[5], 10) !== config.gameData.resources[5]
+      ) {
+        reloadTickResources(data);
+        config.gameData.resources = data.map((el) => parseInt(el, 10));
+      }
+    },
     setProductionInfos: (data) => {
       lwmJQ.each(data, (i, cat) => {
-        if (!lwmJQ.isArray(cat)) return true;
+        if (!Array.isArray(cat)) return true;
         lwmJQ.each(cat, (j, ship) => {
           config.gameData.productionInfos.push(ship);
         });

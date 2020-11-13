@@ -13,17 +13,15 @@ const { document, alert } = lwmWindow;
 const isPremium = () => siteWindow.premium_account === 1;
 
 export default () => {
-  /* delete propassssss */
-  lwmJQ('#propassssss,#loader,.ui-loader').remove();
-
-  // add mobile support
-  lwmJQ('head').append('<meta name="viewport" content="width=device-width, initial-scale=1.0">');
-
   // attach loader for first page load
-  lwmJQ('body').append('<div class="loader lwm-firstload"></div><div class="status lwm-firstload"></div>');
+  lwmJQ('body').append('<div class="lwm-firstload wrapper"><div class="loader lwm-firstload"></div><div class="status lwm-firstload"></div></div>');
+
+  // /* delete propassssss */
+  // lwmJQ('#propassssss').trigger('blur');
+  // lwmJQ('#propassssss,#loader,.ui-loader').remove();
 
   // remove native mobile support
-  lwmJQ('#portrait_screen').remove();
+  // lwmJQ('#portrait_screen').remove();
 
   // add mobile header collapse menu
   const $menuToggle = lwmJQ('<div id=\'lwm_menu_toggle\'>'
@@ -42,11 +40,27 @@ export default () => {
                                     + '</div>');
   $menuToggle.find('.fa-home').click(() => { siteWindow.changeContent('ubersicht', 'first', 'Übersicht'); });
   $menuToggle.find('.fa-warehouse').click(() => { siteWindow.changeContent('construction', 'first', 'Konstruktion'); });
-  $menuToggle.find('.fa-database').click(() => { siteWindow.changeContent('research', 'first', 'Forschung'); });
-  $menuToggle.find('.fa-shield-alt').click(() => { siteWindow.changeContent('verteidigung', 'first', 'Verteidigung'); });
-  $menuToggle.find('.fa-fighter-jet').click(() => { siteWindow.changeContent('produktion', 'first', 'Produktion'); });
+  if (siteWindow.lvlForschungszentrale > 0) {
+    $menuToggle.find('.fa-database').click(() => { siteWindow.changeContent('research', 'first', 'Forschung'); });
+  } else {
+    $menuToggle.find('.fa-database').addClass('inactive');
+  }
+  if (siteWindow.lvlVerteidigungsstation > 0) {
+    $menuToggle.find('.fa-shield-alt').click(() => { siteWindow.changeContent('verteidigung', 'first', 'Verteidigung'); });
+  } else {
+    $menuToggle.find('.fa-shield-alt').addClass('inactive');
+  }
+  if (siteWindow.lvlRaumschiffFabrik > 0) {
+    $menuToggle.find('.fa-fighter-jet').click(() => { siteWindow.changeContent('produktion', 'first', 'Produktion'); });
+  } else {
+    $menuToggle.find('.fa-fighter-jet').addClass('inactive');
+  }
   $menuToggle.find('.fa-plane-departure').click(() => { siteWindow.changeContent('flottenkommando', 'second', 'Flotten-Kommando'); });
-  $menuToggle.find('.fa-handshake').click(() => { siteWindow.changeContent('new_trade_offer', 'second', 'Handelsangebot'); });
+  if (siteWindow.lvlHandelszentrum > 0) {
+    $menuToggle.find('.fa-handshake').click(() => { siteWindow.changeContent('new_trade_offer', 'second', 'Handelsangebot'); });
+  } else {
+    $menuToggle.find('.fa-handshake').click(() => { siteWindow.changeContent('trade_offer', 'first', 'Handel'); });
+  }
   $menuToggle.find('.fa-envelope').click(() => { siteWindow.changeContent('inbox', 'first', 'Nachrichten', 'notifiscationMessageList'); });
   $menuToggle.find('.icon-galaxy').click(() => { siteWindow.changeContent('galaxy_view', 'first', 'Galaxieansicht'); });
   $menuToggle.find('.fa-sign-out-alt').click(() => { siteWindow.logoutRequest(); });
@@ -178,8 +192,11 @@ export default () => {
   lwmJQ('#ubersicht').prepend('<i class="fas fa-home"></i>');
   lwmJQ('#construction').prepend('<i class="fas fa-warehouse"></i>');
   lwmJQ('#research').prepend('<i class="fas fa-database"></i>');
+  if (siteWindow.lvlForschungszentrale < 1) lwmJQ('#research').addClass('inactive');
   lwmJQ('#verteidigung').prepend('<i class="fas fa-shield-alt"></i>');
+  if (siteWindow.lvlVerteidigungsstation < 1) lwmJQ('#verteidigung').addClass('inactive');
   lwmJQ('#produktion').prepend('<i class="fas fa-fighter-jet"></i>');
+  if (siteWindow.lvlRaumschiffFabrik < 1) lwmJQ('#produktion').addClass('inactive');
   lwmJQ('#flottenbewegungen').after(lwmJQ('#flottenbewegungen').clone().prepend('<i class="far fa-calendar"></i>').attr('id', 'calendar'));
   lwmJQ('#calendar span').text('Kalender');
   if (isPremium()) {
@@ -269,7 +286,7 @@ export default () => {
   lwmJQ('.first_line .menu_box:nth-last-child(2)').after($managerButton);
 
   // add manager unload on logout
-  lwmJQ('#logout').click(() => { uninstall(); });
+  lwmJQ('#logout').on('click', () => { uninstall(); });
 
   // move galaxy view and resources into same container
   lwmJQ('.galaxyView').appendTo('.resourceBoxs');

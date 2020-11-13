@@ -7,11 +7,21 @@ import config from 'config/lwmConfig';
 import { getActiveObs, setDataForClocks } from 'utils/helper';
 import { createElementFromHTML, docQuery } from 'utils/domHelper';
 import { convertSecondsToHHMMSS, dayjs } from 'utils/dateHelper';
+import * as workerTimers from 'worker-timers';
 // import moment from 'moment';
 
 const { document } = siteWindow;
 
 let fleetRefreshInterval = null;
+
+const killFleetActivityTimer = () => {
+  if (fleetRefreshInterval !== null) {
+    workerTimers.clearInterval(fleetRefreshInterval);
+    fleetRefreshInterval = null;
+  }
+};
+
+export { killFleetActivityTimer };
 
 export default async (page) => {
   // no fleet config set, return
@@ -56,7 +66,7 @@ export default async (page) => {
             && (elementStatusValue === statusFilterValue || statusFilterValue === '');
         if (showRow) el.classList.remove('lwm-hide');
         // hide drones if excluded and not directly selected
-        if (gmConfig.get('addon_fleet_exclude_drones') && typeFilterValue !== '4' && elementTypeValue === '4') {
+        if (gmConfig.get('addon_fleet_exclude_drones') && typeFilterValue !== '6' && elementTypeValue === '6') {
           el.classList.add('lwm-hide');
         }
       });
@@ -221,19 +231,19 @@ export default async (page) => {
 
   config.gameData.fleetInfo.all_informations.forEach((fleetData) => {
     // add missing info for drones
-    fleetData.Type = '4'; fleetData.Status = '1';
+    fleetData.Type = '6'; fleetData.Status = '1';
     filter.add(fleetData);
     fleetRowElements.push(createElementFromHTML(`<tr class="lwm-hideable lwm-fleet" data-type="${fleetData.Type || ''}" data-status="${fleetData.Status || ''}" data-coords="${fleetData.homePlanet}"><td>${iconDrone}Eigene ${fleetData.name} von Planet <b>${fleetData.homePlanet}</b> ist unterwegs nach ( <b>${fleetData.galaxy}x${fleetData.system}</b> )</td><td>${fleetData.time}</td><td id='clock_${fleetData.clock_id}'>${getFleetTimerString(fleetData.time)}</td></tr>`));
   });
 
   config.gameData.fleetInfo.dron_observationens.forEach((fleetData) => {
-    fleetData.Type = '4'; fleetData.Status = '1';
+    fleetData.Type = '6'; fleetData.Status = '1';
     filter.add(fleetData);
     fleetRowElements.push(createElementFromHTML(`<tr class="lwm-hideable lwm-fleet" data-type="${fleetData.Type || ''}" data-status="${fleetData.Status || ''}" data-coords="${fleetData.homePlanet}"><td>${iconDrone}Eigene ${fleetData.name} von Planet <b>${fleetData.homePlanet}</b> ist unterwegs nach ( <b>${fleetData.galaxy}x${fleetData.system}x${fleetData.planet}</b> )</td><td>${fleetData.time}</td><td id='clock_${fleetData.clock_id}'>${getFleetTimerString(fleetData.time)}</td></tr>`));
   });
 
   config.gameData.fleetInfo.dron_planetenscanners.forEach((fleetData) => {
-    fleetData.Type = '4'; fleetData.Status = '1';
+    fleetData.Type = '6'; fleetData.Status = '1';
     filter.add(fleetData);
     fleetRowElements.push(createElementFromHTML(`<tr class="lwm-hideable lwm-fleet" data-type="${fleetData.Type || ''}" data-status="${fleetData.Status || ''}" data-coords="${fleetData.homePlanet}"><td>${iconDrone}Eigene ${fleetData.name} von Planet <b>${fleetData.homePlanet}</b> ist unterwegs nach ( <b>${fleetData.galaxy}x${fleetData.system}x${fleetData.planet}</b> )</td><td>${fleetData.time}</td><td id='clock_${fleetData.clock_id}'>${getFleetTimerString(fleetData.time)}</td></tr>`));
   });
@@ -376,7 +386,7 @@ export default async (page) => {
 
   // add refresh interval
   if (fleetRefreshInterval === null) {
-    fleetRefreshInterval = setInterval(() => {
+    fleetRefreshInterval = workerTimers.setInterval(() => {
       getFlottenbewegungenInfo();
     }, 30000);
   }

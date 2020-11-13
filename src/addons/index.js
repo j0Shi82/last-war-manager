@@ -1,16 +1,18 @@
 import {
   gmConfig, siteWindow, lwmJQ, gmSetValue, gmGetValue,
 } from 'config/globals';
-import { getObsInfo, getSpionageInfo, getFlottenbewegungenInfo } from 'utils/requests';
-import config from 'config/lwmConfig';
 import {
-  throwError, getIncomingResArray,
-} from 'utils/helper';
+  getObsInfo, getSpionageInfo, getFlottenbewegungenInfo, getTradeOffers,
+} from 'utils/requests';
+import config from 'config/lwmConfig';
+import { getIncomingResArray } from 'utils/helper';
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
 import driveManager from 'plugins/driveManager';
+import * as workerTimers from 'worker-timers';
 
-import showFleetActivityGlobally from 'addons/fleetActivity';
+import showFleetActivityGlobally, { killFleetActivityTimer } from 'addons/fleetActivity';
+import addCustomResourceCounter from 'addons/resourceTicks';
 
 momentDurationFormatSetup(moment);
 
@@ -21,6 +23,8 @@ const addOns = {
     tradeRefreshInterval: null,
     capacityRefreshInterval: null,
     clockInterval: null,
+    resourceIntervals: null,
+    clockIntervalTime: new Date(),
   },
   load() {
     if (gmConfig.get('addon_fleet') && config.loadStates.lastLoadedPage !== 'flottenbewegungen') {
@@ -35,43 +39,31 @@ const addOns = {
 
     addOns.refreshTrades();
     if (gmConfig.get('addon_clock')) addOns.addClockInterval();
+    if (gmConfig.get('res_updates') && addOns.config.resourceIntervals === null) {
+      addOns.config.resourceIntervals = addOns.addCustomResourceCounter();
+    }
   },
   unload() {
+    killFleetActivityTimer();
     if (addOns.config.capacityRefreshInterval !== null) {
-      clearInterval(addOns.config.capacityRefreshInterval);
+      workerTimers.clearInterval(addOns.config.capacityRefreshInterval);
       addOns.config.capacityRefreshInterval = null;
     }
-    if (addOns.config.clockInterval !== null) { clearInterval(addOns.config.clockInterval); addOns.config.clockInterval = null; }
+    if (addOns.config.clockInterval !== null) { workerTimers.clearInterval(addOns.config.clockInterval); addOns.config.clockInterval = null; }
+    if (addOns.config.resourceIntervals !== null) {
+      addOns.config.resourceIntervals();
+      addOns.config.resourceCounter = null;
+    }
   },
   // refresh trades every minute to make it unnecessary to visit the trade page for trade to go through
   refreshTrades() {
-    const requestTrades = () => {
-      const uriData = `galaxy_check=${config.gameData.planetCoords.galaxy}&system_check=${config.gameData.planetCoords.system}&planet_check=${config.gameData.planetCoords.planet}`;
-      siteWindow.jQuery.ajax({
-        url: `/ajax_request/get_trade_offers.php?${uriData}`,
-        data: { lwm_ignoreProcess: 1 },
-        timeout: config.promises.interval.ajaxTimeout,
-        success: (data) => {
-          if (data === '500' || typeof data.resource === 'undefined') return;
-          siteWindow.Roheisen = parseInt(data.resource.Roheisen, 10);
-          siteWindow.Kristall = parseInt(data.resource.Kristall, 10);
-          siteWindow.Frubin = parseInt(data.resource.Frubin, 10);
-          siteWindow.Orizin = parseInt(data.resource.Orizin, 10);
-          siteWindow.Frurozin = parseInt(data.resource.Frurozin, 10);
-          siteWindow.Gold = parseInt(data.resource.Gold, 10);
-        },
-        error() { throwError(); },
-        dataType: 'json',
-      });
-    };
-
     // always refresh trades once after login or planet change
-    if (config.firstLoad) requestTrades();
+    if (config.firstLoad) getTradeOffers();
 
     // refresh interval
     if (addOns.config.tradeRefreshInterval !== null) return; // allready installed
-    addOns.config.tradeRefreshInterval = setInterval(() => {
-      requestTrades();
+    addOns.config.tradeRefreshInterval = workerTimers.setInterval(() => {
+      getTradeOffers();
     }, 60000);
   },
   // checks whether trades would surpass resource capacities and highlights a warning
@@ -89,27 +81,31 @@ const addOns = {
 
     // add invterval
     if (addOns.config.capacityRefreshInterval === null) {
-      addOns.config.capacityRefreshInterval = setInterval(() => {
+      addOns.config.capacityRefreshInterval = workerTimers.setInterval(() => {
         addOns.checkCapacities();
       }, 10000);
     }
   },
   addClockInterval() {
     if (addOns.config.clockInterval !== null) return;
-    addOns.config.clockInterval = setInterval(() => {
+    addOns.config.clockIntervalTime = new Date();
+    addOns.config.clockInterval = workerTimers.setInterval(() => {
+      const now = new Date();
+      const deltaTime = (now - addOns.config.clockIntervalTime) / 1000;
+      addOns.config.clockIntervalTime = now;
       lwmJQ('[id*=\'clock\'],[id*=\'Clock\']').each((i, el) => {
         const self = lwmJQ(el);
         // skip elements that don't have data attribute
         if (typeof self.data('clock_seconds') === 'undefined') return true;
 
-        const data = parseInt(self.data('clock_seconds'), 10) - 1;
+        const data = parseFloat(self.data('clock_seconds')) - deltaTime;
         self.data('clock_seconds', data);
         if (data < 0) {
           self.html('--:--:--');
         } else {
-          const md = moment.duration(data, 'seconds');
+          const md = moment.duration(parseInt(data, 10), 'seconds');
           self
-            .attr('title', moment().add(data, 'seconds').format('YYYY-MM-DD HH:mm:ss'))
+            .attr('title', moment().add(parseInt(data, 10), 'seconds').format('YYYY-MM-DD HH:mm:ss'))
             .addClass('popover')
             .html(md.format('HH:mm:ss', {
               trim: false,
@@ -122,6 +118,7 @@ const addOns = {
     }, 1000);
   },
   showFleetActivityGlobally,
+  addCustomResourceCounter,
   calendar: {
     storeOverview(data) {
       const dataBuildingBefore = JSON.stringify(addOns.calendar.getData('building', config.gameData.playerID));
@@ -173,7 +170,7 @@ const addOns = {
       const dataResearchAfter = JSON.stringify(addOns.calendar.getData('research', config.gameData.playerID));
 
       gmSetValue('lwm_calendar', JSON.stringify(config.lwm.calendar));
-      if (gmConfig.get('confirm_drive_sync') && (!addOns.calendar.truncateData() || dataResearchBefore !== dataResearchAfter || dataBuildingBefore !== dataBuildingAfter)) driveManager.save();
+      if ((!addOns.calendar.truncateData() || dataResearchBefore !== dataResearchAfter || dataBuildingBefore !== dataBuildingAfter) && gmConfig.get('confirm_drive_sync')) driveManager.save();
     },
     storeFleets(data) {
       const lang = config.const.lang.fleet;
@@ -197,7 +194,7 @@ const addOns = {
             type: 'fleet',
             name: fleetData.id || 0,
             duration: 0,
-            text: `Flotte Typ ${lang.types[fleetData.Type] || fleetData.name} mit Status ${lang.status[fleetData.Status || 1]} und Coords ${fleetData.Galaxy_send || fleetData.galaxy}x${fleetData.System_send || fleetData.system}x${fleetData.Planet_send || fleetData.planet}`,
+            text: `Flotte Typ ${lang.types[fleetData.Type] || fleetData.name || 'Handelsposten'} mit Status ${lang.status[fleetData.Status || 1]} und Coords ${fleetData.Galaxy_send || fleetData.galaxy || siteWindow.my_galaxy}x${fleetData.System_send || fleetData.system || siteWindow.my_system}x${fleetData.Planet_send || fleetData.planet || siteWindow.my_planet}`,
             ts: moment(time).valueOf(),
           });
           return true;

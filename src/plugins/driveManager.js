@@ -81,6 +81,7 @@ const driveManager = () => {
       overview_hintvacantmultiqueue: gmConfig.get('overview_hintvacantmultiqueue'),
       message_spylinks: gmConfig.get('message_spylinks'),
       trade_highlights: gmConfig.get('trade_highlights'),
+      res_updates: gmConfig.get('res_updates'),
       fleet_saveprios: gmConfig.get('fleet_saveprios'),
       obs_opentabs: gmConfig.get('obs_opentabs'),
       fleet_presets_1_active: gmConfig.get('fleet_presets_1_active'),

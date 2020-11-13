@@ -302,12 +302,12 @@ const pageTweaks = {
 
       lwmJQ('#changeFlottenDiv .lwm_selectAll').click((e) => {
         const index = lwmJQ(e.target).parent().index('#changeFlottenDiv > table th');
-        lwmJQ('#changeFlottenDiv > table tr').find(`td:eq(${index}) .arrow-right`).each((i, el) => {
+        lwmJQ('#changeFlottenDiv > table tr').find(`td:eq(${index}) .fa-angle-right`).each((i, el) => {
           let curCount = 0;
           do {
-            curCount = parseInt(lwmJQ(el).prev().text(), 10);
+            curCount = parseInt(lwmJQ(el).prev().val(), 10);
             lwmJQ(el).click();
-          } while (parseInt(lwmJQ(el).prev().text(), 10) !== curCount);
+          } while (parseInt(lwmJQ(el).prev().val(), 10) !== curCount);
         });
       });
 
@@ -381,7 +381,7 @@ const pageTweaks = {
                         + '</tbody></table>'
                     + '</div>');
 
-      if (gmConfig.get('confirm_drive_sync') && !addOns.calendar.truncateData()) driveManager.save();
+      if (!addOns.calendar.truncateData() && gmConfig.get('confirm_drive_sync')) driveManager.save();
 
       const entries = document.createDocumentFragment();
       lwmJQ.each(config.lwm.calendar, (i, entry) => {
