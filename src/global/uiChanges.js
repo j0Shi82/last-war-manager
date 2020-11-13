@@ -14,18 +14,14 @@ const isPremium = () => siteWindow.premium_account === 1;
 
 export default () => {
   // attach loader for first page load
-  lwmJQ('body').append('<div class="loader lwm-firstload"></div><div class="status lwm-firstload"></div>');
+  lwmJQ('body').append('<div class="lwm-firstload wrapper"><div class="loader lwm-firstload"></div><div class="status lwm-firstload"></div></div>');
 
-  /* delete propassssss */
-  lwmJQ('#propassssss').trigger('blur');
-  lwmJQ('#propassssss,#loader,.ui-loader').remove();
-
-  // add mobile support
-  lwmJQ('meta[name=\'viewport\']').remove();
-  lwmJQ('head').append('<meta name="viewport" content="width=device-width, initial-scale=1.0">');
+  // /* delete propassssss */
+  // lwmJQ('#propassssss').trigger('blur');
+  // lwmJQ('#propassssss,#loader,.ui-loader').remove();
 
   // remove native mobile support
-  lwmJQ('#portrait_screen').remove();
+  // lwmJQ('#portrait_screen').remove();
 
   // add mobile header collapse menu
   const $menuToggle = lwmJQ('<div id=\'lwm_menu_toggle\'>'

@@ -1,6 +1,6 @@
 import initSentry, { Sentry } from 'plugins/sentry';
 import {
-  siteWindow, gmSetValue, gmConfig,
+  siteWindow, gmSetValue, gmConfig, lwmJQ,
 } from 'config/globals';
 import addOns from 'addons/index';
 import config from 'config/lwmConfig';
@@ -17,6 +17,10 @@ import uiChanges from 'global/uiChanges';
 import initGmConfig from 'config/gmConfig';
 import hotkeySetup from 'global/hotkeySetup';
 import 'assets/styles/main.scss';
+
+// add mobile support
+lwmJQ('meta[name=\'viewport\']').remove();
+lwmJQ('head').append('<meta name="viewport" content="width=device-width, initial-scale=1.0">');
 
 const { document, location } = siteWindow;
 const docQuery = (query) => document.querySelector(query);
