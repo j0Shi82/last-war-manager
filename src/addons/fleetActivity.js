@@ -1,6 +1,7 @@
 import {
-  gmConfig, siteWindow, gmSetValue, gmGetValue,
+  siteWindow, gmSetValue, gmGetValue,
 } from 'config/globals';
+import gmConfig from 'plugins/GM_config';
 import { getFlottenbewegungenInfo } from 'utils/requests';
 import performSpionage from 'operations/performSpionage';
 import config from 'config/lwmConfig';
@@ -66,7 +67,7 @@ export default async (page) => {
             && (elementStatusValue === statusFilterValue || statusFilterValue === '');
         if (showRow) el.classList.remove('lwm-hide');
         // hide drones if excluded and not directly selected
-        if (gmConfig.get('addon_fleet_exclude_drones') && typeFilterValue !== '4' && elementTypeValue === '4') {
+        if (gmConfig.get('addon_fleet_exclude_drones') && typeFilterValue !== '6' && elementTypeValue === '6') {
           el.classList.add('lwm-hide');
         }
       });

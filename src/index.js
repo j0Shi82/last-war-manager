@@ -1,11 +1,12 @@
 import initSentry, { Sentry } from 'plugins/sentry';
 import {
-  siteWindow, gmSetValue, gmConfig, lwmJQ,
+  siteWindow, gmSetValue,
 } from 'config/globals';
 import addOns from 'addons/index';
 import config from 'config/lwmConfig';
 import driveManager from 'plugins/driveManager';
 import { throwError } from 'utils/helper';
+import { createElementFromHTML } from 'utils/domHelper';
 import {
   pageTriggersLoadingSpinner, pageSavesResponse, pagePreservesSubmenu, pageProcessesContent,
 } from 'utils/urlHelper';
@@ -14,13 +15,16 @@ import { getLoadStatePromise } from 'utils/loadPromises';
 import submenu from 'main/submenu';
 import process from 'main/process';
 import uiChanges from 'global/uiChanges';
+import gmConfig from 'plugins/GM_config';
 import initGmConfig from 'config/gmConfig';
 import hotkeySetup from 'global/hotkeySetup';
 import 'assets/styles/main.scss';
 
 // add mobile support
-lwmJQ('meta[name=\'viewport\']').remove();
-lwmJQ('head').append('<meta name="viewport" content="width=device-width, initial-scale=1.0">');
+if (siteWindow.document.querySelector('meta[name=\'viewport\']') !== null) {
+  siteWindow.document.querySelector('meta[name=\'viewport\']').remove();
+}
+siteWindow.document.querySelector('head').appendChild(createElementFromHTML('<meta name="viewport" content="width=device-width, initial-scale=1.0">'));
 
 const { document, location } = siteWindow;
 const docQuery = (query) => document.querySelector(query);

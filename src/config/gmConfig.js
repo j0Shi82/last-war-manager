@@ -1,6 +1,7 @@
 /* eslint-disable no-alert */
 /* eslint-disable no-restricted-globals */
-import { gmConfig, siteWindow, gmSetValue } from 'config/globals';
+import { siteWindow, gmSetValue } from 'config/globals';
+import gmConfig from 'plugins/GM_config';
 import config from 'config/lwmConfig';
 import driveManager from 'plugins/driveManager';
 

@@ -1,8 +1,8 @@
-
 import config from 'config/lwmConfig';
 import {
-  lwmJQ, gmConfig, gmSetValue, siteWindow,
+  lwmJQ, gmSetValue, siteWindow,
 } from 'config/globals';
+import gmConfig from 'plugins/GM_config';
 import {
   throwError, setDataForClocks,
 } from 'utils/helper';

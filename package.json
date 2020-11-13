@@ -32,6 +32,7 @@
     "dayjs": "^1.9.4",
     "hotkeys-js": "^3.8.1",
     "jquery": "^3.5.1",
+    "localforage": "^1.9.0",
     "moment": "^2.29.1",
     "moment-duration-format": "^2.3.2",
     "numeral": "^2.0.6",

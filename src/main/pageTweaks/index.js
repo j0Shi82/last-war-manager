@@ -1,7 +1,8 @@
 import config from 'config/lwmConfig';
 import {
-  lwmJQ, gmConfig, siteWindow, gmSetValue, lwmWindow,
+  lwmJQ, siteWindow, gmSetValue, lwmWindow,
 } from 'config/globals';
+import gmConfig from 'plugins/GM_config';
 import {
   throwError, addConfirm, setDataForClocks, replaceElementsHtmlWithIcon, addIconToHtmlElements, addResMemory,
   getIncomingResArray, checkCoords, getActiveObs,

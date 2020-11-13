@@ -1,6 +1,7 @@
 import {
-  lwmJQ, siteWindow, lwmWindow, gmConfig,
+  lwmJQ, siteWindow, lwmWindow,
 } from 'config/globals';
+import gmConfig from 'plugins/GM_config';
 import { Sentry } from 'plugins/sentry';
 import { getPageLoadPromise } from 'utils/loadPromises';
 import config from 'config/lwmConfig';

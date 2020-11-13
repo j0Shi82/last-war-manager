@@ -1,6 +1,7 @@
 import {
-  gmConfig, siteWindow,
+  siteWindow,
 } from 'config/globals';
+import gmConfig from 'plugins/GM_config';
 import { getLoadStatePromise } from 'utils/loadPromises';
 import { Sentry } from 'plugins/sentry';
 import config from 'config/lwmConfig';
