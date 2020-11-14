@@ -27,6 +27,10 @@ const driveManager = () => {
 
   const isSignedIn = () => gapi.auth2.getAuthInstance().isSignedIn.get();
 
+  const apiLoaded = () => gapi !== null;
+
+  const clientLoaded = () => typeof gapi.client !== 'undefined';
+
   // if drive fails to load, set loadstate and use browser config instead
   const handleError = () => {
     // reset the google settings
@@ -183,8 +187,6 @@ const driveManager = () => {
         console.error(JSON.stringify(error, null, 2));
         handleError();
       });
-    } else {
-      handleError();
     }
   };
 
@@ -192,8 +194,8 @@ const driveManager = () => {
    *  Initializes the API client library and sets up sign-in state
    *  listeners.
    */
-  const initClient = () => {
-    // console.log('gapi.client.init');
+  // console.log('gapi.client.init');
+  const initClient = () => new Promise((res, rej) => {
     gapi.client.init({
       apiKey: API_KEY,
       clientId: CLIENT_ID,
@@ -202,26 +204,56 @@ const driveManager = () => {
     }).then(() => {
       gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
       updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+      res();
     }, (error) => {
       Sentry.captureException(error);
       console.error(JSON.stringify(error, null, 2));
       handleError();
+      rej();
+    });
+  });
+
+  const loadApi = () => {
+    if (apiLoaded()) {
+      return Promise.resolve();
+    }
+    return new Promise((res, rej) => {
+      siteWindow.jQuery.getScript('//apis.google.com/js/api.js')
+        .done(() => { gapi = siteWindow.gapi; res(); })
+        .fail(() => { rej(); });
     });
   };
+
+  const loadClient = () => new Promise((res, rej) => {
+    if (clientLoaded()) {
+      res();
+      return;
+    }
+
+    gapi.load('client:auth2', {
+      callback: () => {
+        initClient()
+          .then(() => { res(); })
+          .catch(() => { rej(); });
+      },
+      onerror() {
+        console.error('gapi.client failed to load!');
+        handleError();
+        rej();
+      },
+    });
+  });
 
   /**
    *  On load, called to load the auth2 library and API client library.
    */
-  const handleClientLoad = (g) => {
-    gapi = g;
-    gapi.load('client:auth2', {
-      callback: initClient,
-      onerror() {
-        console.error('gapi.client failed to load!');
-        handleError();
-      },
-    });
-  };
+  const handleClientLoad = () => new Promise((res, rej) => {
+    loadApi()
+      .then(() => loadClient())
+      // .then(() => initClient())
+      .then(() => { res(); })
+      .catch(() => { rej(); });
+  });
 
   return {
     signIn,
@@ -229,6 +261,8 @@ const driveManager = () => {
     isSignedIn,
     save: saveConfig,
     init: handleClientLoad,
+    apiLoaded,
+    clientLoaded,
   };
 };
 

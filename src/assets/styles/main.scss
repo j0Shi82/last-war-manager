@@ -1187,6 +1187,9 @@ td.constructionName,
   align-items: center;
   justify-content: center;
   flex-direction: column;
+  z-index: 10000;
+  top: 0;
+  background-color: rgba(0, 0, 0, 0.75);
 
   .lwm-firstload.status {
     width: 100%;

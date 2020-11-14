@@ -66,15 +66,16 @@ const installMain = () => {
 
     setFirstLoadStatusMsg('LOADING... Game Data...');
     config.getGameData.all();
-    siteWindow.jQuery.getScript('//apis.google.com/js/api.js').then(() => {
+    if (gmConfig.get('confirm_drive_sync')) {
       setFirstLoadStatusMsg('LOADING... Google Drive...');
-      driveManager.init(siteWindow.gapi);
-    }, () => { setFirstLoadStatusMsg('LOADING... ERROR...'); Sentry.captureMessage('Google API fetch failed'); throwError(); });
+      driveManager.init().catch(() => { setFirstLoadStatusMsg('LOADING... ERROR...'); Sentry.captureMessage('Google API fetch failed'); throwError(); });
+    } else {
+      getLoadStatePromise('gameData').then(() => { config.setGMValues(); }, () => { Sentry.captureMessage('gameData promise rejected'); throwError(); });
+    }
     getLoadStatePromise('gdrive').then(() => {
       setFirstLoadStatusMsg('LOADING... Page Setup...');
       // wait for gameData and google because some stuff depends on it
       hotkeySetup();
-      if (!gmConfig.get('confirm_drive_sync')) config.setGMValues();
 
       // the first ubersicht load is sometimes not caught by our ajax wrapper, so do manually
       process('ubersicht');
@@ -214,7 +215,7 @@ if (location.protocol === 'https:') {
       addOns.planetData.storeDataFromSpio();
     });
   } else {
-    initSentry();
+    // initSentry();
     initGmConfig();
     installMain();
   }
