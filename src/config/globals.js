@@ -15,9 +15,9 @@ const lwmWindow = window;
 
 // Tampermonkey API
 // eslint-disable-next-line no-undef
-const gmSetValue = (GM && GM.setValue) ? GM.setValue : localforage.setItem;
+const gmSetValue = (typeof GM !== 'undefined' && GM.setValue) ? GM.setValue : localforage.setItem;
 // eslint-disable-next-line no-undef
-const gmGetValue = (GM && GM.getValue) ? GM.getValue : localforage.getItem;
+const gmGetValue = (typeof GM !== 'undefined' && GM.getValue) ? GM.getValue : localforage.getItem;
 
 export {
   siteWindow, lwmWindow, gmSetValue, gmGetValue, lwmJQ,
