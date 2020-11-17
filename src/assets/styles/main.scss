@@ -16,7 +16,10 @@ input.deletePlanetName,
 #allCordinaten-button > span,
 #profileImageBox > img,
 .resourceBox .bigPop,
-.ui-loader {
+.ui-loader,
+#loader,
+#propassssss,
+#portrait_screen {
   display: none !important;
 }
 
@@ -247,7 +250,7 @@ select {
   cursor: pointer;
 
   &.inactive {
-    color:rgba(0, 0, 0, 0.25);
+    color: rgba(0, 0, 0, 0.25);
     cursor: default;
   }
 }
@@ -1168,11 +1171,34 @@ td.constructionName,
   height: 120px;
   animation: spin 2s linear infinite;
   margin: 0 auto;
+
+  &.lwm-firstload {
+    width: 250px;
+    height: 250px;
+    border-width: 25px;
+  }
 }
 
-.lwm-firstload.status {
-  width: 100%;
-  text-align: center;
+.lwm-firstload.wrapper {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 10000;
+  top: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+
+  .lwm-firstload.status {
+    width: 100%;
+    text-align: center;
+    height: 25px;
+    line-height: 25px;
+    font-size: 1.5em;
+    font-weight: 700;
+  }
 }
 
 @keyframes spin {

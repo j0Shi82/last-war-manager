@@ -1,7 +1,8 @@
 import config from 'config/lwmConfig';
 import {
-  lwmJQ, gmConfig, gmSetValue,
+  lwmJQ, gmSetValue,
 } from 'config/globals';
+import gmConfig from 'plugins/GM_config';
 import {
   throwError, addConfirm, replaceElementsHtmlWithIcon, getFirstClassNameFromElement,
 } from 'utils/helper';

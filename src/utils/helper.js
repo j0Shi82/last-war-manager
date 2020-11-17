@@ -1,4 +1,5 @@
-import { lwmJQ, gmConfig } from 'config/globals';
+import { lwmJQ } from 'config/globals';
+import gmConfig from 'plugins/GM_config';
 import config from 'config/lwmConfig';
 import numeral from 'numeral';
 import moment from 'moment';

@@ -1,7 +1,8 @@
 import config from 'config/lwmConfig';
 import {
-  gmConfig, siteWindow, gmSetValue, lwmJQ,
+  siteWindow, gmSetValue, lwmJQ,
 } from 'config/globals';
+import gmConfig from 'plugins/GM_config';
 import {
   throwError, checkCoords,
 } from 'utils/helper';

@@ -1,6 +1,7 @@
 /* eslint-disable no-alert */
 /* eslint-disable no-restricted-globals */
-import { gmConfig, siteWindow, gmSetValue } from 'config/globals';
+import { siteWindow, gmSetValue } from 'config/globals';
+import gmConfig from 'plugins/GM_config';
 import config from 'config/lwmConfig';
 import driveManager from 'plugins/driveManager';
 
@@ -333,13 +334,18 @@ export default () => {
         {
           close() { setTimeout(() => { siteWindow.location.reload(); }, 100); },
           save() {
+            if (this.isOpen) siteWindow.jQuery('body').append('<div class="lwm-firstload wrapper"><div class="loader lwm-firstload"></div><div class="status lwm-firstload"></div></div>');
             if (this.fields.confirm_drive_sync.value) {
-              if (!driveManager.isSignedIn()) driveManager.signIn();
-              if (config.lwm.gDriveFileID !== null) driveManager.save();
+              driveManager.init().then(() => {
+                if (!driveManager.isSignedIn()) driveManager.signIn();
+                if (config.lwm.gDriveFileID !== null) driveManager.save();
+                if (this.isOpen) siteWindow.jQuery('.lwm-firstload').remove();
+              });
             } else {
-              if (driveManager.isSignedIn()) driveManager.signOut();
+              if (driveManager.apiLoaded() && driveManager.isSignedIn()) driveManager.signOut();
               config.lwm.gDriveFileID = null;
               gmSetValue('lwm_gDriveFileID', null);
+              if (this.isOpen) siteWindow.jQuery('.lwm-firstload').remove();
             }
           },
         },

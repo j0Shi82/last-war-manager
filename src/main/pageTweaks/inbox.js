@@ -1,5 +1,6 @@
 import config from 'config/lwmConfig';
-import { gmConfig, siteWindow } from 'config/globals';
+import { siteWindow } from 'config/globals';
+import gmConfig from 'plugins/GM_config';
 import {
   throwError,
 } from 'utils/helper';

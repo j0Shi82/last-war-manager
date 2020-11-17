@@ -1,6 +1,7 @@
 import {
-  gmConfig, siteWindow, lwmJQ, gmSetValue, gmGetValue,
+  siteWindow, lwmJQ, gmSetValue, gmGetValue,
 } from 'config/globals';
+import gmConfig from 'plugins/GM_config';
 import {
   getObsInfo, getSpionageInfo, getFlottenbewegungenInfo, getTradeOffers,
 } from 'utils/requests';
