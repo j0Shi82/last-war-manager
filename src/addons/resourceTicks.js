@@ -262,6 +262,5 @@ export default () => {
 
   return () => {
     workerTimers.clearInterval(resIncrementInterval);
-    workerTimers.clearInterval(resRefreshInterval);
   };
 };
