@@ -114,6 +114,36 @@ const addOns = {
             }));
         }
 
+        if (config.loadStates.lastLoadedPage === 'ubersicht') {
+          config.gameData.overviewInfo.arrayForInitClock.forEach((clockData) => {
+            if (self.attr('id') === clockData.clock_id) {
+              const progressBar = siteWindow.document.querySelector(`#${clockData.progress_bar_id} > div ul`);
+              progressBar.style.width = `${((clockData.total_secounds - self.data('clock_seconds')) / clockData.total_secounds) * 100}%`;
+              return false;
+            }
+            return true;
+          });
+        }
+
+        if (config.loadStates.lastLoadedPage === 'research') {
+          const progressBar = siteWindow.document.querySelector('.loadbarResearch');
+          if (progressBar) {
+            progressBar.style.width = `${((config.gameData.researchInfo.total_secounds_research - config.gameData.researchInfo.secounds_research) / config.gameData.researchInfo.total_secounds_research) * 100}%`;
+          }
+        }
+
+        if (config.loadStates.lastLoadedPage === 'construction') {
+          const progressBar = siteWindow.document.querySelector(`#constructionProgressBar_1_${config.gameData.constructionInfo.BuildingNumber}`);
+          if (progressBar) {
+            progressBar.parentNode.style.width = `${((config.gameData.constructionInfo.total_secounds1 - config.gameData.constructionInfo.secounds_building1) / config.gameData.constructionInfo.total_secounds1) * 100}%`;
+          }
+
+          const multiProgressBar = siteWindow.document.querySelector(`#constructionProgressBar_1_${config.gameData.constructionInfo.BuildingNumber2}`);
+          if (multiProgressBar) {
+            multiProgressBar.parentNode.style.width = `${((config.gameData.constructionInfo.total_secounds2 - config.gameData.constructionInfo.secounds_building2) / config.gameData.constructionInfo.total_secounds2) * 100}%`;
+          }
+        }
+
         return true;
       });
     }, 1000);

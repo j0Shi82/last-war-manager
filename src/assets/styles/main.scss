@@ -433,6 +433,66 @@ i.icon-galaxy {
   width: 140px;
 }
 
+.uberProgressbar > div,
+.resourceProgressBar,
+.researchProgressBar,
+.constructionProgressBar {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  border: 1px solid #216b7e;
+  background-image: none;
+
+  ul,
+  ul.loadbar,
+  ul.loadbarConstruction,
+  ul.loadbarResearch {
+    float: none;
+    width: 0%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    display: block;
+    background-color: rgb(98, 196, 204);
+    border-radius: 10px;
+    min-width: 20px;
+    transition-property: width;
+    transition-delay: 0s;
+    transition-duration: 1s;
+    transition-timing-function: ease-in-out;
+
+    li {
+      display: none;
+    }
+  }
+}
+
+ul.loadbarConstruction,
+ul.loadbarResearch {
+  display: flex;
+  width: 98%;
+  margin-left: 1%;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+ul.loadbar {
+  display: flex;
+  width: 90%;
+  margin-left: 5%;
+  padding-left: 0;
+  padding-right: 0;
+  -webkit-margin-before: unset;
+  -webkit-padding-before: unset;
+  margin-top: -5px;
+}
+
+ul.loadbarConstruction li,
+ul.loadbarResearch li,
+ul.loadbar li {
+  flex: 1 1 1px;
+  width: unset;
+}
+
 .galaxyView {
   background-size: 100% 100%;
   background-repeat: no-repeat;
@@ -479,33 +539,6 @@ i.icon-galaxy {
   overflow-y: initial;
   overflow-x: auto;
   padding-right: 0;
-}
-
-ul.loadbarConstruction,
-ul.loadbarResearch {
-  display: flex;
-  width: 98%;
-  margin-left: 1%;
-  padding-left: 0;
-  padding-right: 0;
-}
-
-ul.loadbar {
-  display: flex;
-  width: 90%;
-  margin-left: 5%;
-  padding-left: 0;
-  padding-right: 0;
-  -webkit-margin-before: unset;
-  -webkit-padding-before: unset;
-  margin-top: -5px;
-}
-
-ul.loadbarConstruction li,
-ul.loadbarResearch li,
-ul.loadbar li {
-  flex: 1 1 1px;
-  width: unset;
 }
 
 table,

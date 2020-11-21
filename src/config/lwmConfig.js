@@ -76,6 +76,8 @@ const config = {
     spionageInfos: {},
     productionInfos: [],
     overviewInfo: {},
+    constructionInfo: {},
+    researchInfo: {},
     messageData: {},
     newTradeOfferInfo: {},
     fleetInfo: {},

@@ -127,6 +127,8 @@ const installMain = () => {
             addOns.showFleetActivityGlobally(config.loadStates.lastLoadedPage);
             break;
           case 'get_inbox_message': config.gameData.messageData = xhr.responseJSON; break;
+          case 'get_research_info': config.gameData.researchInfo = xhr.responseJSON; break;
+          case 'get_construction_info': config.gameData.constructionInfo = xhr.responseJSON; break;
           case 'get_info_for_observationen_page': config.gameData.observationInfo = xhr.responseJSON; break;
           case 'get_spionage_info': config.gameData.spionageInfos = xhr.responseJSON; break;
           case 'get_new_trade_offer_info': config.gameData.newTradeOfferInfo = xhr.responseJSON; break;
