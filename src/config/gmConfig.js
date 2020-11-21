@@ -30,12 +30,11 @@ const configFleetTimingTimes = ['00:00', '00:05', '00:10', '00:15', '00:20', '00
   '22:00', '22:05', '22:10', '22:15', '22:20', '22:25', '22:30', '22:35', '22:40', '22:45', '22:50', '22:55',
   '23:00', '23:05', '23:10', '23:15', '23:20', '23:25', '23:30', '23:35', '23:40', '23:45', '23:50', '23:55'];
 
-export default () => {
-  gmConfig.init(
-    {
-      id: 'lwmSettings', // The id used for this instance of GM_config
-      title: 'Last War Manager Settings',
-      fields: // Fields object
+export default () => gmConfig.init(
+  {
+    id: 'lwmSettings', // The id used for this instance of GM_config
+    title: 'Last War Manager Settings',
+    fields: // Fields object
         {
           addon_fleet:
             {
@@ -47,14 +46,21 @@ export default () => {
             },
           addon_fleet_exclude_drones:
             {
-              label: 'Exclude drone actitivy',
+              label: 'Exclude drone activity',
               labelPos: 'right',
               type: 'checkbox',
               default: false,
             },
           addon_clock:
             {
-              label: 'Make clock intervals not auto-refresh pages',
+              label: 'Replace Last-War clock and progress logic with better one.',
+              labelPos: 'right',
+              type: 'checkbox',
+              default: true,
+            },
+          addon_res:
+            {
+              label: 'Deactivate Last-War resource counter and replace it with a better one.',
               labelPos: 'right',
               type: 'checkbox',
               default: true,
@@ -186,13 +192,6 @@ export default () => {
           trade_highlights:
             {
               label: 'TRADES: Highlight trades and resources that would exceed storage capacities.',
-              labelPos: 'right',
-              type: 'checkbox',
-              default: true,
-            },
-          res_updates:
-            {
-              label: 'RESOURCES: Deactivate Last-War resource counter and replace with a better one.',
               labelPos: 'right',
               type: 'checkbox',
               default: true,
@@ -330,7 +329,7 @@ export default () => {
               },
             },
         },
-      events:
+    events:
         {
           close() { setTimeout(() => { siteWindow.location.reload(); }, 100); },
           save() {
@@ -349,7 +348,7 @@ export default () => {
             }
           },
         },
-      css: `
+    css: `
         body#lwmSettings {
           width: 90%;
           margin-left: 5%;
@@ -404,6 +403,5 @@ export default () => {
 
         #lwmSettings_addon_fleet_exclude_drones_var { margin-left: 20px !important; } 
         #lwmSettings_section_5 .config_var { width: 33%; display: inline-block;}`,
-    },
-  );
-};
+  },
+);

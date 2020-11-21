@@ -19,6 +19,7 @@ import gmConfig from 'plugins/GM_config';
 import initGmConfig from 'config/gmConfig';
 import hotkeySetup from 'global/hotkeySetup';
 import 'assets/styles/main.scss';
+import customProgressbarStyles from 'assets/styles/custom-progressbar.lazy.scss';
 
 // add mobile support
 if (siteWindow.document.querySelector('meta[name=\'viewport\']') !== null) {
@@ -143,7 +144,7 @@ const installMain = () => {
         }
 
         // resource listener logic
-        if (gmConfig.get('res_updates')) {
+        if (gmConfig.get('addon_res')) {
           if ([
             'execute_action', 'bank_transaction', 'put_handelsposten_ships', 'put_flotten', 'put_upgrade_planet_defense', 'put_defense',
             'bank_transaction', 'put_kredit', 'recycling_ships',
@@ -218,8 +219,12 @@ if (location.protocol === 'https:') {
     });
   } else {
     // initSentry();
-    initGmConfig();
-    installMain();
+    initGmConfig().finally(() => {
+      installMain();
+      if (gmConfig.get('addon_clock')) {
+        customProgressbarStyles.use();
+      }
+    });
   }
 } else {
   location.href = `https:${location.href.substring(location.protocol.length)}`;

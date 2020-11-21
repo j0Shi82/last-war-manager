@@ -40,7 +40,7 @@ const addOns = {
 
     addOns.refreshTrades();
     if (gmConfig.get('addon_clock')) addOns.addClockInterval();
-    if (gmConfig.get('res_updates') && addOns.config.resourceIntervals === null) {
+    if (gmConfig.get('addon_res') && addOns.config.resourceIntervals === null) {
       addOns.config.resourceIntervals = addOns.addCustomResourceCounter();
     }
   },
