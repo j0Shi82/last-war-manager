@@ -4,7 +4,7 @@ import {
 } from 'config/globals';
 import gmConfig from 'plugins/GM_config';
 import {
-  throwError, addConfirm, setDataForClocks, replaceElementsHtmlWithIcon, addIconToHtmlElements, addResMemory,
+  throwError, addConfirm, setDataForClocks, replaceElementsHtmlWithIcon, addIconToHtmlElements,
   getIncomingResArray, checkCoords, getActiveObs,
 } from 'utils/helper';
 import { getPromise, getLoadStatePromise } from 'utils/loadPromises';
@@ -17,6 +17,7 @@ import driveManager from 'plugins/driveManager';
 import trades from 'main/pageTweaks/trades';
 import newTrade from 'main/pageTweaks/newTrade';
 import uebersicht from 'main/pageTweaks/uebersicht';
+import constructions from 'main/pageTweaks/constructions';
 import produktion from 'main/pageTweaks/produktion';
 import buildingTree from 'main/pageTweaks/buildingTree';
 import inbox from 'main/pageTweaks/inbox';
@@ -225,31 +226,7 @@ const pageTweaks = {
       config.loadStates.content = false;
     });
   },
-  construction: () => {
-    config.promises.content = getPromise('.hauptgebaude');
-    config.promises.content.then(() => {
-      addResMemory(lwmJQ('.greenButton'), 'building');
-      lwmJQ('.greenButton,.yellowButton,.redButton').each((i, el) => {
-        const textAppendix = lwmJQ(el).is('.greenButton') ? ' bauen' : ' abbrechen';
-        const $td = lwmJQ(el).parent();
-        $td.css('cursor', 'hand');
-        $td.attr('onclick', lwmJQ(el).attr('onclick'));
-        lwmJQ(el).attr('onclick', '');
-        if (gmConfig.get('confirm_const')) addConfirm($td, $td.parent().find('.constructionName').text() + textAppendix);
-        if (gmConfig.get('addon_clock')) {
-          clearInterval(siteWindow.timeinterval_construction);
-          clearInterval(siteWindow.timeinterval_construction2);
-          setDataForClocks();
-        }
-      });
-      config.loadStates.content = false;
-    }).catch((e) => {
-      Sentry.captureException(e);
-      // console.log(e);
-      throwError();
-      config.loadStates.content = false;
-    });
-  },
+  constructions,
   research: () => {
     config.promises.content = getPromise('.basisForschungen,#researchPage:contains(\'Forschungszentrale benötigt.\')');
     config.promises.content.then(() => {

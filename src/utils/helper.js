@@ -4,11 +4,11 @@ import config from 'config/lwmConfig';
 import numeral from 'numeral';
 import moment from 'moment';
 
-const addConfirm = ($el, m = 'Really?') => {
-  if ($el.data('has-confirm')) return;
-  $el.data('has-confirm', true);
-  const onclick = $el.attr('onclick');
-  $el.attr('onclick', `r = confirm("${m}?"); if (r == true) ${onclick}`);
+const addConfirm = (el, m = 'Really?') => {
+  if (el.getAttribute('data-has-confirm')) return;
+  el.setAttribute('data-has-confirm', true);
+  const onclick = el.getAttribute('onclick');
+  el.setAttribute('onclick', `r = confirm("${m}?"); if (r == true) ${onclick}`);
 };
 const addResMemory = ($list, type) => {
   lwmJQ.each($list, (i, el) => {

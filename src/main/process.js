@@ -60,7 +60,7 @@ export default (page, xhr, preserveSubmenu) => {
     case 'upgrade_ships': pageTweaks.upgradeShips(); break;
     case 'recycling_anlage': pageTweaks.recycleShips(); break;
     case 'verteidigung': pageTweaks.defense(); break;
-    case 'construction': pageTweaks.construction(); break;
+    case 'construction': pageTweaks.constructions(); break;
     case 'research': pageTweaks.research(); break;
     case 'aktuelle_produktion': pageTweaks.prodQueue(); break;
     case 'handelsposten': pageTweaks.shipPost(); break;
