@@ -15,14 +15,14 @@ export default () => {
   config.promises.content.then(() => {
     lwmJQ('button[onclick*=\'deleteDesign\']').each((i, el) => {
       const self = lwmJQ(el);
-      if (gmConfig.get('confirm_production')) addConfirm(self, `${self.parents('tr').find('td:eq(0)').text()} löschen`);
+      if (gmConfig.get('confirm_production')) addConfirm(self[0], `${self.parents('tr').find('td:eq(0)').text()} löschen`);
     });
 
     replaceElementsHtmlWithIcon(lwmJQ('button[onclick*=\'deleteDesign\']'), 'fas fa-ban');
 
     lwmJQ('button[onclick*=\'makeShip\']').each((i, el) => {
       const self = lwmJQ(el);
-      if (gmConfig.get('confirm_production')) addConfirm(self, `${self.parents('tr').prev().find('td:eq(0)').text()} produzieren`);
+      if (gmConfig.get('confirm_production')) addConfirm(self[0], `${self.parents('tr').prev().find('td:eq(0)').text()} produzieren`);
     });
 
     replaceElementsHtmlWithIcon(lwmJQ('button[onclick*=\'makeShip\']'), 'fas fa-2x fa-plus-circle');

@@ -99,7 +99,7 @@ const pageTweaks = {
       lwmJQ('#aktuelleProduktionPageDiv td[onclick]').each((i, el) => {
         const self = lwmJQ(el);
         self.css('cursor', 'hand');
-        if (gmConfig.get('confirm_production')) addConfirm(self, `${self.parent().find('td:eq(1)').text()} abbrechen`);
+        if (gmConfig.get('confirm_production')) addConfirm(self[0], `${self.parent().find('td:eq(1)').text()} abbrechen`);
         if (gmConfig.get('addon_clock')) {
           clearInterval(siteWindow.timeinterval_aktuelle_produktion);
           setDataForClocks();
@@ -120,7 +120,7 @@ const pageTweaks = {
     config.promises.content.then(() => {
       lwmJQ('button[onclick*=\'makeDefence\']').each((i, el) => {
         const self = lwmJQ(el);
-        if (gmConfig.get('confirm_production')) addConfirm(self, `${self.parent().find('td:eq(1)').text()} abbrechen`);
+        if (gmConfig.get('confirm_production')) addConfirm(self[0], `${self.parent().find('td:eq(1)').text()} abbrechen`);
       });
 
       replaceElementsHtmlWithIcon(lwmJQ('button[onclick*=\'makeDefence\']'), 'fas fa-2x fa-plus-circle');
@@ -141,7 +141,7 @@ const pageTweaks = {
       lwmJQ('button[onclick*=\'buyHandeslpostenShips\']').each((i, el) => {
         if (gmConfig.get('confirm_production')) {
           const self = lwmJQ(el);
-          addConfirm(self, `${self.parents('tr').find('td:eq(0)').text()} bestellen`);
+          addConfirm(self[0], `${self.parents('tr').find('td:eq(0)').text()} bestellen`);
         }
       });
 
@@ -160,7 +160,7 @@ const pageTweaks = {
       // add confirm to recycle buttons
       lwmJQ('button[onclick*=\'recycleDefence\']').each((i, el) => {
         const self = lwmJQ(el);
-        if (gmConfig.get('confirm_production')) addConfirm(self, `${self.parents('tr').find('td:eq(0)').text()} bauen`);
+        if (gmConfig.get('confirm_production')) addConfirm(self[0], `${self.parents('tr').find('td:eq(0)').text()} bauen`);
       });
 
       replaceElementsHtmlWithIcon(lwmJQ('button[onclick*=\'recycleDefence\']'), 'fas fa-2x fa-plus-circle');
@@ -177,7 +177,7 @@ const pageTweaks = {
     config.promises.content.then(() => {
       // add confirm to recycle buttons
       lwmJQ('button[onclick*=\'upgradeDefenceFunction\']').each((i, el) => {
-        if (gmConfig.get('confirm_production')) addConfirm(lwmJQ(el));
+        if (gmConfig.get('confirm_production')) addConfirm(el);
       });
 
       addIconToHtmlElements(lwmJQ('button[onclick*=\'upgradeDefenceFunction\']'), 'fas fa-2x fa-arrow-alt-circle-up');
@@ -196,7 +196,7 @@ const pageTweaks = {
     config.promises.content.then(() => {
       // add confirm to recycle buttons
       lwmJQ('button[onclick*=\'upgradeShipsFunction\']').each((i, el) => {
-        if (gmConfig.get('confirm_production')) addConfirm(lwmJQ(el));
+        if (gmConfig.get('confirm_production')) addConfirm(el);
       });
 
       addIconToHtmlElements(lwmJQ('button[onclick*=\'upgradeShipsFunction\']'), 'fas fa-2x fa-arrow-alt-circle-up');
@@ -214,7 +214,7 @@ const pageTweaks = {
     config.promises.content.then(() => {
       // add confirm to recycle buttons
       lwmJQ('button[onclick*=\'RecycleShips\']').each((i, el) => {
-        if (gmConfig.get('confirm_production')) addConfirm(lwmJQ(el));
+        if (gmConfig.get('confirm_production')) addConfirm(el);
       });
 
       replaceElementsHtmlWithIcon(lwmJQ('button[onclick*=\'RecycleShips\']'), 'fas fa-2x fa-plus-circle');
@@ -236,7 +236,7 @@ const pageTweaks = {
         $td.css('cursor', 'hand');
         $td.attr('onclick', lwmJQ(el).attr('onclick'));
         lwmJQ(el).attr('onclick', '');
-        if (gmConfig.get('confirm_research')) addConfirm($td, $td.parent().find('.researchName').text() + textAppendix);
+        if (gmConfig.get('confirm_research')) addConfirm($td[0], $td.parent().find('.researchName').text() + textAppendix);
         if (gmConfig.get('addon_clock')) {
           clearInterval(siteWindow.timeinterval_research);
           setDataForClocks();
