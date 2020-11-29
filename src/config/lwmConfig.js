@@ -388,7 +388,7 @@ const config = {
           config.gameData.fleetInfo[type] = lwmJQ.grep(
             config.gameData.fleetInfo[type], (f) => new Date(new Date(f.ComeTime).valueOf() + (1000 * 60 * 60 * 24 * 7)) > new Date(),
           );
-          lwmJQ.each(fleetData[type], (i, fleet) => {
+          fleetData.all_fleets_info.filter((el) => el.type === type).forEach((fleet) => {
             // if fleet is present, delete and add to update seconds and time
             // checkForFleet(type, fleet);
             fleet.homePlanet = config.gameData.planetCoords.string;
