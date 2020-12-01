@@ -91,25 +91,27 @@ const fleetSend = (fleetSendData = config.gameData.fleetSendData) => {
     const timingTypeDiv = createElementFromHTML('<div><select id="lwm_fleet_type"><option value="0">Pick Fleet Timing Function</option><option value="1">Send / Return Balanced</option><option value="2">Send Fast/ Return Slow</option><option value="3">Send Slow/Return Fast</option></select></div>');
     const timingTypeSelect = timingTypeDiv.querySelector('select');
     const onewayDiv = createElementFromHTML('<div><label style="display:flex;align-items:center;"><input type="checkbox" id="lwm_fleet_oneway">Oneway</label></div>');
-    const arrivalSelect = createElementFromHTML(`<select id="lwm_fleet_selectarrivaltime"><option value="${minDateArrival.valueOf()}" selected>Pick Arrival Time</option></select>`);
+    const arrivalSelect = createElementFromHTML('<select id="lwm_fleet_selectarrivaltime"><option value="" selected>Pick Arrival Time</option></select>');
     addOptionsToTimeSelect(arrivalSelect, minDateArrival, maxDateArrival);
-    const returnSelect = createElementFromHTML(`<select id="lwm_fleet_selectreturntime"><option value="${minDateReturn.valueOf()}" selected>Pick Return Time</option></select>`);
+    const returnSelect = createElementFromHTML('<select id="lwm_fleet_selectreturntime"><option value="" selected>Pick Return Time</option></select>');
     addOptionsToTimeSelect(returnSelect, minDateReturn, maxDateReturn);
     const onewayCheckbox = onewayDiv.querySelector('#lwm_fleet_oneway');
     const sendSpeedInput = document.querySelector('#send.changeTime');
     const returnSpeedInput = document.querySelector('#back.changeTime');
 
-    const toggleReturnSelect = () => {
+    const toggleOneWay = () => {
       const onewayCheckboxIsChecked = onewayCheckbox.checked;
       if (onewayCheckboxIsChecked) {
         returnSelect.value = '';
         returnSelect.style.display = 'none';
+        timingTypeSelect.style.display = 'none';
       } else {
         returnSelect.style.display = 'block';
+        timingTypeSelect.style.display = 'block';
       }
     };
 
-    toggleReturnSelect();
+    toggleOneWay();
 
     const calcSpeed = (startDate, endDate) => {
       const timeDiffInSecs = parseInt(((endDate.valueOf() - startDate.valueOf()) / 1000), 10);
@@ -129,47 +131,84 @@ const fleetSend = (fleetSendData = config.gameData.fleetSendData) => {
       //   toggleReturnSelect();
       let curSpeed = 20;
       const arrivalTime = moment(parseInt(arrivalSelect.value, 10));
-      const arrivalMinAddTime = moment(parseInt(arrivalSelect.value, 10)).add(minTimeInSecs, 'seconds');
-      const arrivalMaxAddTime = moment(parseInt(arrivalSelect.value, 10)).add(maxTimeInSecs, 'seconds');
-      let sendSpeed = calcSpeed(moment(), arrivalTime);
-      let returnTime = moment(parseInt(returnSelect.value, 10));
-      let returnSpeed = calcSpeed(arrivalTime, returnTime);
+      const returnTime = moment(parseInt(returnSelect.value, 10));
       const onewayCheckboxIsChecked = onewayCheckbox.checked;
       const timingType = timingTypeSelect.value;
+
+      let sendSpeed; let returnSpeed;
+      if (!arrivalTime.isValid()) { sendSpeed = maxSpeed; } else { sendSpeed = calcSpeed(moment(), arrivalTime); }
+      if (!returnTime.isValid()) { returnSpeed = maxSpeed; } else if (!arrivalTime.isValid()) {
+        returnSpeed = calcSpeed(minDateArrival, returnTime);
+      } else {
+        returnSpeed = calcSpeed(arrivalTime, returnTime);
+      }
+
       switch (from) {
         case 'arrival':
           // arrival changed means we might have to tweak return time
           if (onewayCheckboxIsChecked) {
-            document.querySelector('#send').val(returnSpeed);
             sendSpeedInput.value = sendSpeed;
             sendFleetTimeRequest(sendSpeed, 'send');
             returnSpeedInput.value = sendSpeed;
             sendFleetTimeRequest(sendSpeed, 'back');
           } else {
+            if (!arrivalTime.isValid()) {
+              addOptionsToTimeSelect(returnSelect, minDateReturn, maxDateReturn);
+              if (returnTime.isValid()) {
+                returnSelect.value = returnTime.valueOf();
+                calcFleetTime('return');
+                break;
+              }
+            } else {
+              // rebuild select to match new arrival speed
+              addOptionsToTimeSelect(
+                returnSelect,
+                moment(parseInt(arrivalSelect.value, 10)).add(minTimeInSecs, 'seconds'),
+                moment(parseInt(arrivalSelect.value, 10)).add(maxTimeInSecs, 'seconds'),
+              );
+              // if returnSpeed is no longer possible due to arrival time, change to max speed
+              if (returnSpeed > maxSpeed) {
+                returnSpeed = maxSpeed;
+              }
+            }
             sendSpeedInput.value = sendSpeed;
             sendFleetTimeRequest(sendSpeed, 'send');
-            // rebuild select to match new arrival speed
-            addOptionsToTimeSelect(returnSelect, arrivalMinAddTime, arrivalMaxAddTime);
-            // if returnSpeed is no longer possible due to arrival time, change to max speed
-            if (returnSpeed < 20 || returnSpeed > maxSpeed) {
-              returnSpeed = maxSpeed;
-              returnTime = moment(arrivalMinAddTime).add(5 - (arrivalMinAddTime.minute() % 5), 'minutes').startOf('minute').valueOf();
-            }
+
             // (re)pick value in return select
             returnSpeedInput.value = returnSpeed;
-            returnSelect.value = returnTime.valueOf();
+            sendFleetTimeRequest(returnSpeed, 'back');
+
+            returnSelect.value = returnTime.isValid() ? returnTime.valueOf() : '';
           }
           break;
         case 'return':
           // arrival changed means we might have to tweak arrival time
           switch (timingType) {
             case '0':
+              if (!returnTime.isValid()) {
+                addOptionsToTimeSelect(arrivalSelect, minDateArrival, maxDateArrival);
+              }
+
+              if (returnSpeed < 20) {
+                returnSpeed = 20;
+                // recalc sendSpeed
+                sendSpeed = calcSpeed(
+                  moment().add((minTimeInSecs / (2 - (maxSpeed / 100))) * (2 - (20 / 100)), 'seconds'),
+                  returnTime,
+                );
+
+                addOptionsToTimeSelect(arrivalSelect, moment().add((minTimeInSecs / (2 - (maxSpeed / 100))) * (2 - (sendSpeed / 100)), 'seconds'), maxDateArrival);
+              }
               sendSpeedInput.value = sendSpeed;
               sendFleetTimeRequest(sendSpeed, 'send');
               returnSpeedInput.value = returnSpeed;
               sendFleetTimeRequest(returnSpeed, 'back');
               break;
             case '1':
+              returnSpeed = calcSpeed(
+                moment(),
+                moment().add(parseInt(returnTime.diff(moment(), 'seconds') / 2, 10), 'seconds'),
+              );
               sendSpeedInput.value = returnSpeed;
               sendFleetTimeRequest(returnSpeed, 'send');
               returnSpeedInput.value = returnSpeed;
@@ -180,10 +219,9 @@ const fleetSend = (fleetSendData = config.gameData.fleetSendData) => {
               returnSpeed = 0;
               curSpeed = 20;
               do {
-              // calculate 20% speed in seconds
                 sendSpeed = curSpeed;
                 returnSpeed = calcSpeed(
-                  moment().add((minTimeInSecs / (2 - (maxSpeed / 100))) * (2 - (curSpeed / 100)), 'seocnds'),
+                  moment().add((minTimeInSecs / (2 - (maxSpeed / 100))) * (2 - (curSpeed / 100)), 'seconds'),
                   returnTime,
                 );
                 curSpeed += 1;
@@ -291,7 +329,7 @@ const fleetSend = (fleetSendData = config.gameData.fleetSendData) => {
     // add events to elements
     arrivalSelect.addEventListener('change', () => { timingTypeSelect.value = '0'; calcFleetTime('arrival'); });
     returnSelect.addEventListener('change', () => { calcFleetTime('return'); });
-    onewayCheckbox.addEventListener('change', () => { toggleReturnSelect(); if (onewayCheckbox.checked) timingTypeSelect.value = '0'; calcFleetTime('arrival'); });
+    onewayCheckbox.addEventListener('change', () => { toggleOneWay(); if (onewayCheckbox.checked) timingTypeSelect.value = '0'; calcFleetTime('arrival'); });
     timingTypeSelect.addEventListener('change', () => { if (timingTypeSelect.value !== '0') onewayCheckbox.checked = false; calcFleetTime('return'); });
 
     // add elements to DOM
