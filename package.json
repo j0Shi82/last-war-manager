@@ -12,10 +12,10 @@
     "addTmMeta": "node src/scripts/tamperMonkeyPrepend.js"
   },
   "devDependencies": {
-    "@babel/core": "^7.12.7",
+    "@babel/core": "^7.12.9",
     "@babel/plugin-transform-runtime": "^7.12.1",
     "@babel/preset-env": "^7.12.7",
-    "babel-loader": "^8.2.1",
+    "babel-loader": "^8.2.2",
     "css-loader": "^5.0.1",
     "eslint": "^7.14.0",
     "eslint-config-airbnb-base": "^14.2.1",
@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.12.5",
-    "@sentry/browser": "^5.27.4",
+    "@sentry/browser": "^5.28.0",
     "dayjs": "^1.9.6",
     "hotkeys-js": "^3.8.1",
     "jquery": "^3.5.1",
@@ -36,10 +36,10 @@
     "moment": "^2.29.1",
     "moment-duration-format": "^2.3.2",
     "numeral": "^2.0.6",
-    "webpack": "^5.6.0",
+    "webpack": "^5.9.0",
     "webpack-inject-plugin": "^1.5.5",
     "webpack-sources": "^2.2.0",
-    "worker-timers": "^7.0.6"
+    "worker-timers": "^7.0.7"
   },
   "resolutions": {
     "serialize-javascript": "^3.1.0",

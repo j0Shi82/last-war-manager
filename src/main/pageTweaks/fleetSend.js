@@ -88,7 +88,8 @@ const fleetSend = (fleetSendData = config.gameData.fleetSendData) => {
     // build choose time selects
     const optionWrapper = createElementFromHTML('<div id="lwm_fleet_timer_wrapper"></div>');
 
-    const timingTypeSelect = createElementFromHTML('<div><select id="lwm_fleet_type"><option value="0">Pick Fleet Timing Function</option><option value="1">Send / Return Balanced</option><option value="2">Send Fast/ Return Slow</option><option value="3">Send Slow/Return Fast</option></select></div>');
+    const timingTypeDiv = createElementFromHTML('<div><select id="lwm_fleet_type"><option value="0">Pick Fleet Timing Function</option><option value="1">Send / Return Balanced</option><option value="2">Send Fast/ Return Slow</option><option value="3">Send Slow/Return Fast</option></select></div>');
+    const timingTypeSelect = timingTypeDiv.querySelector('select');
     const onewayDiv = createElementFromHTML('<div><label style="display:flex;align-items:center;"><input type="checkbox" id="lwm_fleet_oneway">Oneway</label></div>');
     const arrivalSelect = createElementFromHTML(`<select id="lwm_fleet_selectarrivaltime"><option value="${minDateArrival.valueOf()}" selected>Pick Arrival Time</option></select>`);
     addOptionsToTimeSelect(arrivalSelect, minDateArrival, maxDateArrival);
@@ -126,9 +127,11 @@ const fleetSend = (fleetSendData = config.gameData.fleetSendData) => {
 
     const calcFleetTime = (from = 'arrival') => {
       //   toggleReturnSelect();
-    //   const curSpeed = 20;
+      let curSpeed = 20;
       const arrivalTime = moment(parseInt(arrivalSelect.value, 10));
-      const sendSpeed = calcSpeed(moment(), arrivalTime);
+      const arrivalMinAddTime = moment(parseInt(arrivalSelect.value, 10)).add(minTimeInSecs, 'seconds');
+      const arrivalMaxAddTime = moment(parseInt(arrivalSelect.value, 10)).add(maxTimeInSecs, 'seconds');
+      let sendSpeed = calcSpeed(moment(), arrivalTime);
       let returnTime = moment(parseInt(returnSelect.value, 10));
       let returnSpeed = calcSpeed(arrivalTime, returnTime);
       const onewayCheckboxIsChecked = onewayCheckbox.checked;
@@ -146,11 +149,11 @@ const fleetSend = (fleetSendData = config.gameData.fleetSendData) => {
             sendSpeedInput.value = sendSpeed;
             sendFleetTimeRequest(sendSpeed, 'send');
             // rebuild select to match new arrival speed
-            addOptionsToTimeSelect(returnSelect, arrivalTime.add(minTimeInSecs, 'seconds'), arrivalTime.add(maxTimeInSecs, 'seconds'));
+            addOptionsToTimeSelect(returnSelect, arrivalMinAddTime, arrivalMaxAddTime);
             // if returnSpeed is no longer possible due to arrival time, change to max speed
             if (returnSpeed < 20 || returnSpeed > maxSpeed) {
               returnSpeed = maxSpeed;
-              returnTime = moment(arrivalTime.add(minTimeInSecs, 'seconds')).add(5 - (arrivalTime.add(minTimeInSecs, 'seconds').minute() % 5), 'minutes').startOf('minute').valueOf();
+              returnTime = moment(arrivalMinAddTime).add(5 - (arrivalMinAddTime.minute() % 5), 'minutes').startOf('minute').valueOf();
             }
             // (re)pick value in return select
             returnSpeedInput.value = returnSpeed;
@@ -161,14 +164,34 @@ const fleetSend = (fleetSendData = config.gameData.fleetSendData) => {
           // arrival changed means we might have to tweak arrival time
           switch (timingType) {
             case '0':
+              sendSpeedInput.value = sendSpeed;
               sendFleetTimeRequest(sendSpeed, 'send');
+              returnSpeedInput.value = returnSpeed;
               sendFleetTimeRequest(returnSpeed, 'back');
               break;
             case '1':
+              sendSpeedInput.value = returnSpeed;
               sendFleetTimeRequest(returnSpeed, 'send');
+              returnSpeedInput.value = returnSpeed;
               sendFleetTimeRequest(returnSpeed, 'back');
               break;
-            case '2': break;
+            case '2':
+              sendSpeed = 0;
+              returnSpeed = 0;
+              curSpeed = 20;
+              do {
+              // calculate 20% speed in seconds
+                sendSpeed = curSpeed;
+                returnSpeed = calcSpeed(
+                  moment().add((minTimeInSecs / (2 - (maxSpeed / 100))) * (2 - (curSpeed / 100)), 'seocnds'),
+                  returnTime,
+                );
+              } while (returnSpeed < 20 || returnSpeed > maxSpeed);
+              sendSpeedInput.value = sendSpeed;
+              sendFleetTimeRequest(sendSpeed, 'send');
+              returnSpeedInput.value = returnSpeed;
+              sendFleetTimeRequest(returnSpeed, 'back');
+              break;
             case '3': break;
             default: break;
           }
@@ -274,7 +297,7 @@ const fleetSend = (fleetSendData = config.gameData.fleetSendData) => {
     const documentContainer = document.querySelector('#timeFlote').nextSibling;
     optionWrapper.appendChild(arrivalSelect);
     optionWrapper.appendChild(returnSelect);
-    optionWrapper.appendChild(timingTypeSelect);
+    optionWrapper.appendChild(timingTypeDiv);
     optionWrapper.appendChild(onewayDiv);
     documentContainer.parentNode.insertBefore(optionWrapper, documentContainer);
 
