@@ -186,6 +186,7 @@ const fleetSend = (fleetSendData = config.gameData.fleetSendData) => {
                   moment().add((minTimeInSecs / (2 - (maxSpeed / 100))) * (2 - (curSpeed / 100)), 'seocnds'),
                   returnTime,
                 );
+                curSpeed += 1;
               } while (returnSpeed < 20 || returnSpeed > maxSpeed);
               sendSpeedInput.value = sendSpeed;
               sendFleetTimeRequest(sendSpeed, 'send');
@@ -290,8 +291,8 @@ const fleetSend = (fleetSendData = config.gameData.fleetSendData) => {
     // add events to elements
     arrivalSelect.addEventListener('change', () => { timingTypeSelect.value = '0'; calcFleetTime('arrival'); });
     returnSelect.addEventListener('change', () => { calcFleetTime('return'); });
-    onewayCheckbox.addEventListener('change', () => { toggleReturnSelect(); if (onewayCheckbox.checked) timingTypeSelect.value = '0'; calcFleetTime(); });
-    timingTypeSelect.addEventListener('change', () => { if (timingTypeSelect.value !== '0') onewayCheckbox.checked = false; calcFleetTime(); });
+    onewayCheckbox.addEventListener('change', () => { toggleReturnSelect(); if (onewayCheckbox.checked) timingTypeSelect.value = '0'; calcFleetTime('arrival'); });
+    timingTypeSelect.addEventListener('change', () => { if (timingTypeSelect.value !== '0') onewayCheckbox.checked = false; calcFleetTime('return'); });
 
     // add elements to DOM
     const documentContainer = document.querySelector('#timeFlote').nextSibling;
