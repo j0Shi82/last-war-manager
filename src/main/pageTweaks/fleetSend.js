@@ -88,30 +88,32 @@ const fleetSend = (fleetSendData = config.gameData.fleetSendData) => {
     // build choose time selects
     const optionWrapper = createElementFromHTML('<div id="lwm_fleet_timer_wrapper"></div>');
 
-    const timingTypeDiv = createElementFromHTML('<div><select id="lwm_fleet_type"><option value="0">Pick Fleet Timing Function</option><option value="1">Send / Return Balanced</option><option value="2">Send Fast/ Return Slow</option><option value="3">Send Slow/Return Fast</option></select></div>');
+    const timingTypeDiv = createElementFromHTML('<div><select id="lwm_fleet_type"><option value="0">Pick Fleet Timing Function</option><option value="1">One-Way</option><option value="2">Send / Return Balanced</option><option value="3">Send Fast/ Return Slow</option><option value="4">Send Slow/Return Fast</option></select></div>');
     const timingTypeSelect = timingTypeDiv.querySelector('select');
-    const onewayDiv = createElementFromHTML('<div><label style="display:flex;align-items:center;"><input type="checkbox" id="lwm_fleet_oneway">Oneway</label></div>');
     const arrivalSelect = createElementFromHTML('<select id="lwm_fleet_selectarrivaltime"><option value="" selected>Pick Arrival Time</option></select>');
     addOptionsToTimeSelect(arrivalSelect, minDateArrival, maxDateArrival);
     const returnSelect = createElementFromHTML('<select id="lwm_fleet_selectreturntime"><option value="" selected>Pick Return Time</option></select>');
     addOptionsToTimeSelect(returnSelect, minDateReturn, maxDateReturn);
-    const onewayCheckbox = onewayDiv.querySelector('#lwm_fleet_oneway');
     const sendSpeedInput = document.querySelector('#send.changeTime');
     const returnSpeedInput = document.querySelector('#back.changeTime');
 
-    const toggleOneWay = () => {
-      const onewayCheckboxIsChecked = onewayCheckbox.checked;
-      if (onewayCheckboxIsChecked) {
+    const toggleTimingType = () => {
+      if (timingTypeSelect.value === '1') {
         returnSelect.value = '';
         returnSelect.style.display = 'none';
-        timingTypeSelect.style.display = 'none';
       } else {
         returnSelect.style.display = 'block';
-        timingTypeSelect.style.display = 'block';
+      }
+
+      if (parseInt(timingTypeSelect.value, 10) > 1) {
+        arrivalSelect.value = '';
+        arrivalSelect.style.display = 'none';
+      } else {
+        arrivalSelect.style.display = 'block';
       }
     };
 
-    toggleOneWay();
+    toggleTimingType();
 
     const calcSpeed = (startDate, endDate) => {
       const timeDiffInSecs = parseInt(((endDate.valueOf() - startDate.valueOf()) / 1000), 10);
@@ -132,7 +134,7 @@ const fleetSend = (fleetSendData = config.gameData.fleetSendData) => {
       let curSpeed = 20;
       const arrivalTime = moment(parseInt(arrivalSelect.value, 10));
       const returnTime = moment(parseInt(returnSelect.value, 10));
-      const onewayCheckboxIsChecked = onewayCheckbox.checked;
+      const isOneway = timingTypeSelect.value === '1';
       const timingType = timingTypeSelect.value;
 
       let sendSpeed; let returnSpeed;
@@ -146,7 +148,7 @@ const fleetSend = (fleetSendData = config.gameData.fleetSendData) => {
       switch (from) {
         case 'arrival':
           // arrival changed means we might have to tweak return time
-          if (onewayCheckboxIsChecked) {
+          if (isOneway) {
             sendSpeedInput.value = sendSpeed;
             sendFleetTimeRequest(sendSpeed, 'send');
             returnSpeedInput.value = sendSpeed;
@@ -204,17 +206,25 @@ const fleetSend = (fleetSendData = config.gameData.fleetSendData) => {
               returnSpeedInput.value = returnSpeed;
               sendFleetTimeRequest(returnSpeed, 'back');
               break;
-            case '1':
-              returnSpeed = calcSpeed(
-                moment(),
-                moment().add(parseInt(returnTime.diff(moment(), 'seconds') / 2, 10), 'seconds'),
-              );
+            case '2':
+              if (!returnTime.isValid()) {
+                returnSpeed = maxSpeed;
+              } else {
+                returnSpeed = calcSpeed(
+                  moment(),
+                  moment().add(parseInt(returnTime.diff(moment(), 'seconds') / 2, 10), 'seconds'),
+                );
+              }
               sendSpeedInput.value = returnSpeed;
               sendFleetTimeRequest(returnSpeed, 'send');
               returnSpeedInput.value = returnSpeed;
               sendFleetTimeRequest(returnSpeed, 'back');
               break;
-            case '2':
+            case '3':
+              if (!returnTime.isValid()) {
+                returnSpeed = maxSpeed;
+                sendSpeed = maxSpeed;
+              } else {
               sendSpeed = 0;
               returnSpeed = 0;
               curSpeed = 20;
@@ -231,7 +241,7 @@ const fleetSend = (fleetSendData = config.gameData.fleetSendData) => {
               returnSpeedInput.value = returnSpeed;
               sendFleetTimeRequest(returnSpeed, 'back');
               break;
-            case '3': break;
+            case '4': break;
             default: break;
           }
           break;
@@ -327,17 +337,22 @@ const fleetSend = (fleetSendData = config.gameData.fleetSendData) => {
     // };
 
     // add events to elements
-    arrivalSelect.addEventListener('change', () => { timingTypeSelect.value = '0'; calcFleetTime('arrival'); });
+    arrivalSelect.addEventListener('change', () => { calcFleetTime('arrival'); });
     returnSelect.addEventListener('change', () => { calcFleetTime('return'); });
-    onewayCheckbox.addEventListener('change', () => { toggleOneWay(); if (onewayCheckbox.checked) timingTypeSelect.value = '0'; calcFleetTime('arrival'); });
-    timingTypeSelect.addEventListener('change', () => { if (timingTypeSelect.value !== '0') onewayCheckbox.checked = false; calcFleetTime('return'); });
+    timingTypeSelect.addEventListener('change', () => {
+      toggleTimingType();
+      if (timingTypeSelect.value === '1') {
+        calcFleetTime('arrival');
+      } else {
+        calcFleetTime('return');
+      }
+    });
 
     // add elements to DOM
     const documentContainer = document.querySelector('#timeFlote').nextSibling;
     optionWrapper.appendChild(arrivalSelect);
     optionWrapper.appendChild(returnSelect);
     optionWrapper.appendChild(timingTypeDiv);
-    optionWrapper.appendChild(onewayDiv);
     documentContainer.parentNode.insertBefore(optionWrapper, documentContainer);
 
     // when next is clicked, remove wrapper
