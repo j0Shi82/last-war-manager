@@ -1,7 +1,5 @@
 import config from 'config/lwmConfig';
-import {
-  lwmJQ, siteWindow,
-} from 'config/globals';
+import { siteWindow } from 'config/globals';
 import gmConfig from 'plugins/GM_config';
 import { throwError } from 'utils/helper';
 import { createElementFromHTML } from 'utils/domHelper';
@@ -14,6 +12,53 @@ import momentDurationFormatSetup from 'moment-duration-format';
 momentDurationFormatSetup(moment);
 
 const { document } = siteWindow;
+
+const dataValues = {
+  arrivalTime: '',
+  returnTime: '',
+  timingType: '0',
+};
+
+const getCommonValues = () => {
+  const { fleetSendData } = config.gameData;
+  const arrivalSelect = document.querySelector('#lwm_fleet_selectarrivaltime');
+  const returnSelect = document.querySelector('#lwm_fleet_selectreturntime');
+  const timingTypeSelect = document.querySelector('#lwm_fleet_type');
+  const maxSpeed = parseInt(config.gameData.fleetSendData.max_speed_transport, 10);
+  const arrivalTime = moment(parseInt(arrivalSelect.value, 10));
+  const returnTime = moment(parseInt(returnSelect.value, 10));
+  const isOneway = timingTypeSelect.value === '1';
+  const timingType = timingTypeSelect.value;
+
+  const minTimeInSecs = moment.duration(fleetSendData.send_time, 'seconds').asSeconds();
+  const maxTimeInSecs = ((minTimeInSecs / (2 - (parseInt(fleetSendData.max_speed_transport, 10) / 100))) * (2 - (20 / 100)));
+  const minDateArrival = moment().add(minTimeInSecs, 'seconds');
+  const maxDateArrival = moment().add(maxTimeInSecs, 'seconds');
+  const minDateReturn = moment().add(minTimeInSecs * 2, 'seconds');
+  const maxDateReturn = moment().add(maxTimeInSecs * 2, 'seconds');
+
+  const sendSpeedInput = document.querySelector('#send.changeTime');
+  const returnSpeedInput = document.querySelector('#back.changeTime');
+
+  return {
+    arrivalSelect,
+    returnSelect,
+    timingTypeSelect,
+    maxSpeed,
+    arrivalTime,
+    returnTime,
+    isOneway,
+    timingType,
+    minTimeInSecs,
+    maxTimeInSecs,
+    minDateArrival,
+    maxDateArrival,
+    minDateReturn,
+    maxDateReturn,
+    sendSpeedInput,
+    returnSpeedInput,
+  };
+};
 
 const sendFleetTimeRequest = (speed, type = 'send') => {
   siteWindow.jQuery.post('./ajax_request/count_time.php', {
@@ -59,14 +104,208 @@ const sendFleetTimeRequest = (speed, type = 'send') => {
 };
 
 const addOptionsToTimeSelect = (selectEl, minDate, maxDate) => {
+  const currentValue = selectEl.value;
   const remainder = 5 - (minDate.minute() % 5);
   const minDateInterval = moment(minDate).add(remainder, 'minutes').startOf('minute');
   const options = selectEl.querySelectorAll('option:not(:first-child)');
   options.forEach((o) => o.remove());
+  // let valueFound = false;
   while (minDateInterval.valueOf() < maxDate.valueOf()) {
+    // if (minDateInterval.valueOf() === parseInt(currentValue, 10)) valueFound = true;
     const option = createElementFromHTML(`<option value="${minDateInterval.valueOf()}">${minDateInterval.format('YYYY-MM-DD HH:mm:ss')}</option>`);
     selectEl.appendChild(option);
     minDateInterval.add(5, 'minutes');
+  }
+  // if (!valueFound && currentValue !== '') {
+  //   const valueOption = createElementFromHTML(`<option value="${currentValue}">${moment(currentValue).format('YYYY-MM-DD HH:mm:ss')}</option>`);
+  //   selectEl.insertBefore(valueOption, selectEl.querySelector('option:not(:first-child)'));
+  // }
+
+  selectEl.value = currentValue;
+};
+
+const calcSpeed = (startDate, endDate) => {
+  const { maxSpeed, minTimeInSecs } = getCommonValues();
+  const timeDiffInSecs = parseInt(((endDate.valueOf() - startDate.valueOf()) / 1000), 10);
+  return parseInt((
+    1 - (
+      (
+        (
+          (timeDiffInSecs - (minTimeInSecs / (2 - (maxSpeed / 100))))
+          / ((minTimeInSecs / (2 - (maxSpeed / 100))) * 0.01)
+        )
+      ) / 100
+    )
+  ) * 100, 10);
+};
+
+const calcFleetTime = (from = 'arrival') => {
+  const {
+    arrivalSelect, returnSelect, maxSpeed, arrivalTime, returnTime, isOneway, timingType, minTimeInSecs, maxTimeInSecs,
+    minDateArrival, maxDateArrival, minDateReturn, maxDateReturn, sendSpeedInput, returnSpeedInput,
+  } = getCommonValues();
+
+  let curSpeed = 20;
+  let sendSpeed; let returnSpeed;
+
+  if (!arrivalTime.isValid()) { sendSpeed = maxSpeed; } else { sendSpeed = calcSpeed(moment(), arrivalTime); }
+  if (!returnTime.isValid()) { returnSpeed = maxSpeed; } else if (!arrivalTime.isValid()) {
+    returnSpeed = calcSpeed(minDateArrival, returnTime);
+  } else {
+    returnSpeed = calcSpeed(arrivalTime, returnTime);
+  }
+
+  switch (from) {
+    case 'arrival':
+      // arrival changed means we might have to tweak return time
+      if (isOneway) {
+        sendSpeedInput.value = sendSpeed;
+        sendFleetTimeRequest(sendSpeed, 'send');
+        returnSpeedInput.value = sendSpeed;
+        sendFleetTimeRequest(sendSpeed, 'back');
+      } else {
+        if (!arrivalTime.isValid()) {
+          addOptionsToTimeSelect(returnSelect, minDateReturn, maxDateReturn);
+          if (returnTime.isValid()) {
+            calcFleetTime('return');
+            break;
+          }
+        } else {
+          // rebuild select to match new arrival speed
+          addOptionsToTimeSelect(
+            returnSelect,
+            moment(parseInt(arrivalSelect.value, 10)).add(minTimeInSecs, 'seconds'),
+            moment(parseInt(arrivalSelect.value, 10)).add(maxTimeInSecs, 'seconds'),
+          );
+          // if returnSpeed is no longer possible due to arrival time, change to max speed
+          if (returnSpeed > maxSpeed) {
+            returnSpeed = maxSpeed;
+          }
+        }
+        sendSpeedInput.value = sendSpeed;
+        sendFleetTimeRequest(sendSpeed, 'send');
+
+        // (re)pick value in return select
+        returnSpeedInput.value = returnSpeed;
+        sendFleetTimeRequest(returnSpeed, 'back');
+
+        returnSelect.value = returnTime.isValid() ? returnTime.valueOf() : '';
+        dataValues.returnTime = returnSelect.value;
+      }
+      break;
+    case 'return':
+      // arrival changed means we might have to tweak arrival time
+      switch (timingType) {
+        case '0':
+          if (!returnTime.isValid()) {
+            addOptionsToTimeSelect(arrivalSelect, minDateArrival, maxDateArrival);
+          } else if (returnSpeed < 20) {
+            returnSpeed = 20;
+            // recalc sendSpeed
+            sendSpeed = calcSpeed(
+              moment().add((minTimeInSecs / (2 - (maxSpeed / 100))) * (2 - (20 / 100)), 'seconds'),
+              returnTime,
+            );
+
+            addOptionsToTimeSelect(arrivalSelect, moment().add((minTimeInSecs / (2 - (maxSpeed / 100))) * (2 - (sendSpeed / 100)), 'seconds'), maxDateArrival);
+          } else {
+            addOptionsToTimeSelect(arrivalSelect, minDateArrival, moment(maxDateArrival).subtract((minTimeInSecs / (2 - (maxSpeed / 100))) * (2 - (returnSpeed / 100)), 'seconds'));
+          }
+
+          sendSpeedInput.value = sendSpeed;
+          sendFleetTimeRequest(sendSpeed, 'send');
+          returnSpeedInput.value = returnSpeed;
+          sendFleetTimeRequest(returnSpeed, 'back');
+          break;
+        case '2':
+          if (!returnTime.isValid()) {
+            returnSpeed = maxSpeed;
+          } else {
+            returnSpeed = calcSpeed(
+              moment(),
+              moment().add(parseInt(returnTime.diff(moment(), 'seconds') / 2, 10), 'seconds'),
+            );
+          }
+          sendSpeedInput.value = returnSpeed;
+          sendFleetTimeRequest(returnSpeed, 'send');
+          returnSpeedInput.value = returnSpeed;
+          sendFleetTimeRequest(returnSpeed, 'back');
+          break;
+        case '3':
+          if (!returnTime.isValid()) {
+            returnSpeed = maxSpeed;
+            sendSpeed = maxSpeed;
+          } else {
+            sendSpeed = 0;
+            returnSpeed = 0;
+            curSpeed = 20;
+            do {
+              returnSpeed = curSpeed;
+              sendSpeed = calcSpeed(
+                moment().add((minTimeInSecs / (2 - (maxSpeed / 100))) * (2 - (curSpeed / 100)), 'seconds'),
+                returnTime,
+              );
+              curSpeed += 1;
+            } while (sendSpeed < 20 || sendSpeed > maxSpeed);
+          }
+          sendSpeedInput.value = sendSpeed;
+          sendFleetTimeRequest(sendSpeed, 'send');
+          returnSpeedInput.value = returnSpeed;
+          sendFleetTimeRequest(returnSpeed, 'back');
+          break;
+        case '4':
+          if (!returnTime.isValid()) {
+            returnSpeed = maxSpeed;
+            sendSpeed = maxSpeed;
+          } else {
+            sendSpeed = 0;
+            returnSpeed = 0;
+            curSpeed = 20;
+            do {
+              sendSpeed = curSpeed;
+              returnSpeed = calcSpeed(
+                moment().add((minTimeInSecs / (2 - (maxSpeed / 100))) * (2 - (curSpeed / 100)), 'seconds'),
+                returnTime,
+              );
+              curSpeed += 1;
+            } while (returnSpeed < 20 || returnSpeed > maxSpeed);
+          }
+          sendSpeedInput.value = sendSpeed;
+          sendFleetTimeRequest(sendSpeed, 'send');
+          returnSpeedInput.value = returnSpeed;
+          sendFleetTimeRequest(returnSpeed, 'back');
+          break;
+        default: break;
+      }
+      break;
+    case 'oneway':
+      break;
+    default:
+      break;
+  }
+};
+
+const toggleTimingType = () => {
+  const {
+    arrivalSelect, returnSelect, minDateArrival, maxDateArrival, minDateReturn, maxDateReturn, timingTypeSelect,
+  } = getCommonValues();
+
+  if (timingTypeSelect.value === '1') {
+    dataValues.returnTime = '';
+    returnSelect.value = '';
+    returnSelect.style.display = 'none';
+    addOptionsToTimeSelect(arrivalSelect, minDateArrival, maxDateArrival);
+  } else {
+    returnSelect.style.display = 'inline-block';
+  }
+
+  if (parseInt(timingTypeSelect.value, 10) > 1) {
+    dataValues.arrivalTime = '';
+    arrivalSelect.value = '';
+    arrivalSelect.style.display = 'none';
+    addOptionsToTimeSelect(returnSelect, minDateReturn, maxDateReturn);
+  } else {
+    arrivalSelect.style.display = 'inline-block';
   }
 };
 
@@ -74,12 +313,9 @@ const fleetSend = (fleetSendData = config.gameData.fleetSendData) => {
   // save data so we have it available when browsing back and forth
   config.gameData.fleetSendData = JSON.parse(JSON.stringify(fleetSendData));
   config.promises.content = getPromise('#flottenInformationPage');
-  config.promises.content.then(() => {
-    const maxSpeed = parseInt(fleetSendData.max_speed_transport, 10);
+  return config.promises.content.then(() => {
     const minTimeInSecs = moment.duration(fleetSendData.send_time, 'seconds').asSeconds();
-    const maxTimeInSecs = ((minTimeInSecs / (2 - (maxSpeed / 100))) * (2 - (20 / 100)));
-
-    // round up to the next five mintue interval
+    const maxTimeInSecs = ((minTimeInSecs / (2 - (parseInt(fleetSendData.max_speed_transport, 10) / 100))) * (2 - (20 / 100)));
     const minDateArrival = moment().add(minTimeInSecs, 'seconds');
     const maxDateArrival = moment().add(maxTimeInSecs, 'seconds');
     const minDateReturn = moment().add(minTimeInSecs * 2, 'seconds');
@@ -88,258 +324,28 @@ const fleetSend = (fleetSendData = config.gameData.fleetSendData) => {
     // build choose time selects
     const optionWrapper = createElementFromHTML('<div id="lwm_fleet_timer_wrapper"></div>');
 
-    const timingTypeDiv = createElementFromHTML('<div><select id="lwm_fleet_type"><option value="0">Pick Fleet Timing Function</option><option value="1">One-Way</option><option value="2">Send / Return Balanced</option><option value="3">Send Fast/ Return Slow</option><option value="4">Send Slow/Return Fast</option></select></div>');
-    const timingTypeSelect = timingTypeDiv.querySelector('select');
+    const timingTypeDiv = createElementFromHTML('<div></div>');
+    const timingTypeSelect = createElementFromHTML('<select id="lwm_fleet_type"><option value="0">Pick Fleet Timing Function</option><option value="1">One-Way</option><option value="2">Send / Return Balanced</option><option value="3">Send Fast/ Return Slow</option><option value="4">Send Slow/Return Fast</option></select>');
+    timingTypeSelect.value = dataValues.timingType;
+    timingTypeDiv.appendChild(timingTypeSelect);
+
+    const arrivalSelectDiv = createElementFromHTML('<div></div>');
     const arrivalSelect = createElementFromHTML('<select id="lwm_fleet_selectarrivaltime"><option value="" selected>Pick Arrival Time</option></select>');
     addOptionsToTimeSelect(arrivalSelect, minDateArrival, maxDateArrival);
+    arrivalSelect.value = dataValues.arrivalTime;
+    arrivalSelectDiv.appendChild(arrivalSelect);
+
+    const returnSelectDiv = createElementFromHTML('<div></div>');
     const returnSelect = createElementFromHTML('<select id="lwm_fleet_selectreturntime"><option value="" selected>Pick Return Time</option></select>');
     addOptionsToTimeSelect(returnSelect, minDateReturn, maxDateReturn);
-    const sendSpeedInput = document.querySelector('#send.changeTime');
-    const returnSpeedInput = document.querySelector('#back.changeTime');
-
-    const toggleTimingType = () => {
-      if (timingTypeSelect.value === '1') {
-        returnSelect.value = '';
-        returnSelect.style.display = 'none';
-      } else {
-        returnSelect.style.display = 'block';
-      }
-
-      if (parseInt(timingTypeSelect.value, 10) > 1) {
-        arrivalSelect.value = '';
-        arrivalSelect.style.display = 'none';
-      } else {
-        arrivalSelect.style.display = 'block';
-      }
-    };
-
-    toggleTimingType();
-
-    const calcSpeed = (startDate, endDate) => {
-      const timeDiffInSecs = parseInt(((endDate.valueOf() - startDate.valueOf()) / 1000), 10);
-      return parseInt((
-        1 - (
-          (
-            (
-              (timeDiffInSecs - (minTimeInSecs / (2 - (maxSpeed / 100))))
-              / ((minTimeInSecs / (2 - (maxSpeed / 100))) * 0.01)
-            )
-          ) / 100
-        )
-      ) * 100, 10);
-    };
-
-    const calcFleetTime = (from = 'arrival') => {
-      //   toggleReturnSelect();
-      let curSpeed = 20;
-      const arrivalTime = moment(parseInt(arrivalSelect.value, 10));
-      const returnTime = moment(parseInt(returnSelect.value, 10));
-      const isOneway = timingTypeSelect.value === '1';
-      const timingType = timingTypeSelect.value;
-
-      let sendSpeed; let returnSpeed;
-      if (!arrivalTime.isValid()) { sendSpeed = maxSpeed; } else { sendSpeed = calcSpeed(moment(), arrivalTime); }
-      if (!returnTime.isValid()) { returnSpeed = maxSpeed; } else if (!arrivalTime.isValid()) {
-        returnSpeed = calcSpeed(minDateArrival, returnTime);
-      } else {
-        returnSpeed = calcSpeed(arrivalTime, returnTime);
-      }
-
-      switch (from) {
-        case 'arrival':
-          // arrival changed means we might have to tweak return time
-          if (isOneway) {
-            sendSpeedInput.value = sendSpeed;
-            sendFleetTimeRequest(sendSpeed, 'send');
-            returnSpeedInput.value = sendSpeed;
-            sendFleetTimeRequest(sendSpeed, 'back');
-          } else {
-            if (!arrivalTime.isValid()) {
-              addOptionsToTimeSelect(returnSelect, minDateReturn, maxDateReturn);
-              if (returnTime.isValid()) {
-                returnSelect.value = returnTime.valueOf();
-                calcFleetTime('return');
-                break;
-              }
-            } else {
-              // rebuild select to match new arrival speed
-              addOptionsToTimeSelect(
-                returnSelect,
-                moment(parseInt(arrivalSelect.value, 10)).add(minTimeInSecs, 'seconds'),
-                moment(parseInt(arrivalSelect.value, 10)).add(maxTimeInSecs, 'seconds'),
-              );
-              // if returnSpeed is no longer possible due to arrival time, change to max speed
-              if (returnSpeed > maxSpeed) {
-                returnSpeed = maxSpeed;
-              }
-            }
-            sendSpeedInput.value = sendSpeed;
-            sendFleetTimeRequest(sendSpeed, 'send');
-
-            // (re)pick value in return select
-            returnSpeedInput.value = returnSpeed;
-            sendFleetTimeRequest(returnSpeed, 'back');
-
-            returnSelect.value = returnTime.isValid() ? returnTime.valueOf() : '';
-          }
-          break;
-        case 'return':
-          // arrival changed means we might have to tweak arrival time
-          switch (timingType) {
-            case '0':
-              if (!returnTime.isValid()) {
-                addOptionsToTimeSelect(arrivalSelect, minDateArrival, maxDateArrival);
-              }
-
-              if (returnSpeed < 20) {
-                returnSpeed = 20;
-                // recalc sendSpeed
-                sendSpeed = calcSpeed(
-                  moment().add((minTimeInSecs / (2 - (maxSpeed / 100))) * (2 - (20 / 100)), 'seconds'),
-                  returnTime,
-                );
-
-                addOptionsToTimeSelect(arrivalSelect, moment().add((minTimeInSecs / (2 - (maxSpeed / 100))) * (2 - (sendSpeed / 100)), 'seconds'), maxDateArrival);
-              }
-              sendSpeedInput.value = sendSpeed;
-              sendFleetTimeRequest(sendSpeed, 'send');
-              returnSpeedInput.value = returnSpeed;
-              sendFleetTimeRequest(returnSpeed, 'back');
-              break;
-            case '2':
-              if (!returnTime.isValid()) {
-                returnSpeed = maxSpeed;
-              } else {
-                returnSpeed = calcSpeed(
-                  moment(),
-                  moment().add(parseInt(returnTime.diff(moment(), 'seconds') / 2, 10), 'seconds'),
-                );
-              }
-              sendSpeedInput.value = returnSpeed;
-              sendFleetTimeRequest(returnSpeed, 'send');
-              returnSpeedInput.value = returnSpeed;
-              sendFleetTimeRequest(returnSpeed, 'back');
-              break;
-            case '3':
-              if (!returnTime.isValid()) {
-                returnSpeed = maxSpeed;
-                sendSpeed = maxSpeed;
-              } else {
-              sendSpeed = 0;
-              returnSpeed = 0;
-              curSpeed = 20;
-              do {
-                sendSpeed = curSpeed;
-                returnSpeed = calcSpeed(
-                  moment().add((minTimeInSecs / (2 - (maxSpeed / 100))) * (2 - (curSpeed / 100)), 'seconds'),
-                  returnTime,
-                );
-                curSpeed += 1;
-              } while (returnSpeed < 20 || returnSpeed > maxSpeed);
-              sendSpeedInput.value = sendSpeed;
-              sendFleetTimeRequest(sendSpeed, 'send');
-              returnSpeedInput.value = returnSpeed;
-              sendFleetTimeRequest(returnSpeed, 'back');
-              break;
-            case '4': break;
-            default: break;
-          }
-          break;
-        case 'oneway':
-          break;
-        default:
-          break;
-      }
-    };
-    //   const $val = lwmJQ('#lwm_fleet_selecttime').val();
-    //   const $momentVal = moment($val);
-    //   const $oneway = lwmJQ('#lwm_fleet_oneway').is(':checked');
-    //   if (!$val) {
-    //     lwmJQ('.changeTime').val(maxSpeed);
-    //     sendFleetTimeRequest(maxSpeed, 'send');
-    //     sendFleetTimeRequest(maxSpeed, 'back');
-    //     if ($val === null) {
-    //       // val === null means options disabled
-    //       alert('WARNING: Choice is not possible due to fleet speed');
-    //       lwmJQ('.changeTime').val('20');
-    //       siteWindow.jQuery('.changeTime').change();
-    //       sendFleetTimeRequest(20, 'send');
-    //       sendFleetTimeRequest(20, 'back');
-    //     }
-    //   } else {
-    //     // calculate speed for given return time
-    //     let timeDiffInSeconds = $momentVal.diff(moment(), 'seconds') / ($oneway ? 1 : 2);
-    //     const minSpeedInSeconds = ((minTimeInSecs / (2 - (maxSpeed / 100))) * (2 - (20 / 100)));
-    //     if (minSpeedInSeconds < timeDiffInSeconds || minTimeInSecs > timeDiffInSeconds) {
-    //       alert('WARNING: Choice is not possible due to fleet speed');
-    //       lwmJQ('.changeTime').val('20');
-    //       siteWindow.jQuery('.changeTime').change();
-    //       sendFleetTimeRequest(20, 'send');
-    //       sendFleetTimeRequest(20, 'back');
-    //       return;
-    //     }
-    //     const type = $oneway ? '0' : lwmJQ('#lwm_fleet_type').val();
-    //     let sendSpeed; let returnSpeed; let curSpeed; let sendSpeedInSeconds; let
-    //       returnSpeedInSeconds;
-    //     const newSpeed = Math.round((1 - ((((timeDiffInSeconds - (minTimeInSecs / (2 - (parseInt(maxSpeed, 10) / 100))))
-    //       / ((minTimeInSecs / (2 - (parseInt(maxSpeed, 10) / 100))) * 0.01))) / 100)) * 100);
-    //     switch (type) {
-    //       case '0':
-    //         lwmJQ('.changeTime').val(newSpeed);
-    //         sendFleetTimeRequest(newSpeed, 'send');
-    //         sendFleetTimeRequest(newSpeed, 'back');
-    //         break;
-    //       case '1':
-    //         // ignore one way
-    //         timeDiffInSeconds = $momentVal.diff(moment(), 'seconds');
-    //         sendSpeed = 0;
-    //         returnSpeed = 0;
-    //         curSpeed = 20;
-    //         do {
-    //           // calculate 20% speed in seconds
-    //           sendSpeed = curSpeed;
-    //           sendSpeedInSeconds = (minTimeInSecs / (2 - (maxSpeed / 100))) * (2 - (curSpeed / 100));
-    //           // subtract and see whether return is still possible
-    //           returnSpeedInSeconds = timeDiffInSeconds - sendSpeedInSeconds;
-    //           returnSpeed = Math.round((1 - ((((returnSpeedInSeconds - (minTimeInSecs / (2 - (parseInt(maxSpeed, 10) / 100))))
-    //             / ((minTimeInSecs / (2 - (parseInt(maxSpeed, 10) / 100))) * 0.01))) / 100)) * 100);
-    //           curSpeed += 1;
-    //         } while (returnSpeed < 20 || returnSpeed > maxSpeed);
-    //         lwmJQ('#send').val(returnSpeed);
-    //         sendFleetTimeRequest(returnSpeed, 'send');
-    //         lwmJQ('#back').val(sendSpeed);
-    //         sendFleetTimeRequest(sendSpeed, 'back');
-    //         break;
-    //       case '2':
-    //         // ignore one way
-    //         timeDiffInSeconds = $momentVal.diff(moment(), 'seconds');
-    //         sendSpeed = 0;
-    //         returnSpeed = 0;
-    //         curSpeed = 20;
-    //         do {
-    //           // calculate 20% speed in seconds
-    //           sendSpeed = curSpeed;
-    //           sendSpeedInSeconds = (minTimeInSecs / (2 - (maxSpeed / 100))) * (2 - (curSpeed / 100));
-    //           // subtract and see whether return is still possible
-    //           returnSpeedInSeconds = timeDiffInSeconds - sendSpeedInSeconds;
-    //           returnSpeed = Math.round((1 - ((((returnSpeedInSeconds - (minTimeInSecs / (2 - (parseInt(maxSpeed, 10) / 100))))
-    //             / ((minTimeInSecs / (2 - (parseInt(maxSpeed, 10) / 100))) * 0.01))) / 100)) * 100);
-    //           curSpeed += 1;
-    //         } while (returnSpeed < 20 || returnSpeed > maxSpeed);
-    //         lwmJQ('#send').val(sendSpeed);
-    //         sendFleetTimeRequest(sendSpeed, 'send');
-    //         lwmJQ('#back').val(returnSpeed);
-    //         sendFleetTimeRequest(returnSpeed, 'back');
-    //         break;
-    //       default: break;
-    //     }
-    //   }
-    // };
+    returnSelect.value = dataValues.returnTime;
+    returnSelectDiv.appendChild(returnSelect);
 
     // add events to elements
-    arrivalSelect.addEventListener('change', () => { calcFleetTime('arrival'); });
-    returnSelect.addEventListener('change', () => { calcFleetTime('return'); });
+    arrivalSelect.addEventListener('change', () => { calcFleetTime('arrival'); dataValues.arrivalTime = arrivalSelect.value; });
+    returnSelect.addEventListener('change', () => { calcFleetTime('return'); dataValues.returnTime = returnSelect.value; });
     timingTypeSelect.addEventListener('change', () => {
+      dataValues.timingType = timingTypeSelect.value;
       toggleTimingType();
       if (timingTypeSelect.value === '1') {
         calcFleetTime('arrival');
@@ -350,55 +356,47 @@ const fleetSend = (fleetSendData = config.gameData.fleetSendData) => {
 
     // add elements to DOM
     const documentContainer = document.querySelector('#timeFlote').nextSibling;
-    optionWrapper.appendChild(arrivalSelect);
-    optionWrapper.appendChild(returnSelect);
+    optionWrapper.appendChild(arrivalSelectDiv);
+    optionWrapper.appendChild(returnSelectDiv);
     optionWrapper.appendChild(timingTypeDiv);
     documentContainer.parentNode.insertBefore(optionWrapper, documentContainer);
 
-    // when next is clicked, remove wrapper
-    lwmJQ('#nextSite').on('click', () => {
-      optionWrapper.remove();
-      lwmJQ('#nextSite').off('click');
-      lwmJQ('#backSite').on('click', () => {
-        fleetSend();
-        // has to be triggered, otherwise some stuff doesn't work => flotten_information.js
-        const fii = siteWindow.flotten_informations_infos;
-        lwmJQ('#send').change(() => {
-          fii.speed_send = parseInt(lwmJQ('#send').val(), 10);
-          if (fii.speed_send > fii.sped_transport) {
-            fii.speed_send = fii.sped_transport;
-          } else if (fii.speed_send < 20) {
-            fii.speed_send = 20;
-          }
-          lwmJQ('#send').val(fii.speed_send);
-          siteWindow.jQuery.post('./ajax_request/count_time.php', {
-            id_broda: fii.id_broda, tip_broda: fii.tip_broda, Units: fii.Units, id_flote: fii.id_flote, speed: fii.speed_send,
-          }, (data) => {
-            lwmJQ('#sendTime').empty();
-            fii.send_time = data;
-            lwmJQ('#sendTime').text(`Flugzeit: ${data} Stunden`);
-          });
-        });
+    toggleTimingType();
 
-        lwmJQ('#back').change(() => {
-          fii.speed_back = parseInt(lwmJQ('#back').val(), 10);
-          if (fii.speed_back > fii.sped_transport) {
-            fii.speed_back = fii.sped_transport;
-          } else if (fii.speed_back < 20) {
-            fii.speed_back = 20;
-          }
-          lwmJQ('#back').val(fii.speed_back);
-          siteWindow.jQuery.post('./ajax_request/count_time.php', {
-            id_broda: fii.id_broda, tip_broda: fii.tip_broda, Units: fii.Units, id_flote: fii.id_flote, speed: fii.speed_back,
-          }, (data) => {
-            lwmJQ('#backTime').empty();
-            fii.back_time = data;
-            lwmJQ('#backTime').text(`Flugzeit: ${data} Stunden`);
-          });
-        });
-        lwmJQ('#backSite').off('click');
+    // handle back and forth logic
+    const clearData = () => {
+      dataValues.arrivalTime = '';
+      dataValues.returnTime = '';
+      dataValues.timingType = '0';
+
+      siteWindow.jQuery('#backSite').off('click', clearData);
+    };
+
+    const rerunCalculations = () => {
+      fleetSend().finally(() => {
+        if (dataValues.timingType === '1') {
+          calcFleetTime('arrival');
+        } else if (dataValues.timingType === '0' && dataValues.returnTime === '') {
+          calcFleetTime('arrival');
+        } else {
+          calcFleetTime('return');
+        }
+
+        siteWindow.jQuery('#backSite').off('click', rerunCalculations);
       });
-    });
+    };
+
+    const removeOptionWrapper = () => {
+      optionWrapper.remove();
+
+      siteWindow.jQuery('#nextSite').off('click', removeOptionWrapper);
+      siteWindow.jQuery('#backSite').on('click', rerunCalculations);
+      siteWindow.jQuery('#backSite').off('click', clearData);
+    };
+
+    // when next is clicked, remove wrapper
+    siteWindow.jQuery('#nextSite').on('click', removeOptionWrapper);
+    siteWindow.jQuery('#backSite').on('click', clearData);
 
     // pre-select defined sets
     const presets = [];
@@ -412,8 +410,8 @@ const fleetSend = (fleetSendData = config.gameData.fleetSendData) => {
       presets.sort((a, b) => ((a.time > b.time) ? 1 : ((b.time > a.time) ? -1 : 0)));
 
       let found = false;
-      lwmJQ.each(lwmJQ('#lwm_fleet_selecttime').find('option:gt(0)'), (i, el) => {
-        const $el = lwmJQ(el);
+      siteWindow.jQuery.each(siteWindow.jQuery('#lwm_fleet_selecttime').find('option:gt(0)'), (i, el) => {
+        const $el = siteWindow.jQuery(el);
         const hour = moment($el.text()).hour();
         const minute = moment($el.text()).minute();
         const weekday = moment($el.text()).day();
@@ -436,9 +434,9 @@ const fleetSend = (fleetSendData = config.gameData.fleetSendData) => {
           const preMinute = parseInt(preset.time.split(':')[1], 10);
 
           if (hour === preHour && preMinute === minute && weekdaysToValues[preset.days].includes(weekday)) {
-            if (!found && $el.is(':not(\'[disabled]\')')) {
-              lwmJQ('#lwm_fleet_selecttime').val($el.val());
-              calcFleetTime();
+            if (!found) {
+              siteWindow.jQuery('#lwm_fleet_selectreturntime').val($el.val());
+              calcFleetTime('return');
               found = true;
             }
             $el.addClass('lwm_preselect');
