@@ -209,7 +209,7 @@ const calcFleetTime = (from = 'arrival') => {
 
             addOptionsToTimeSelect(arrivalSelect, moment().add((minTimeInSecs / (2 - (maxSpeed / 100))) * (2 - (sendSpeed / 100)), 'seconds'), maxDateArrival);
           } else {
-            addOptionsToTimeSelect(arrivalSelect, minDateArrival, moment(maxDateArrival).subtract((minTimeInSecs / (2 - (maxSpeed / 100))) * (2 - (returnSpeed / 100)), 'seconds'));
+            addOptionsToTimeSelect(arrivalSelect, minDateArrival, moment(returnTime).subtract((minTimeInSecs / (2 - (maxSpeed / 100))) * (2 - (maxSpeed / 100)), 'seconds'));
           }
 
           sendSpeedInput.value = sendSpeed;
@@ -374,9 +374,10 @@ const fleetSend = (fleetSendData = config.gameData.fleetSendData) => {
 
     const rerunCalculations = () => {
       fleetSend().finally(() => {
-        if (dataValues.timingType === '1') {
-          calcFleetTime('arrival');
-        } else if (dataValues.timingType === '0' && dataValues.returnTime === '') {
+        if (dataValues.timingType === '0') {
+          if (dataValues.returnTime !== '') calcFleetTime('return');
+          if (dataValues.arrivalTime !== '') calcFleetTime('arrival');
+        } else if (dataValues.timingType === '1') {
           calcFleetTime('arrival');
         } else {
           calcFleetTime('return');
