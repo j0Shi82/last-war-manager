@@ -1,11 +1,12 @@
 import initSentry, { Sentry } from 'plugins/sentry';
 import {
-  siteWindow, gmSetValue, gmConfig, lwmJQ,
+  siteWindow, gmSetValue,
 } from 'config/globals';
 import addOns from 'addons/index';
 import config from 'config/lwmConfig';
 import driveManager from 'plugins/driveManager';
 import { throwError } from 'utils/helper';
+import { createElementFromHTML } from 'utils/domHelper';
 import {
   pageTriggersLoadingSpinner, pageSavesResponse, pagePreservesSubmenu, pageProcessesContent,
 } from 'utils/urlHelper';
@@ -14,13 +15,17 @@ import { getLoadStatePromise } from 'utils/loadPromises';
 import submenu from 'main/submenu';
 import process from 'main/process';
 import uiChanges from 'global/uiChanges';
+import gmConfig from 'plugins/GM_config';
 import initGmConfig from 'config/gmConfig';
 import hotkeySetup from 'global/hotkeySetup';
 import 'assets/styles/main.scss';
+import customProgressbarStyles from 'assets/styles/custom-progressbar.lazy.scss';
 
 // add mobile support
-lwmJQ('meta[name=\'viewport\']').remove();
-lwmJQ('head').append('<meta name="viewport" content="width=device-width, initial-scale=1.0">');
+if (siteWindow.document.querySelector('meta[name=\'viewport\']') !== null) {
+  siteWindow.document.querySelector('meta[name=\'viewport\']').remove();
+}
+siteWindow.document.querySelector('head').appendChild(createElementFromHTML('<meta name="viewport" content="width=device-width, initial-scale=1.0">'));
 
 const { document, location } = siteWindow;
 const docQuery = (query) => document.querySelector(query);
@@ -62,15 +67,16 @@ const installMain = () => {
 
     setFirstLoadStatusMsg('LOADING... Game Data...');
     config.getGameData.all();
-    siteWindow.jQuery.getScript('//apis.google.com/js/api.js').then(() => {
+    if (gmConfig.get('confirm_drive_sync')) {
       setFirstLoadStatusMsg('LOADING... Google Drive...');
-      driveManager.init(siteWindow.gapi);
-    }, () => { setFirstLoadStatusMsg('LOADING... ERROR...'); Sentry.captureMessage('Google API fetch failed'); throwError(); });
+      driveManager.init().catch(() => { setFirstLoadStatusMsg('LOADING... ERROR...'); Sentry.captureMessage('Google API fetch failed'); throwError(); });
+    } else {
+      getLoadStatePromise('gameData').then(() => { config.setGMValues(); }, () => { Sentry.captureMessage('gameData promise rejected'); throwError(); });
+    }
     getLoadStatePromise('gdrive').then(() => {
       setFirstLoadStatusMsg('LOADING... Page Setup...');
       // wait for gameData and google because some stuff depends on it
       hotkeySetup();
-      if (!gmConfig.get('confirm_drive_sync')) config.setGMValues();
 
       // the first ubersicht load is sometimes not caught by our ajax wrapper, so do manually
       process('ubersicht');
@@ -122,6 +128,8 @@ const installMain = () => {
             addOns.showFleetActivityGlobally(config.loadStates.lastLoadedPage);
             break;
           case 'get_inbox_message': config.gameData.messageData = xhr.responseJSON; break;
+          case 'get_research_info': config.gameData.researchInfo = xhr.responseJSON; break;
+          case 'get_construction_info': config.gameData.constructionInfo = xhr.responseJSON; break;
           case 'get_info_for_observationen_page': config.gameData.observationInfo = xhr.responseJSON; break;
           case 'get_spionage_info': config.gameData.spionageInfos = xhr.responseJSON; break;
           case 'get_new_trade_offer_info': config.gameData.newTradeOfferInfo = xhr.responseJSON; break;
@@ -136,7 +144,7 @@ const installMain = () => {
         }
 
         // resource listener logic
-        if (gmConfig.get('res_updates')) {
+        if (gmConfig.get('addon_res')) {
           if ([
             'execute_action', 'bank_transaction', 'put_handelsposten_ships', 'put_flotten', 'put_upgrade_planet_defense', 'put_defense',
             'bank_transaction', 'put_kredit', 'recycling_ships',
@@ -210,9 +218,13 @@ if (location.protocol === 'https:') {
       addOns.planetData.storeDataFromSpio();
     });
   } else {
-    initSentry();
-    initGmConfig();
-    installMain();
+    // initSentry();
+    initGmConfig().finally(() => {
+      installMain();
+      if (gmConfig.get('addon_clock')) {
+        customProgressbarStyles.use();
+      }
+    });
   }
 } else {
   location.href = `https:${location.href.substring(location.protocol.length)}`;

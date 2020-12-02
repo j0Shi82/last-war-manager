@@ -1,9 +1,10 @@
 import config from 'config/lwmConfig';
 import {
-  lwmJQ, gmConfig, siteWindow, gmSetValue, lwmWindow,
+  lwmJQ, siteWindow, gmSetValue, lwmWindow,
 } from 'config/globals';
+import gmConfig from 'plugins/GM_config';
 import {
-  throwError, addConfirm, setDataForClocks, replaceElementsHtmlWithIcon, addIconToHtmlElements, addResMemory,
+  throwError, addConfirm, setDataForClocks, replaceElementsHtmlWithIcon, addIconToHtmlElements,
   getIncomingResArray, checkCoords, getActiveObs,
 } from 'utils/helper';
 import { getPromise, getLoadStatePromise } from 'utils/loadPromises';
@@ -16,9 +17,11 @@ import driveManager from 'plugins/driveManager';
 import trades from 'main/pageTweaks/trades';
 import newTrade from 'main/pageTweaks/newTrade';
 import uebersicht from 'main/pageTweaks/uebersicht';
+import constructions from 'main/pageTweaks/constructions';
 import produktion from 'main/pageTweaks/produktion';
 import buildingTree from 'main/pageTweaks/buildingTree';
 import inbox from 'main/pageTweaks/inbox';
+import fleetSend from 'main/pageTweaks/fleetSend';
 
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
@@ -97,7 +100,7 @@ const pageTweaks = {
       lwmJQ('#aktuelleProduktionPageDiv td[onclick]').each((i, el) => {
         const self = lwmJQ(el);
         self.css('cursor', 'hand');
-        if (gmConfig.get('confirm_production')) addConfirm(self, `${self.parent().find('td:eq(1)').text()} abbrechen`);
+        if (gmConfig.get('confirm_production')) addConfirm(self[0], `${self.parent().find('td:eq(1)').text()} abbrechen`);
         if (gmConfig.get('addon_clock')) {
           clearInterval(siteWindow.timeinterval_aktuelle_produktion);
           setDataForClocks();
@@ -118,7 +121,7 @@ const pageTweaks = {
     config.promises.content.then(() => {
       lwmJQ('button[onclick*=\'makeDefence\']').each((i, el) => {
         const self = lwmJQ(el);
-        if (gmConfig.get('confirm_production')) addConfirm(self, `${self.parent().find('td:eq(1)').text()} abbrechen`);
+        if (gmConfig.get('confirm_production')) addConfirm(self[0], `${self.parent().find('td:eq(1)').text()} abbrechen`);
       });
 
       replaceElementsHtmlWithIcon(lwmJQ('button[onclick*=\'makeDefence\']'), 'fas fa-2x fa-plus-circle');
@@ -139,7 +142,7 @@ const pageTweaks = {
       lwmJQ('button[onclick*=\'buyHandeslpostenShips\']').each((i, el) => {
         if (gmConfig.get('confirm_production')) {
           const self = lwmJQ(el);
-          addConfirm(self, `${self.parents('tr').find('td:eq(0)').text()} bestellen`);
+          addConfirm(self[0], `${self.parents('tr').find('td:eq(0)').text()} bestellen`);
         }
       });
 
@@ -158,7 +161,7 @@ const pageTweaks = {
       // add confirm to recycle buttons
       lwmJQ('button[onclick*=\'recycleDefence\']').each((i, el) => {
         const self = lwmJQ(el);
-        if (gmConfig.get('confirm_production')) addConfirm(self, `${self.parents('tr').find('td:eq(0)').text()} bauen`);
+        if (gmConfig.get('confirm_production')) addConfirm(self[0], `${self.parents('tr').find('td:eq(0)').text()} bauen`);
       });
 
       replaceElementsHtmlWithIcon(lwmJQ('button[onclick*=\'recycleDefence\']'), 'fas fa-2x fa-plus-circle');
@@ -175,7 +178,7 @@ const pageTweaks = {
     config.promises.content.then(() => {
       // add confirm to recycle buttons
       lwmJQ('button[onclick*=\'upgradeDefenceFunction\']').each((i, el) => {
-        if (gmConfig.get('confirm_production')) addConfirm(lwmJQ(el));
+        if (gmConfig.get('confirm_production')) addConfirm(el);
       });
 
       addIconToHtmlElements(lwmJQ('button[onclick*=\'upgradeDefenceFunction\']'), 'fas fa-2x fa-arrow-alt-circle-up');
@@ -194,7 +197,7 @@ const pageTweaks = {
     config.promises.content.then(() => {
       // add confirm to recycle buttons
       lwmJQ('button[onclick*=\'upgradeShipsFunction\']').each((i, el) => {
-        if (gmConfig.get('confirm_production')) addConfirm(lwmJQ(el));
+        if (gmConfig.get('confirm_production')) addConfirm(el);
       });
 
       addIconToHtmlElements(lwmJQ('button[onclick*=\'upgradeShipsFunction\']'), 'fas fa-2x fa-arrow-alt-circle-up');
@@ -212,7 +215,7 @@ const pageTweaks = {
     config.promises.content.then(() => {
       // add confirm to recycle buttons
       lwmJQ('button[onclick*=\'RecycleShips\']').each((i, el) => {
-        if (gmConfig.get('confirm_production')) addConfirm(lwmJQ(el));
+        if (gmConfig.get('confirm_production')) addConfirm(el);
       });
 
       replaceElementsHtmlWithIcon(lwmJQ('button[onclick*=\'RecycleShips\']'), 'fas fa-2x fa-plus-circle');
@@ -224,31 +227,7 @@ const pageTweaks = {
       config.loadStates.content = false;
     });
   },
-  construction: () => {
-    config.promises.content = getPromise('.hauptgebaude');
-    config.promises.content.then(() => {
-      addResMemory(lwmJQ('.greenButton'), 'building');
-      lwmJQ('.greenButton,.yellowButton,.redButton').each((i, el) => {
-        const textAppendix = lwmJQ(el).is('.greenButton') ? ' bauen' : ' abbrechen';
-        const $td = lwmJQ(el).parent();
-        $td.css('cursor', 'hand');
-        $td.attr('onclick', lwmJQ(el).attr('onclick'));
-        lwmJQ(el).attr('onclick', '');
-        if (gmConfig.get('confirm_const')) addConfirm($td, $td.parent().find('.constructionName').text() + textAppendix);
-        if (gmConfig.get('addon_clock')) {
-          clearInterval(siteWindow.timeinterval_construction);
-          clearInterval(siteWindow.timeinterval_construction2);
-          setDataForClocks();
-        }
-      });
-      config.loadStates.content = false;
-    }).catch((e) => {
-      Sentry.captureException(e);
-      // console.log(e);
-      throwError();
-      config.loadStates.content = false;
-    });
-  },
+  constructions,
   research: () => {
     config.promises.content = getPromise('.basisForschungen,#researchPage:contains(\'Forschungszentrale benötigt.\')');
     config.promises.content.then(() => {
@@ -258,7 +237,7 @@ const pageTweaks = {
         $td.css('cursor', 'hand');
         $td.attr('onclick', lwmJQ(el).attr('onclick'));
         lwmJQ(el).attr('onclick', '');
-        if (gmConfig.get('confirm_research')) addConfirm($td, $td.parent().find('.researchName').text() + textAppendix);
+        if (gmConfig.get('confirm_research')) addConfirm($td[0], $td.parent().find('.researchName').text() + textAppendix);
         if (gmConfig.get('addon_clock')) {
           clearInterval(siteWindow.timeinterval_research);
           setDataForClocks();
@@ -547,285 +526,7 @@ const pageTweaks = {
       config.loadStates.content = false;
     });
   },
-  fleetSend(fleetSendData = config.gameData.fleetSendData) {
-    // save data so we have it available when browsing back and forth
-    config.gameData.fleetSendData = JSON.parse(JSON.stringify(fleetSendData));
-    config.promises.content = getPromise('#flottenInformationPage');
-    config.promises.content.then(() => {
-      const maxSpeed = fleetSendData.max_speed_transport;
-      const minTimeInSeconds = moment.duration(fleetSendData.send_time, 'seconds').asSeconds();
-      const maxTimeInSeconds = ((minTimeInSeconds / (2 - (maxSpeed / 100))) * (2 - (20 / 100)));
-
-      // round up to the next five mintue interval
-      const start = moment().add(minTimeInSeconds, 'seconds');
-      const remainder = 5 - (start.minute() % 5);
-      const minDate = moment(start).add(remainder, 'minutes').startOf('minute');
-      const maxDate = moment().add(maxTimeInSeconds * 2, 'seconds');
-
-      // build time choose select
-      const $select = lwmJQ('<select id="lwm_fleet_selecttime"><option value="" selected>Pick Return Hour</option></select>');
-      while (minDate.valueOf() < maxDate.valueOf()) {
-        $select.append(`<option>${minDate.format('YYYY-MM-DD HH:mm:ss')}</option>`);
-        // increment minutes for next option
-        minDate.add(5, 'minutes');
-      }
-
-      const disableOptions = () => {
-        const $oneway = lwmJQ('#lwm_fleet_oneway').is(':checked');
-        /* disable options that don't fit speed of fleet */
-        $select.find('option:gt(0)').each((i, el) => {
-          const timeDiffInSeconds = moment(lwmJQ(el).val()).diff(moment(), 'seconds') / ($oneway ? 1 : 2);
-          const minSpeedInSeconds = ((minTimeInSeconds / (2 - (maxSpeed / 100))) * (2 - (20 / 100)));
-          lwmJQ(el).prop('disabled', minSpeedInSeconds < timeDiffInSeconds || minTimeInSeconds > timeDiffInSeconds);
-        });
-      };
-
-      disableOptions();
-
-      const sendFleetTimeRequest = (speed, type = 'send') => {
-        siteWindow.jQuery.post('./ajax_request/count_time.php', {
-          id_broda: siteWindow.flotten_informations_infos.id_broda,
-          tip_broda: siteWindow.flotten_informations_infos.tip_broda,
-          Units: siteWindow.flotten_informations_infos.Units,
-          id_flote: siteWindow.flotten_informations_infos.id_flote,
-          speed,
-        }, (data) => {
-          if (type === 'send') {
-            siteWindow.flotten_informations_infos.send_time = data;
-            siteWindow.flotten_informations_infos.speed_send = speed;
-          } else {
-            siteWindow.flotten_informations_infos.back_time = data;
-            siteWindow.flotten_informations_infos.speed_back = speed;
-          }
-
-          let seconds = parseInt(data, 10);
-
-          let hours = Math.floor(seconds / 3600);
-          seconds -= hours * 3600;
-          let minutes = Math.floor(seconds / 60);
-          seconds -= minutes * 60;
-
-          if (hours <= 9) {
-            hours = `0${hours}`;
-          }
-
-          if (minutes <= 9) {
-            minutes = `0${minutes}`;
-          }
-
-          if (seconds <= 9) {
-            seconds = `0${seconds}`;
-          }
-
-          if (type === 'send') {
-            siteWindow.jQuery('#sendTime').text(`Flugzeit: ${hours}:${minutes}:${seconds} Stunden`);
-          } else {
-            siteWindow.jQuery('#backTime').text(`Flugzeit: ${hours}:${minutes}:${seconds} Stunden`);
-          }
-        });
-      };
-
-      const calcFleetTime = () => {
-        disableOptions();
-        const $val = lwmJQ('#lwm_fleet_selecttime').val();
-        const $momentVal = moment($val);
-        const $oneway = lwmJQ('#lwm_fleet_oneway').is(':checked');
-        if (!$val) {
-          lwmJQ('.changeTime').val(maxSpeed);
-          sendFleetTimeRequest(maxSpeed, 'send');
-          sendFleetTimeRequest(maxSpeed, 'back');
-          if ($val === null) {
-            // val === null means options disabled
-            alert('WARNING: Choice is not possible due to fleet speed');
-            lwmJQ('.changeTime').val('20');
-            siteWindow.jQuery('.changeTime').change();
-            sendFleetTimeRequest(20, 'send');
-            sendFleetTimeRequest(20, 'back');
-          }
-        } else {
-          // calculate speed for given return time
-          let timeDiffInSeconds = $momentVal.diff(moment(), 'seconds') / ($oneway ? 1 : 2);
-          const minSpeedInSeconds = ((minTimeInSeconds / (2 - (maxSpeed / 100))) * (2 - (20 / 100)));
-          if (minSpeedInSeconds < timeDiffInSeconds || minTimeInSeconds > timeDiffInSeconds) {
-            alert('WARNING: Choice is not possible due to fleet speed');
-            lwmJQ('.changeTime').val('20');
-            siteWindow.jQuery('.changeTime').change();
-            sendFleetTimeRequest(20, 'send');
-            sendFleetTimeRequest(20, 'back');
-            return;
-          }
-          const type = $oneway ? '0' : lwmJQ('#lwm_fleet_type').val();
-          let sendSpeed; let returnSpeed; let curSpeed; let sendSpeedInSeconds; let
-            returnSpeedInSeconds;
-          const newSpeed = Math.round((1 - ((((timeDiffInSeconds - (minTimeInSeconds / (2 - (parseInt(maxSpeed, 10) / 100))))
-            / ((minTimeInSeconds / (2 - (parseInt(maxSpeed, 10) / 100))) * 0.01))) / 100)) * 100);
-          switch (type) {
-            case '0':
-              lwmJQ('.changeTime').val(newSpeed);
-              sendFleetTimeRequest(newSpeed, 'send');
-              sendFleetTimeRequest(newSpeed, 'back');
-              break;
-            case '1':
-              // ignore one way
-              timeDiffInSeconds = $momentVal.diff(moment(), 'seconds');
-              sendSpeed = 0;
-              returnSpeed = 0;
-              curSpeed = 20;
-              do {
-                // calculate 20% speed in seconds
-                sendSpeed = curSpeed;
-                sendSpeedInSeconds = (minTimeInSeconds / (2 - (maxSpeed / 100))) * (2 - (curSpeed / 100));
-                // subtract and see whether return is still possible
-                returnSpeedInSeconds = timeDiffInSeconds - sendSpeedInSeconds;
-                returnSpeed = Math.round((1 - ((((returnSpeedInSeconds - (minTimeInSeconds / (2 - (parseInt(maxSpeed, 10) / 100))))
-                  / ((minTimeInSeconds / (2 - (parseInt(maxSpeed, 10) / 100))) * 0.01))) / 100)) * 100);
-                curSpeed += 1;
-              } while (returnSpeed < 20 || returnSpeed > maxSpeed);
-              lwmJQ('#send').val(returnSpeed);
-              sendFleetTimeRequest(returnSpeed, 'send');
-              lwmJQ('#back').val(sendSpeed);
-              sendFleetTimeRequest(sendSpeed, 'back');
-              break;
-            case '2':
-              // ignore one way
-              timeDiffInSeconds = $momentVal.diff(moment(), 'seconds');
-              sendSpeed = 0;
-              returnSpeed = 0;
-              curSpeed = 20;
-              do {
-                // calculate 20% speed in seconds
-                sendSpeed = curSpeed;
-                sendSpeedInSeconds = (minTimeInSeconds / (2 - (maxSpeed / 100))) * (2 - (curSpeed / 100));
-                // subtract and see whether return is still possible
-                returnSpeedInSeconds = timeDiffInSeconds - sendSpeedInSeconds;
-                returnSpeed = Math.round((1 - ((((returnSpeedInSeconds - (minTimeInSeconds / (2 - (parseInt(maxSpeed, 10) / 100))))
-                  / ((minTimeInSeconds / (2 - (parseInt(maxSpeed, 10) / 100))) * 0.01))) / 100)) * 100);
-                curSpeed += 1;
-              } while (returnSpeed < 20 || returnSpeed > maxSpeed);
-              lwmJQ('#send').val(sendSpeed);
-              sendFleetTimeRequest(sendSpeed, 'send');
-              lwmJQ('#back').val(returnSpeed);
-              sendFleetTimeRequest(returnSpeed, 'back');
-              break;
-            default: break;
-          }
-        }
-      };
-
-      const $selectWrap = lwmJQ('<div></div>');
-      $selectWrap.append($select);
-      const $wrapper = lwmJQ('<div>');
-      $wrapper.attr('id', 'lwm_fleet_timer_wrapper');
-      $wrapper.append($selectWrap);
-      $wrapper.append('<div><select id="lwm_fleet_type"><option value="0">Send / Return Balanced</option><option value="1">Send Fast/ Return Slow</option><option value="2">Send Slow/Return Fast</option></select></div>');
-      $wrapper.append('<div><label style="display:flex;align-items:center;"><input type="checkbox" id="lwm_fleet_oneway">Oneway</label></div>');
-
-      $select.change(() => { calcFleetTime(); });
-      $wrapper.find('#lwm_fleet_oneway').change((e) => { calcFleetTime(); lwmJQ('#lwm_fleet_type').prop('disabled', lwmJQ(e.target).is(':checked')); });
-      $wrapper.find('#lwm_fleet_type').change(() => { calcFleetTime(); });
-
-      lwmJQ('#timeFlote').after($wrapper);
-
-      // when next is clicked, remove wrapper
-      lwmJQ('#nextSite').on('click', () => {
-        $wrapper.remove();
-        lwmJQ('#nextSite').off('click');
-        lwmJQ('#backSite').on('click', () => {
-          pageTweaks.fleetSend();
-          // has to be triggered, otherwise some stuff doesn't work => flotten_information.js
-          const fii = siteWindow.flotten_informations_infos;
-          lwmJQ('#send').change(() => {
-            fii.speed_send = parseInt(lwmJQ('#send').val(), 10);
-            if (fii.speed_send > fii.sped_transport) {
-              fii.speed_send = fii.sped_transport;
-            } else if (fii.speed_send < 20) {
-              fii.speed_send = 20;
-            }
-            lwmJQ('#send').val(fii.speed_send);
-            siteWindow.jQuery.post('./ajax_request/count_time.php', {
-              id_broda: fii.id_broda, tip_broda: fii.tip_broda, Units: fii.Units, id_flote: fii.id_flote, speed: fii.speed_send,
-            }, (data) => {
-              lwmJQ('#sendTime').empty();
-              fii.send_time = data;
-              lwmJQ('#sendTime').text(`Flugzeit: ${data} Stunden`);
-            });
-          });
-
-          lwmJQ('#back').change(() => {
-            fii.speed_back = parseInt(lwmJQ('#back').val(), 10);
-            if (fii.speed_back > fii.sped_transport) {
-              fii.speed_back = fii.sped_transport;
-            } else if (fii.speed_back < 20) {
-              fii.speed_back = 20;
-            }
-            lwmJQ('#back').val(fii.speed_back);
-            siteWindow.jQuery.post('./ajax_request/count_time.php', {
-              id_broda: fii.id_broda, tip_broda: fii.tip_broda, Units: fii.Units, id_flote: fii.id_flote, speed: fii.speed_back,
-            }, (data) => {
-              lwmJQ('#backTime').empty();
-              fii.back_time = data;
-              lwmJQ('#backTime').text(`Flugzeit: ${data} Stunden`);
-            });
-          });
-          lwmJQ('#backSite').off('click');
-        });
-      });
-
-      // pre-select defined sets
-      const presets = [];
-      [1, 2, 3, 4, 5].forEach((i) => {
-        if (gmConfig.get(`fleet_presets_${i}_active`)) {
-          presets.push({ time: gmConfig.get(`fleet_presets_${i}_time`), days: gmConfig.get(`fleet_presets_${i}_weekday`) });
-        }
-      });
-      if (presets.length) {
-        // eslint-disable-next-line no-nested-ternary
-        presets.sort((a, b) => ((a.time > b.time) ? 1 : ((b.time > a.time) ? -1 : 0)));
-
-        let found = false;
-        lwmJQ.each(lwmJQ('#lwm_fleet_selecttime').find('option:gt(0)'), (i, el) => {
-          const $el = lwmJQ(el);
-          const hour = moment($el.text()).hour();
-          const minute = moment($el.text()).minute();
-          const weekday = moment($el.text()).day();
-
-          const weekdaysToValues = {
-            All: [0, 1, 2, 3, 4, 5, 6],
-            Mon: [1],
-            Tue: [2],
-            Wed: [3],
-            Thu: [4],
-            Fri: [5],
-            Sat: [6],
-            Sun: [0],
-            Weekday: [1, 2, 3, 4, 5],
-            Weekend: [0, 6],
-          };
-
-          presets.forEach((preset) => {
-            const preHour = parseInt(preset.time.split(':')[0], 10);
-            const preMinute = parseInt(preset.time.split(':')[1], 10);
-
-            if (hour === preHour && preMinute === minute && weekdaysToValues[preset.days].includes(weekday)) {
-              if (!found && $el.is(':not(\'[disabled]\')')) {
-                lwmJQ('#lwm_fleet_selecttime').val($el.val());
-                calcFleetTime();
-                found = true;
-              }
-              $el.addClass('lwm_preselect');
-            }
-          });
-        });
-      }
-
-      config.loadStates.content = false;
-    }).catch((e) => {
-      Sentry.captureException(e);
-      // console.log(e);
-      throwError();
-      config.loadStates.content = false;
-    });
-  },
+  fleetSend,
   spyInfo(data) {
     if (Object.keys(data.observations_drons).length === 0
         && Object.keys(data.planetenscanner_drons).length === 0

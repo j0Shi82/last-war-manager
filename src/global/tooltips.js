@@ -59,9 +59,7 @@ const removeResourceTooltips = (el) => {
   });
 };
 
-const isTouchDevice = () => ('ontouchstart' in siteWindow)
-         || (siteWindow.navigator.maxTouchPoints > 0)
-         || (siteWindow.navigator.msMaxTouchPoints > 0);
+const isTouchDevice = () => 'ontouchstart' in siteWindow;
 
 export default () => {
   /* tooltip manipulation */

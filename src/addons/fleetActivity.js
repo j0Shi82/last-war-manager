@@ -1,6 +1,7 @@
 import {
-  gmConfig, siteWindow, gmSetValue, gmGetValue,
+  siteWindow, gmSetValue, gmGetValue,
 } from 'config/globals';
+import gmConfig from 'plugins/GM_config';
 import { getFlottenbewegungenInfo } from 'utils/requests';
 import performSpionage from 'operations/performSpionage';
 import config from 'config/lwmConfig';

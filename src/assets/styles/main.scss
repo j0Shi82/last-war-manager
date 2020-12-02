@@ -433,6 +433,33 @@ i.icon-galaxy {
   width: 140px;
 }
 
+ul.loadbarConstruction,
+ul.loadbarResearch {
+  display: flex;
+  width: 98%;
+  margin-left: 1%;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+ul.loadbar {
+  display: flex;
+  width: 90%;
+  margin-left: 5%;
+  padding-left: 0;
+  padding-right: 0;
+  -webkit-margin-before: unset;
+  -webkit-padding-before: unset;
+  margin-top: -5px;
+}
+
+ul.loadbarConstruction li,
+ul.loadbarResearch li,
+ul.loadbar li {
+  flex: 1 1 1px;
+  width: unset;
+}
+
 .galaxyView {
   background-size: 100% 100%;
   background-repeat: no-repeat;
@@ -479,33 +506,6 @@ i.icon-galaxy {
   overflow-y: initial;
   overflow-x: auto;
   padding-right: 0;
-}
-
-ul.loadbarConstruction,
-ul.loadbarResearch {
-  display: flex;
-  width: 98%;
-  margin-left: 1%;
-  padding-left: 0;
-  padding-right: 0;
-}
-
-ul.loadbar {
-  display: flex;
-  width: 90%;
-  margin-left: 5%;
-  padding-left: 0;
-  padding-right: 0;
-  -webkit-margin-before: unset;
-  -webkit-padding-before: unset;
-  margin-top: -5px;
-}
-
-ul.loadbarConstruction li,
-ul.loadbarResearch li,
-ul.loadbar li {
-  flex: 1 1 1px;
-  width: unset;
 }
 
 table,
@@ -1187,6 +1187,9 @@ td.constructionName,
   align-items: center;
   justify-content: center;
   flex-direction: column;
+  z-index: 10000;
+  top: 0;
+  background-color: rgba(0, 0, 0, 0.75);
 
   .lwm-firstload.status {
     width: 100%;
@@ -1326,10 +1329,15 @@ td.constructionName,
 #lwm_fleet_timer_wrapper {
   margin-top: 20px;
   border: 1px solid rgba(124, 243, 241, 0.5);
-  padding: 5px;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
+
+  > div {
+    flex: 1;
+    margin: 5px;
+    text-align: center;
+  }
 }
 
 #lwm_fleet_timer_wrapper div,

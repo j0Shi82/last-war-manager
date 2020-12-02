@@ -12,15 +12,11 @@
 // @match         http*://*.last-war.de/main-mobile.php*
 // @match         http*://*.last-war.de/planetenscanner_view.php*
 // @match         http*://*.last-war.de/view/content/new_window/observationen_view.php*
-// @require       https://cdn.jsdelivr.net/gh/j0Shi82/last-war-manager@9b03c1d9589c3b020fcf549d2d02ee6fa2da4ceb/assets/GM_config.min.js
-// @require       https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
 // @icon          https://raw.githubusercontent.com/j0Shi82/last-war-manager/0814103384c9be78cc28611fd973b5a7fdfdbb19/assets/logo-small.png
 // @grant         GM.getValue
 // @grant         GM.setValue
 // @grant         GM_getValue
 // @grant         GM_setValue
-// @grant         GM_getResourceText
-// @grant         GM_addStyle
 // @run-at        document-start
-// @version       1.3.1
+// @version       1.3.2
 // ==/UserScript==

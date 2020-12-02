@@ -24,9 +24,21 @@ module.exports = (env, argv) => ({
       },
       {
         test: /\.s[ac]ss$/i,
+        exclude: /\.lazy\.s[ac]ss$/i,
         use: [
           // Creates `style` nodes from JS strings
           'style-loader',
+          // Translates CSS into CommonJS
+          'css-loader',
+          // Compiles Sass to CSS
+          'sass-loader',
+        ],
+      },
+      {
+        test: /\.lazy\.s[ac]ss$/i,
+        use: [
+          // Creates `style` nodes from JS strings
+          { loader: 'style-loader', options: { injectType: 'lazyStyleTag' } },
           // Translates CSS into CommonJS
           'css-loader',
           // Compiles Sass to CSS

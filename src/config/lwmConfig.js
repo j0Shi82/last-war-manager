@@ -1,6 +1,7 @@
 import {
-  gmConfig, gmSetValue, gmGetValue, lwmJQ, siteWindow,
+  gmSetValue, gmGetValue, lwmJQ, siteWindow,
 } from 'config/globals';
+import gmConfig from 'plugins/GM_config';
 import { getLoadStatePromise } from 'utils/loadPromises';
 import { Sentry } from 'plugins/sentry';
 import { throwError } from 'utils/helper';
@@ -75,6 +76,8 @@ const config = {
     spionageInfos: {},
     productionInfos: [],
     overviewInfo: {},
+    constructionInfo: {},
+    researchInfo: {},
     messageData: {},
     newTradeOfferInfo: {},
     fleetInfo: {},

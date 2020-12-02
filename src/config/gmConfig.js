@@ -1,6 +1,7 @@
 /* eslint-disable no-alert */
 /* eslint-disable no-restricted-globals */
-import { gmConfig, siteWindow, gmSetValue } from 'config/globals';
+import { siteWindow, gmSetValue } from 'config/globals';
+import gmConfig from 'plugins/GM_config';
 import config from 'config/lwmConfig';
 import driveManager from 'plugins/driveManager';
 
@@ -29,12 +30,11 @@ const configFleetTimingTimes = ['00:00', '00:05', '00:10', '00:15', '00:20', '00
   '22:00', '22:05', '22:10', '22:15', '22:20', '22:25', '22:30', '22:35', '22:40', '22:45', '22:50', '22:55',
   '23:00', '23:05', '23:10', '23:15', '23:20', '23:25', '23:30', '23:35', '23:40', '23:45', '23:50', '23:55'];
 
-export default () => {
-  gmConfig.init(
-    {
-      id: 'lwmSettings', // The id used for this instance of GM_config
-      title: 'Last War Manager Settings',
-      fields: // Fields object
+export default () => gmConfig.init(
+  {
+    id: 'lwmSettings', // The id used for this instance of GM_config
+    title: 'Last War Manager Settings',
+    fields: // Fields object
         {
           addon_fleet:
             {
@@ -46,14 +46,21 @@ export default () => {
             },
           addon_fleet_exclude_drones:
             {
-              label: 'Exclude drone actitivy',
+              label: 'Exclude drone activity',
               labelPos: 'right',
               type: 'checkbox',
               default: false,
             },
           addon_clock:
             {
-              label: 'Make clock intervals not auto-refresh pages',
+              label: 'Replace Last-War clock and progress logic with better one.',
+              labelPos: 'right',
+              type: 'checkbox',
+              default: true,
+            },
+          addon_res:
+            {
+              label: 'Deactivate Last-War resource counter and replace it with a better one.',
               labelPos: 'right',
               type: 'checkbox',
               default: true,
@@ -185,13 +192,6 @@ export default () => {
           trade_highlights:
             {
               label: 'TRADES: Highlight trades and resources that would exceed storage capacities.',
-              labelPos: 'right',
-              type: 'checkbox',
-              default: true,
-            },
-          res_updates:
-            {
-              label: 'RESOURCES: Deactivate Last-War resource counter and replace with a better one.',
               labelPos: 'right',
               type: 'checkbox',
               default: true,
@@ -329,21 +329,26 @@ export default () => {
               },
             },
         },
-      events:
+    events:
         {
           close() { setTimeout(() => { siteWindow.location.reload(); }, 100); },
           save() {
+            if (this.isOpen) siteWindow.jQuery('body').append('<div class="lwm-firstload wrapper"><div class="loader lwm-firstload"></div><div class="status lwm-firstload"></div></div>');
             if (this.fields.confirm_drive_sync.value) {
-              if (!driveManager.isSignedIn()) driveManager.signIn();
-              if (config.lwm.gDriveFileID !== null) driveManager.save();
+              driveManager.init().then(() => {
+                if (!driveManager.isSignedIn()) driveManager.signIn();
+                if (config.lwm.gDriveFileID !== null) driveManager.save();
+                if (this.isOpen) siteWindow.jQuery('.lwm-firstload').remove();
+              });
             } else {
-              if (driveManager.isSignedIn()) driveManager.signOut();
+              if (driveManager.apiLoaded() && driveManager.isSignedIn()) driveManager.signOut();
               config.lwm.gDriveFileID = null;
               gmSetValue('lwm_gDriveFileID', null);
+              if (this.isOpen) siteWindow.jQuery('.lwm-firstload').remove();
             }
           },
         },
-      css: `
+    css: `
         body#lwmSettings {
           width: 90%;
           margin-left: 5%;
@@ -398,6 +403,5 @@ export default () => {
 
         #lwmSettings_addon_fleet_exclude_drones_var { margin-left: 20px !important; } 
         #lwmSettings_section_5 .config_var { width: 33%; display: inline-block;}`,
-    },
-  );
-};
+  },
+);

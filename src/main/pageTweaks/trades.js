@@ -1,7 +1,8 @@
 import config from 'config/lwmConfig';
 import {
-  lwmJQ, gmConfig, siteWindow,
+  lwmJQ, siteWindow,
 } from 'config/globals';
+import gmConfig from 'plugins/GM_config';
 import { throwError, getIncomingResArray } from 'utils/helper';
 import { getPromise } from 'utils/loadPromises';
 import { Sentry } from 'plugins/sentry';
