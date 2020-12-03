@@ -76,13 +76,18 @@ const pageTweaks = {
           .on('mouseup', () => { clearInterval(interval1); clearInterval(interval2); clearInterval(interval3); clearTimeout(timeout1); clearTimeout(timeout2); clearTimeout(timeout3); });
       });
 
-      // listen to enter key on production pages
+      // listen to enter key
       lwmJQ.each(lwmJQ('.inputNumberDiv input,[id*=\'InputNumber\'] input'), (i, el) => {
         const $self = lwmJQ(el);
-        const id = $self.attr('id').match(/\d+/)[0];
-        const $button = $self.parents('table').find(`[id*='${id}']`).find('button').not('[onclick*=\'deleteDesign\']');
+        let id; let $button;
+        if ($self.attr('id').match(/\d+/) !== null) {
+          [id] = $self.attr('id').match(/\d+/);
+          $button = $self.parents('table').find(`[id*='${id}']`).find('button').not('[onclick*=\'deleteDesign\']');
+        } else {
+          $button = $self.parents('table').next();
+        }
         $self.on('keyup', (event) => {
-          if (event.keyCode === 13) {
+          if (event.keyCode === 13 || event.code === 13) {
             $button.click();
           }
         });

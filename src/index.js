@@ -214,9 +214,13 @@ const installMain = () => {
 // we make sure the user is on https because the extension doesn't work on insecure http
 if (location.protocol === 'https:') {
   if (siteWindow.location.href.match(/planetenscanner_view/) !== null || siteWindow.location.href.match(/observationen_view/) !== null) {
-    document.addEventListener('DOMContentLoaded', () => {
+    if (document.readyState !== 'loading') {
       addOns.planetData.storeDataFromSpio();
-    });
+    } else {
+      document.addEventListener('DOMContentLoaded', () => {
+        addOns.planetData.storeDataFromSpio();
+      });
+    }
   } else {
     // initSentry();
     initGmConfig().finally(() => {

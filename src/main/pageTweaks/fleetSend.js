@@ -411,7 +411,7 @@ const fleetSend = (fleetSendData = config.gameData.fleetSendData) => {
       presets.sort((a, b) => ((a.time > b.time) ? 1 : ((b.time > a.time) ? -1 : 0)));
 
       let found = false;
-      siteWindow.jQuery.each(siteWindow.jQuery('#lwm_fleet_selecttime').find('option:gt(0)'), (i, el) => {
+      siteWindow.jQuery.each(siteWindow.jQuery('#lwm_fleet_selectreturntime').find('option:gt(0)'), (i, el) => {
         const $el = siteWindow.jQuery(el);
         const hour = moment($el.text()).hour();
         const minute = moment($el.text()).minute();

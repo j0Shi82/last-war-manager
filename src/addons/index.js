@@ -118,7 +118,10 @@ const addOns = {
           config.gameData.overviewInfo.arrayForInitClock.forEach((clockData) => {
             if (self.attr('id') === clockData.clock_id) {
               const progressBar = siteWindow.document.querySelector(`#${clockData.progress_bar_id} > div ul`);
-              progressBar.style.width = `${((clockData.total_secounds - self.data('clock_seconds')) / clockData.total_secounds) * 100}%`;
+              // progressbar on ubersicht might be completed and removed, but overviewInfo still has it
+              if (progressBar !== null) {
+                progressBar.style.width = `${((clockData.total_secounds - self.data('clock_seconds')) / clockData.total_secounds) * 100}%`;
+              }
               return false;
             }
             return true;
