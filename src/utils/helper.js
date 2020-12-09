@@ -58,11 +58,11 @@ const replaceElementsHtmlWithIcon = ($list, iconClass, amount = 1) => {
     lwmJQ(el).html(html);
   });
 };
-const addIconToHtmlElements = ($list, iconClass, amount = 1) => {
-  lwmJQ.each($list, (i, el) => {
+const addIconToHtmlElements = (nodelist, iconClass, amount = 1) => {
+  nodelist.forEach((el) => {
     let html = '';
     for (let j = 0; j < parseInt(amount, 10); j += 1) html += `<i class="${iconClass}"></i>`;
-    lwmJQ(el).html(`${html}&nbsp;${lwmJQ(el).html()}`);
+    el.innerHTML = `${html}&nbsp;${el.innerHTML}`;
   });
 };
 const checkCoords = (coords) => {

@@ -22,6 +22,7 @@ import produktion from 'main/pageTweaks/produktion';
 import buildingTree from 'main/pageTweaks/buildingTree';
 import inbox from 'main/pageTweaks/inbox';
 import fleetSend from 'main/pageTweaks/fleetSend';
+import upgradeShips from 'main/pageTweaks/upgradeShips';
 
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
@@ -186,7 +187,7 @@ const pageTweaks = {
         if (gmConfig.get('confirm_production')) addConfirm(el);
       });
 
-      addIconToHtmlElements(lwmJQ('button[onclick*=\'upgradeDefenceFunction\']'), 'fas fa-2x fa-arrow-alt-circle-up');
+      addIconToHtmlElements(siteWindow.document.querySelectorAll('button[onclick*=\'upgradeDefenceFunction\']'), 'fas fa-2x fa-arrow-alt-circle-up');
 
       config.loadStates.content = false;
     }).catch((e) => {
@@ -197,24 +198,7 @@ const pageTweaks = {
     });
   },
   produktion,
-  upgradeShips: () => {
-    config.promises.content = getPromise('#upgradeShipsDiv');
-    config.promises.content.then(() => {
-      // add confirm to recycle buttons
-      lwmJQ('button[onclick*=\'upgradeShipsFunction\']').each((i, el) => {
-        if (gmConfig.get('confirm_production')) addConfirm(el);
-      });
-
-      addIconToHtmlElements(lwmJQ('button[onclick*=\'upgradeShipsFunction\']'), 'fas fa-2x fa-arrow-alt-circle-up');
-
-      config.loadStates.content = false;
-    }).catch((e) => {
-      Sentry.captureException(e);
-      // console.log(e);
-      throwError();
-      config.loadStates.content = false;
-    });
-  },
+  upgradeShips,
   recycleShips: () => {
     config.promises.content = getPromise('#recyclingAngleDiv');
     config.promises.content.then(() => {
