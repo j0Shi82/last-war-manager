@@ -1,11 +1,12 @@
 import config from 'config/lwmConfig';
 import {
-  lwmJQ, gmSetValue,
+  lwmJQ, gmSetValue, siteWindow,
 } from 'config/globals';
 import gmConfig from 'plugins/GM_config';
 import {
   throwError, addConfirm, replaceElementsHtmlWithIcon, getFirstClassNameFromElement,
 } from 'utils/helper';
+import { addProductionCalculator } from 'utils/productionHelper';
 import { getPromise } from 'utils/loadPromises';
 import { Sentry } from 'plugins/sentry';
 import driveManager from 'plugins/driveManager';
@@ -129,6 +130,31 @@ export default () => {
         lwmJQ(`.${shipClass}`).data('hide', true);
       });
       lwmJQ(el).append($icon);
+    });
+
+    // recalculate upgrade res
+    siteWindow.document.querySelectorAll('[onclick*=\'addNumber\'],[onclick*=\'subNumber\']').forEach((el) => {
+      const matches = el.getAttribute('onclick').match(/\d+/g);
+      const shipID = parseInt(matches[1], 10);
+      const shipTR = siteWindow.document.querySelectorAll(`[class*='${shipID}']`).item(1);
+      const feTD = shipTR.querySelector('.roheisenVariable');
+      const krisTD = shipTR.querySelector('.kristallVariable');
+      const frubTD = shipTR.querySelector('.frubinVariable');
+      const oriTD = shipTR.querySelector('.orizinVariable');
+      const fruroTD = shipTR.querySelector('.frurozinVariable');
+      const goldTD = shipTR.querySelector('.goldVariable');
+      const goButton = shipTR.querySelector('button');
+
+      addProductionCalculator(
+        el,
+        [
+          feTD, krisTD, frubTD, oriTD, fruroTD, goldTD,
+        ],
+        goButton,
+        siteWindow.document.querySelector(`input[id$='_${shipID}']`),
+        'value',
+        el.getAttribute('onclick').match(/subNumber/) !== null,
+      );
     });
 
     config.loadStates.content = false;

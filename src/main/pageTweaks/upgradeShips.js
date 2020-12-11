@@ -4,6 +4,7 @@ import gmConfig from 'plugins/GM_config';
 import {
   throwError, addConfirm, addIconToHtmlElements,
 } from 'utils/helper';
+import { addProductionCalculator } from 'utils/productionHelper';
 import { createElementFromHTML, docQuery } from 'utils/domHelper';
 import { getPromise } from 'utils/loadPromises';
 import { Sentry } from 'plugins/sentry';
@@ -48,46 +49,25 @@ export default () => {
     siteWindow.document.querySelectorAll('[onclick*=\'addNumberUpgradeShips\'],[onclick*=\'subNumberUpgradeShips\']').forEach((el) => {
       const matches = el.getAttribute('onclick').match(/\d+/g);
       const shipID = parseInt(matches[1], 10);
-      const shipTR = siteWindow.document.querySelectorAll(`tr.s_${shipID}`).item(3);
+      const shipTR = siteWindow.document.querySelectorAll(`[class*='${shipID}']`).item(3);
       const feTD = shipTR.querySelector('.roheisenVariable');
       const krisTD = shipTR.querySelector('.kristallVariable');
       const frubTD = shipTR.querySelector('.frubinVariable');
       const oriTD = shipTR.querySelector('.orizinVariable');
       const fruroTD = shipTR.querySelector('.frurozinVariable');
       const goldTD = shipTR.querySelector('.goldVariable');
-      const shipQuantity = parseInt(docQuery(`#shipQuantity${shipID}`).innerText.replace('.', ''), 10);
+      const goButton = shipTR.querySelector('button');
 
-      const addListener = () => {
-        let nextNumber; let curNumber;
-        const isSub = el.classList.contains('fa-angle-left');
-        if (!isSub) {
-          nextNumber = parseInt(docQuery(`#number_input_ship_${shipID}`).innerText, 10);
-          curNumber = nextNumber - 1;
-          curNumber = curNumber === 0 ? 1 : curNumber;
-        } else {
-          nextNumber = parseInt(docQuery(`#number_input_ship_${shipID}`).innerText, 10);
-          curNumber = nextNumber + 1;
-          nextNumber = nextNumber === 0 ? 1 : nextNumber;
-        }
-
-        const fe = parseInt((parseInt(feTD.innerText.replace('.', ''), 10) / curNumber) * nextNumber, 10);
-        const kris = parseInt((parseInt(krisTD.innerText.replace('.', ''), 10) / curNumber) * nextNumber, 10);
-        const frub = parseInt((parseInt(frubTD.innerText.replace('.', ''), 10) / curNumber) * nextNumber, 10);
-        const ori = parseInt((parseInt(oriTD.innerText.replace('.', ''), 10) / curNumber) * nextNumber, 10);
-        const fruro = parseInt((parseInt(fruroTD.innerText.replace('.', ''), 10) / curNumber) * nextNumber, 10);
-        const gold = parseInt((parseInt(goldTD.innerText.replace('.', ''), 10) / curNumber) * nextNumber, 10);
-
-        feTD.innerHTML = siteWindow.jQuery.number(fe, 0, ',', '.');
-        krisTD.innerHTML = siteWindow.jQuery.number(kris, 0, ',', '.');
-        frubTD.innerHTML = siteWindow.jQuery.number(frub, 0, ',', '.');
-        oriTD.innerHTML = siteWindow.jQuery.number(ori, 0, ',', '.');
-        fruroTD.innerHTML = siteWindow.jQuery.number(fruro, 0, ',', '.');
-        goldTD.innerHTML = siteWindow.jQuery.number(gold, 0, ',', '.');
-
-        if (nextNumber === shipQuantity) el.removeEventListener('click', addListener);
-      };
-
-      el.addEventListener('click', addListener);
+      addProductionCalculator(
+        el,
+        [
+          feTD, krisTD, frubTD, oriTD, fruroTD, goldTD,
+        ],
+        goButton,
+        docQuery(`span[id$='_${shipID}']`),
+        'innerText',
+        el.classList.contains('fa-angle-left') || el.classList.contains('arrow-left-recycle'),
+      );
     });
 
     config.loadStates.content = false;
