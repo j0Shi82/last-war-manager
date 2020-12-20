@@ -34,16 +34,21 @@ A German feedback thread can be found on the [official message board](http://for
 - All arrow keys that add or remove ships or defense bulk add them when you hold the mouse button
 - Resources on the main page get highlighted when running trade would exceed their storage capacity and feature a hover tooltip with additional information
 - Replace native resource tick interval with one that works in inactive browser windows
+- Replace native progress bar with a better one
 - Settings page that lets you control what the script should do
 - **OVERVIEW**
   - Resources get added to the planets on the overview
   - Ability to switch planets by clicking the coord table headers
   - Fleet warning distance shows on the overview page
   - Highlight empty building and research slots => clicks directly lead to the building and research page
+- **CONSTRUCTION**
+  - Show a countdown until a building can be build when there is no running construction
 - **PRODUCTION**
   - Ability to hide ships (workaround for a known issue that prevents users to delete ship designs)
   - Filter to only show ships that meet certain criteria
   - Input fields on production pages listen to the enter key
+  - Display total res on all production and defense pages when changing the amount of ships or defenses
+  - Filter on upgrade pages that let's you filter upgrade items under a certain percentage
 - **UPGRADE & RECYCLE**
   - Buttons to bulk add ships to fleets
 - **FLEETS**
@@ -52,7 +57,7 @@ A German feedback thread can be found on the [official message board](http://for
   - Callback button added to the fleet pages
   - Buttons to bulk add ships to fleets
   - Ability to store last used coords
-  - While sending fleets, you can choose a return time and the script automatically adjusts speeds
+  - While sending fleets, you can choose the arrival and return time and the script automatically adjusts speeds
   - Save raid priorities (premium only feature)
 - **TRADE**
    - Ability to store last used coords

@@ -1,5 +1,19 @@
 # Changelog
 
+## v.1.3.x
+
+- **FEATURES**
+  - Display total res on all production and defense pages when changing the amount of ships or defenses.
+  - New filter on upgrade pages that let's you filter upgrade items under a certain percentage.
+  - Fleet Send Timing has been reworked and you can now choose arrival and return times separately.
+  - Construction page now shows a countdown until a building can be build when there is no running construction.
+  - The progress bar has been replaced. The can be turned of in the options.
+  - LWM now uses the browser's native local storage when Tampermonkey functions are unavailable (unlikely, but can't hurt to have a fallback).
+  - The Google API should now only get queried when drive sync is enabled. This should speed up initial load for those that don't use the Google Drive option.
+
+- **BUGFIX**
+  - Fixed some bugs that threw errors on some page reloads, but had no impact on user experience.
+
 ## v1.2.0 - 1.2.1
 
 - **FEATURES**
