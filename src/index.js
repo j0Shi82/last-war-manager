@@ -212,24 +212,24 @@ const installMain = () => {
 };
 
 // we make sure the user is on https because the extension doesn't work on insecure http
-if (location.protocol === 'https:') {
-  if (siteWindow.location.href.match(/planetenscanner_view/) !== null || siteWindow.location.href.match(/observationen_view/) !== null) {
-    if (document.readyState !== 'loading') {
-      addOns.planetData.storeDataFromSpio();
-    } else {
-      document.addEventListener('DOMContentLoaded', () => {
-        addOns.planetData.storeDataFromSpio();
-      });
-    }
+// if (location.protocol === 'https:') {
+if (siteWindow.location.href.match(/planetenscanner_view/) !== null || siteWindow.location.href.match(/observationen_view/) !== null) {
+  if (document.readyState !== 'loading') {
+    addOns.planetData.storeDataFromSpio();
   } else {
-    // initSentry();
-    initGmConfig().finally(() => {
-      installMain();
-      if (gmConfig.get('addon_clock')) {
-        customProgressbarStyles.use();
-      }
+    document.addEventListener('DOMContentLoaded', () => {
+      addOns.planetData.storeDataFromSpio();
     });
   }
 } else {
-  location.href = `https:${location.href.substring(location.protocol.length)}`;
+  // initSentry();
+  initGmConfig().finally(() => {
+    installMain();
+    if (gmConfig.get('addon_clock')) {
+      customProgressbarStyles.use();
+    }
+  });
 }
+// } else {
+// location.href = `https:${location.href.substring(location.protocol.length)}`;
+// }

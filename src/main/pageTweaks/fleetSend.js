@@ -398,6 +398,7 @@ const fleetSend = (fleetSendData = config.gameData.fleetSendData) => {
     // when next is clicked, remove wrapper
     siteWindow.jQuery('#nextSite').on('click', removeOptionWrapper);
     siteWindow.jQuery('#backSite').on('click', clearData);
+    siteWindow.jQuery('#sendFlote').on('click', clearData);
 
     // pre-select defined sets
     const presets = [];

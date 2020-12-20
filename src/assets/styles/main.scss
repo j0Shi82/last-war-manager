@@ -1140,6 +1140,10 @@ td.constructionName,
   align-items: center;
 }
 
+#recyclingDefenceDiv td[id*="InputNumber"] {
+  width: 100% !important;
+}
+
 /* DEFENSE END */
 
 /* TOOLTIP **/
@@ -1501,6 +1505,11 @@ iframe#lwmSettings {
   justify-content: center;
 }
 
+#upgrade_ship_filters .tableFilters_content {
+  text-align: center;
+  padding: 2px;
+}
+
 /* PRODUCTION END */
 
 /* ROHSTOFFE START */
@@ -1554,7 +1563,6 @@ iframe#lwmSettings {
 
 /* CALENDAR */
 @media (max-width: 850px) {
-  #calendarDiv tr td:nth-child(1),
   #calendarDiv tr td:nth-child(1) {
     word-break: break-all;
   }

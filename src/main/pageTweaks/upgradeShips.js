@@ -20,12 +20,12 @@ export default () => {
     addIconToHtmlElements(siteWindow.document.querySelectorAll('button[onclick*=\'upgradeShipsFunction\']'), 'fas fa-2x fa-arrow-alt-circle-up');
 
     // add filter table
-    const filterWrapper = createElementFromHTML('<div class="tableFilters"><div class="tableFilters_header">Filter</div><div class="tableFilters_content"></div></div>');
+    const filterWrapper = createElementFromHTML('<div id="upgrade_ship_filters" class="tableFilters"><div class="tableFilters_header">Filter</div><div class="tableFilters_content"></div></div>');
     const percentageFilterInput = createElementFromHTML('<input type="number" id="lwm_percentageFilter" value="0" min="0" max="100" step="1" />');
-    const percentageFilterLabel = createElementFromHTML('<label for="lwm_percentageFilter">Show upgrade percentages over </label>');
+    const percentageFilterLabel = createElementFromHTML('<label for="lwm_percentageFilter">Show upgrade percentages over:&nbsp;</label>');
 
     percentageFilterInput.addEventListener('change', () => {
-      siteWindow.document.querySelectorAll('.UpdateTD').forEach((td) => {
+      siteWindow.document.querySelectorAll('.UpdateTD, tr.redBackground > td:first-child').forEach((td) => {
         const shipID = parseInt(td.parentNode.getAttribute('class').match(/\d+/)[0], 10);
         const percentage = parseInt(td.innerText.match(/\d+/)[0], 10);
         const value = parseInt(percentageFilterInput.value, 10);
@@ -42,8 +42,8 @@ export default () => {
     });
 
     docQuery('#upgradeShipsDiv').parentNode.insertBefore(filterWrapper, docQuery('#upgradeShipsDiv'));
-    filterWrapper.appendChild(percentageFilterLabel);
-    filterWrapper.appendChild(percentageFilterInput);
+    filterWrapper.querySelector('.tableFilters_content').appendChild(percentageFilterLabel);
+    filterWrapper.querySelector('.tableFilters_content').appendChild(percentageFilterInput);
 
     // recalculate upgrade res
     siteWindow.document.querySelectorAll('[onclick*=\'addNumberUpgradeShips\'],[onclick*=\'subNumberUpgradeShips\']').forEach((el) => {

@@ -7,6 +7,8 @@ import {
   throwError, addConfirm, setDataForClocks, replaceElementsHtmlWithIcon, addIconToHtmlElements,
   getIncomingResArray, checkCoords, getActiveObs,
 } from 'utils/helper';
+import { createElementFromHTML, docQuery } from 'utils/domHelper';
+import { addProductionCalculator } from 'utils/productionHelper';
 import { getPromise, getLoadStatePromise } from 'utils/loadPromises';
 import performSpionage from 'operations/performSpionage';
 import performObservation from 'operations/performObservation';
@@ -63,7 +65,7 @@ const pageTweaks = {
       lwmJQ('.fa-angle-right,.fa-angle-left').each((i, el) => {
         const self = lwmJQ(el);
         let interval1; let interval2; let interval3; let timeout1; let timeout2; let
-          timeout3;
+          timeout3; let interval4; let timeout4;
         lwmJQ(el)
           .attr('style', '')
           .css('width', '1em')
@@ -72,9 +74,10 @@ const pageTweaks = {
             timeout1 = setTimeout(() => { interval1 = setInterval(() => { self.click(); }, 150); }, 250);
             timeout2 = setTimeout(() => { clearInterval(interval1); interval2 = setInterval(() => { self.click(); }, 75); }, 2250);
             timeout3 = setTimeout(() => { clearInterval(interval2); interval3 = setInterval(() => { self.click(); }, 25); }, 5250);
+            timeout4 = setTimeout(() => { clearInterval(interval3); interval4 = setInterval(() => { self.click(); }, 5); }, 10250);
           })
-          .on('mouseleave touchend', () => { clearInterval(interval1); clearInterval(interval2); clearInterval(interval3); clearTimeout(timeout1); clearTimeout(timeout2); clearTimeout(timeout3); })
-          .on('mouseup', () => { clearInterval(interval1); clearInterval(interval2); clearInterval(interval3); clearTimeout(timeout1); clearTimeout(timeout2); clearTimeout(timeout3); });
+          .on('mouseleave touchend', () => { clearInterval(interval1); clearInterval(interval2); clearInterval(interval3); clearInterval(interval4); clearTimeout(timeout1); clearTimeout(timeout2); clearTimeout(timeout3); clearTimeout(timeout4); })
+          .on('mouseup', () => { clearInterval(interval1); clearInterval(interval2); clearInterval(interval3); clearInterval(interval4); clearTimeout(timeout1); clearTimeout(timeout2); clearTimeout(timeout3); clearTimeout(timeout4); });
       });
 
       // listen to enter key
@@ -131,6 +134,32 @@ const pageTweaks = {
       });
 
       replaceElementsHtmlWithIcon(lwmJQ('button[onclick*=\'makeDefence\']'), 'fas fa-2x fa-plus-circle');
+
+      // recalculate upgrade res
+      siteWindow.document.querySelectorAll('[onclick*=\'addNumber\'],[onclick*=\'subNumber\']').forEach((el) => {
+        const matches = el.getAttribute('onclick').match(/\d+/g);
+        const shipID = parseInt(matches[0], 10);
+        const shipTR = siteWindow.document.querySelector(`#RedColumDefence${shipID}`).nextSibling;
+        const feTD = shipTR.querySelector('.roheisenVariable');
+        const krisTD = shipTR.querySelector('.kristallVariable');
+        const frubTD = shipTR.querySelector('.frubinVariable');
+        const oriTD = shipTR.querySelector('.orizinVariable');
+        const fruroTD = shipTR.querySelector('.frurozinVariable');
+        const goldTD = shipTR.querySelector('.goldVariable');
+        const goButton = siteWindow.document.querySelector(`#RedColumDefence${shipID} button`);
+
+        addProductionCalculator(
+          el,
+          [
+            feTD, krisTD, frubTD, oriTD, fruroTD, goldTD,
+          ],
+          goButton,
+          siteWindow.document.querySelector(`input[id$='_${shipID}']`),
+          'value',
+          el.getAttribute('onclick').match(/subNumber/) !== null,
+        );
+      });
+
       config.loadStates.content = false;
     }).catch((e) => {
       Sentry.captureException(e);
@@ -171,6 +200,15 @@ const pageTweaks = {
       });
 
       replaceElementsHtmlWithIcon(lwmJQ('button[onclick*=\'recycleDefence\']'), 'fas fa-2x fa-plus-circle');
+
+      siteWindow.document.querySelectorAll('input[id*=\'number_input_defence\']').forEach((input, i) => {
+        const matches = input.getAttribute('id').match(/\d+/g);
+        const shipID = parseInt(matches[0], 10);
+        input.addEventListener('change', () => {
+          siteWindow.changeResourceDefence(shipID, input.value, i);
+        });
+      });
+
       config.loadStates.content = false;
     }).catch((e) => {
       Sentry.captureException(e);
@@ -188,6 +226,58 @@ const pageTweaks = {
       });
 
       addIconToHtmlElements(siteWindow.document.querySelectorAll('button[onclick*=\'upgradeDefenceFunction\']'), 'fas fa-2x fa-arrow-alt-circle-up');
+
+      // add filter table
+      const filterWrapper = createElementFromHTML('<div id="upgrade_ship_filters" class="tableFilters"><div class="tableFilters_header">Filter</div><div class="tableFilters_content"></div></div>');
+      const percentageFilterInput = createElementFromHTML('<input type="number" id="lwm_percentageFilter" value="0" min="0" max="100" step="1" />');
+      const percentageFilterLabel = createElementFromHTML('<label for="lwm_percentageFilter">Show upgrade percentages over:&nbsp;</label>');
+
+      percentageFilterInput.addEventListener('change', () => {
+        siteWindow.document.querySelectorAll('.UpdateTD, tr.redBackground > td:first-child').forEach((td) => {
+          const percentage = parseInt(td.innerText.match(/\d+/)[0], 10);
+          const value = parseInt(percentageFilterInput.value, 10);
+          if (percentage < value) {
+            td.parentNode.style.display = 'none';
+            td.parentNode.nextSibling.style.display = 'none';
+            td.parentNode.previousSibling.style.display = 'none';
+            td.parentNode.previousSibling.previousSibling.style.display = 'none';
+          } else {
+            td.parentNode.style.display = 'table-row';
+            td.parentNode.nextSibling.style.display = 'table-row';
+            td.parentNode.previousSibling.style.display = 'table-row';
+            td.parentNode.previousSibling.previousSibling.style.display = 'table-row';
+          }
+        });
+      });
+
+      docQuery('#upgradeDefenceDiv').parentNode.insertBefore(filterWrapper, docQuery('#upgradeDefenceDiv'));
+      filterWrapper.querySelector('.tableFilters_content').appendChild(percentageFilterLabel);
+      filterWrapper.querySelector('.tableFilters_content').appendChild(percentageFilterInput);
+
+      // recalculate upgrade res
+      siteWindow.document.querySelectorAll('[onclick*=\'addNumberUpgradeDefence\'],[onclick*=\'subNumberUpgradeDefence\']').forEach((el) => {
+        const matches = el.getAttribute('onclick').match(/\d+/g);
+        const shipID = parseInt(matches[0], 10);
+        const shipTR = siteWindow.document.querySelectorAll(`[class*='${shipID}']`).item(1).nextSibling.nextSibling;
+        const feTD = shipTR.querySelector('.roheisenVariable');
+        const krisTD = shipTR.querySelector('.kristallVariable');
+        const frubTD = shipTR.querySelector('.frubinVariable');
+        const oriTD = shipTR.querySelector('.orizinVariable');
+        const fruroTD = shipTR.querySelector('.frurozinVariable');
+        const goldTD = shipTR.querySelector('.goldVariable');
+        const goButton = shipTR.querySelector('button');
+
+        addProductionCalculator(
+          el,
+          [
+            feTD, krisTD, frubTD, oriTD, fruroTD, goldTD,
+          ],
+          goButton,
+          siteWindow.document.querySelector(`input[id$='_${shipID}']`),
+          'value',
+          el.classList.contains('fa-angle-left') || el.classList.contains('arrow-left-recycle'),
+        );
+      });
 
       config.loadStates.content = false;
     }).catch((e) => {

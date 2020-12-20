@@ -1,30 +1,22 @@
 import { siteWindow } from 'config/globals';
 
-const addProductionCalculator = (el, resCells, goButton, quantityElement, quantityProperty, isSub = false) => {
-  let currentNumber = parseInt(quantityElement[quantityProperty], 10);
+const addProductionCalculator = (el, resCells, goButton, quantityElement, quantityProperty) => {
+  const baseFe = parseInt(resCells[0].innerText.replace('.', ''), 10);
+  const baseKris = parseInt(resCells[1].innerText.replace('.', ''), 10);
+  const baseFrub = parseInt(resCells[2].innerText.replace('.', ''), 10);
+  const baseOri = parseInt(resCells[3].innerText.replace('.', ''), 10);
+  const baseFruro = parseInt(resCells[4].innerText.replace('.', ''), 10);
+  const baseGold = parseInt(resCells[5].innerText.replace('.', ''), 10);
   const addListener = () => {
-    if (currentNumber === parseInt(quantityElement[quantityProperty], 10)) {
-      return;
-    }
-    currentNumber = parseInt(quantityElement[quantityProperty], 10);
+    let currentNumber = parseInt(quantityElement[quantityProperty], 10);
+    if (currentNumber < 1) currentNumber = 1;
 
-    let nextNumber; let curNumber;
-    if (!isSub) {
-      nextNumber = parseInt(quantityElement[quantityProperty], 10);
-      curNumber = nextNumber - 1;
-      curNumber = curNumber === 0 ? 1 : curNumber;
-    } else {
-      nextNumber = parseInt(quantityElement[quantityProperty], 10);
-      curNumber = nextNumber + 1;
-      nextNumber = nextNumber === 0 ? 1 : nextNumber;
-    }
-
-    const fe = parseInt((parseInt(resCells[0].innerText.replace('.', ''), 10) / curNumber) * nextNumber, 10);
-    const kris = parseInt((parseInt(resCells[1].innerText.replace('.', ''), 10) / curNumber) * nextNumber, 10);
-    const frub = parseInt((parseInt(resCells[2].innerText.replace('.', ''), 10) / curNumber) * nextNumber, 10);
-    const ori = parseInt((parseInt(resCells[3].innerText.replace('.', ''), 10) / curNumber) * nextNumber, 10);
-    const fruro = parseInt((parseInt(resCells[4].innerText.replace('.', ''), 10) / curNumber) * nextNumber, 10);
-    const gold = parseInt((parseInt(resCells[5].innerText.replace('.', ''), 10) / curNumber) * nextNumber, 10);
+    const fe = baseFe * currentNumber;
+    const kris = baseKris * currentNumber;
+    const frub = baseFrub * currentNumber;
+    const ori = baseOri * currentNumber;
+    const fruro = baseFruro * currentNumber;
+    const gold = baseGold * currentNumber;
 
     resCells[0].classList.toggle('noResource', fe > siteWindow.Roheisen);
     resCells[1].classList.toggle('noResource', kris > siteWindow.Kristall);
@@ -54,6 +46,11 @@ const addProductionCalculator = (el, resCells, goButton, quantityElement, quanti
     resCells[4].innerHTML = siteWindow.jQuery.number(fruro, 0, ',', '.');
     resCells[5].innerHTML = siteWindow.jQuery.number(gold, 0, ',', '.');
   };
+
+  if (quantityProperty === 'value' && !quantityElement.getAttribute('data-prod-calc')) {
+    quantityElement.addEventListener('change', addListener);
+    quantityElement.setAttribute('data-prod-calc', true);
+  }
 
   el.addEventListener('click', addListener);
 };
