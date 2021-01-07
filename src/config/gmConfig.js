@@ -182,6 +182,13 @@ export default () => gmConfig.init(
               type: 'checkbox',
               default: false,
             },
+          construction_buildingcountdown:
+            {
+              label: 'CONSTRUCTION: Show building countdowns when there are not enough res to build something.',
+              labelPos: 'right',
+              type: 'checkbox',
+              default: false,
+            },
           message_spylinks:
             {
               label: 'MESSAGES: Show direct links to spy and combat reports in message lists (WARNING: This marks all reports as read on first visit).',

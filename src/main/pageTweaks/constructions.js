@@ -31,7 +31,7 @@ export default () => {
       }
     });
 
-    if (parseInt(siteWindow.BuildingNumber, 10) === 0 && parseInt(siteWindow.BuildingNumber2, 10) === 0) {
+    if (parseInt(siteWindow.BuildingNumber, 10) === 0 && parseInt(siteWindow.BuildingNumber2, 10) === 0 && gmConfig.get('construction_buildingcountdown')) {
       const resPerHour = siteWindow.getResourcePerHour()[0];
       doc.querySelectorAll('.defaultButton').forEach((el, i) => {
         let remainingSec = null;
