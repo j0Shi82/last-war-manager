@@ -87,6 +87,7 @@ const config = {
   },
   lwm: {
     lastTradeCoords: {},
+    lastTradeValues: {},
     lastFleetCoords: {},
     productionFilters: {},
     hiddenShips: {},
@@ -102,6 +103,7 @@ const config = {
       const driveActive = gmConfig.get('confirm_drive_sync');
 
       config.lwm.lastTradeCoords = {};
+      config.lwm.lastTradeValues = {};
       config.lwm.lastFleetCoords = {};
       config.lwm.productionFilters = {};
       config.lwm.hiddenShips = {};
@@ -120,6 +122,7 @@ const config = {
 
     set: (data) => {
       if (typeof data.lastTradeCoords !== 'undefined') config.lwm.lastTradeCoords = data.lastTradeCoords;
+      if (typeof data.lastTradeValues !== 'undefined') config.lwm.lastTradeValues = data.lastTradeValues;
       if (typeof data.lastFleetCoords !== 'undefined') config.lwm.lastFleetCoords = data.lastFleetCoords;
       if (typeof data.productionFilters !== 'undefined') config.lwm.productionFilters = data.productionFilters;
       if (typeof data.hiddenShips !== 'undefined') config.lwm.hiddenShips = data.hiddenShips;
@@ -138,6 +141,7 @@ const config = {
 
       // set and get to sync
       gmSetValue('lwm_lastTradeCoords', JSON.stringify(config.lwm.lastTradeCoords));
+      gmSetValue('lwm.lastTradeValues', JSON.stringify(config.lwm.lastTradeValues));
       gmSetValue('lwm_lastFleetCoords', JSON.stringify(config.lwm.lastFleetCoords));
       gmSetValue('lwm_productionFilters', JSON.stringify(config.lwm.productionFilters));
       gmSetValue('lwm_hiddenShips', JSON.stringify(config.lwm.hiddenShips));
@@ -180,7 +184,7 @@ const config = {
 
       if (typeof config.lwm[settingName][config.gameData.playerID][config.gameData.planetCoords.string] === 'undefined') config.lwm[settingName][config.gameData.playerID][config.gameData.planetCoords.string] = [];
     };
-
+    
     gmGetValue('lwm_lastTradeCoords', '{}').then((data) => {
       try { config.lwm.lastTradeCoords = JSON.parse(data); } catch (e) { config.lwm.lastTradeCoords = {}; }
       checkConfigPerCoordsSetup('lastTradeCoords');
@@ -188,6 +192,15 @@ const config = {
         config.lwm.lastTradeCoords[config.gameData.playerID][config.gameData.planetCoords.string].length = gmConfig.get('coords_trades');
       }
       gmSetValue('lwm_lastTradeCoords', JSON.stringify(config.lwm.lastTradeCoords));
+
+      return gmGetValue('lwm_lastTradeValues', '{}');
+    }).then((data) => {
+      try { config.lwm.lastTradeValues = JSON.parse(data); } catch (e) { config.lwm.lastTradeValues = {}; }
+      checkConfigPerCoordsSetup('lastTradeValues');
+      if (config.lwm.lastTradeValues[config.gameData.playerID][config.gameData.planetCoords.string].length > gmConfig.get('coords_trades')) {
+        config.lwm.lastTradeValues[config.gameData.playerID][config.gameData.planetCoords.string].length = gmConfig.get('coords_trades');
+      }
+      gmSetValue('lwm_lastTradeValues', JSON.stringify(config.lwm.lastTradeValues));
 
       return gmGetValue('lwm_lastFleetCoords', '{}');
     }).then((data) => {

@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          Last War Manager
-// @author        j0Shi <psycho.j0shi@gmail.com>
+// @author        j0Shi <psycho.j0shi@gmail.com> (Patch 1.3.3.2 save last tradeValues by FosCo)
 // @namespace     https://github.com/j0Shi82/
 // @homepageURL   https://github.com/j0Shi82/last-war-manager
 // @description   Some tweaking to the Last War UI and environment
@@ -18,5 +18,5 @@
 // @grant         GM_getValue
 // @grant         GM_setValue
 // @run-at        document-start
-// @version       1.3.3
+// @version       1.3.3.2
 // ==/UserScript==

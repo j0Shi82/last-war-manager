@@ -24,7 +24,9 @@ export default () => {
     lastTR.querySelector('td:nth-child(1)').style.display = 'none';
     lastTR.querySelector('td:nth-child(2)').setAttribute('colspan', '4');
     const divSave = createElementFromHTML('<div class="lwm-trade-coords" style=\'width:100%\'></div>');
+    const divSaveValues = createElementFromHTML('<div class="lwm-trade-values" style=\'width:100%\'></div>');
     lastTR.querySelector('td:nth-child(2)').appendChild(divSave);
+    lastTR.querySelector('td:nth-child(2)').appendChild(divSaveValues);
     lastTR.querySelector('td:nth-child(2)').appendChild(createElementFromHTML('<div class="buttonRow lwm-buttonRow2" style="width: 100%; margin-left: 0;"></div>'));
     lastTR.querySelector('.lwm-buttonRow2').appendChild(docQuery('.formButtonNewMessage'));
 
@@ -63,6 +65,20 @@ export default () => {
           savedCoords.length = gmConfig.get('coords_trades');
         }
         gmSetValue('lwm_lastTradeCoords', JSON.stringify(config.lwm.lastTradeCoords));
+        if (gmConfig.get('confirm_drive_sync')) driveManager.save();
+      }
+    });
+
+    // save values in lastused config
+    const savedValues = config.lwm.lastTradeValues[config.gameData.playerID][config.gameData.planetCoords.string];
+    docQuery('[onclick*=\'submitNewOfferTrade\']').addEventListener('click', () => {
+      const tradeValues = [parseInt(docQuery('#my_eisen').value, 10), parseInt(docQuery('#my_kristall').value, 10), parseInt(docQuery('#my_frubin').value, 10), parseInt(docQuery('#my_orizin').value, 10), parseInt(docQuery('#my_frurozin').value, 10), parseInt(docQuery('#my_gold').value, 10)];
+      if (!savedValues.includes(`${tradeValues[0]}-${tradeValues[1]}-${tradeValues[2]}-${tradeValues[3]}-${tradeValues[4]}-${tradeValues[5]}`)) {
+        savedValues.unshift(`${tradeValues[0]}-${tradeValues[1]}-${tradeValues[2]}-${tradeValues[3]}-${tradeValues[4]}-${tradeValues[5]}`);
+        if (savedValues.length > gmConfig.get('coords_trades')) {
+          savedValues.length = gmConfig.get('coords_trades');
+        }
+        gmSetValue('lwm_lastTradeValues', JSON.stringify(config.lwm.lastTradeValues));
         if (gmConfig.get('confirm_drive_sync')) driveManager.save();
       }
     });
@@ -170,6 +186,21 @@ export default () => {
     linksSave.forEach((l, i) => {
       divSave.appendChild(l);
       divSave.appendChild(i !== linksSave.length - 1 ? createElementFromHTML('&nbsp;-&nbsp;') : createElementFromHTML('<div></div>'));
+    });
+
+    // add div with saved tradeValues
+    const linksSaveValues = [];
+    savedValues.forEach((tradeValues) => {
+      const linkValue = createElementFromHTML(`<a href='javascript:void(0)'>${tradeValues}</a>`);
+      linkValue.addEventListener('click', () => {
+        [docQuery('#my_eisen').value, docQuery('#my_kristall').value, docQuery('#my_frubin').value, docQuery('#my_orizin').value, docQuery('#my_frurozin').value, docQuery('#my_gold').value] = tradeValues.split('-');
+        docQuery('#his_eisen').value = '1';
+      });
+      linksSaveValues.push(linkValue);
+    });
+    linksSaveValues.forEach((l, i) => {
+      divSaveValues.appendChild(l);
+      divSaveValues.appendChild(i !== linksSaveValues.length - 1 ? createElementFromHTML('<br />') : createElementFromHTML('<div></div>'));
     });
 
     config.loadStates.content = false;
