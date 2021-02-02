@@ -28,6 +28,11 @@ export default {
     config.promises.submenu = getLoadStatePromise('content');
     config.promises.submenu.then(() => {
       lwmJQ('#link .navButton, #veticalLink .navButton').each((i, el) => {
+        // remove acceptAllTradeOffers, because syntax is out of general concept and leads to exception
+        if(lwmJQ(el).attr('onclick').match(/acceptAllTradeOffers\(\)\;/)){
+          lwmJQ(el).remove(); 
+          return true;
+        }
         lwmJQ(el).attr('data-page', lwmJQ(el).attr('onclick').match(/('|")([a-z0-9A-Z_]*)('|")/)[2]);
         // check if items can be skipped
         if (ignoreItems[page] && ignoreItems[page].includes(lwmJQ(el).attr('data-page'))) {

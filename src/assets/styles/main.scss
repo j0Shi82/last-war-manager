@@ -1233,6 +1233,13 @@ td.constructionName,
     }
   }
 }
+@media (max-width: 850px) {
+  #newTradeOfferDiv {
+    .lwm-trade-values {
+      font-size: 1.5em;
+    }
+  }
+}
 
 #newTradeOfferDiv th input:nth-child(1) {
   width: 25px !important;
