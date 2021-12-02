@@ -5,7 +5,6 @@ import gmConfig from 'plugins/GM_config';
 import { Sentry } from 'plugins/sentry';
 import { getPageLoadPromise } from 'utils/loadPromises';
 import config from 'config/lwmConfig';
-import { setDataForClocks } from 'utils/helper';
 import { changePlanet } from 'utils/requests';
 import uninstall from 'main/index';
 import tweakTooltips from 'global/tooltips';
@@ -152,25 +151,6 @@ export default () => {
       $button.attr('onclick', $button.attr('data-onclick'));
     });
   });
-
-  // rewrite clock functions so we can kill timers
-  //
-  if (gmConfig.get('addon_clock')) {
-    const clocks = ['initializeAktuelleProduktionClock', 'initializeClock', 'initializeClock2', 'initializeResearchClock', 'initializeUberClock', 'initializeFlottenbewegungenClock'];
-    clocks.forEach((clock) => {
-      const oldClock = siteWindow[clock];
-      siteWindow[clock] = (idTr, idTd, idTime, totalSecounds, secounds, constructionNumber) => {
-        oldClock(idTr, idTd, idTime, totalSecounds, secounds, constructionNumber);
-        clearInterval(siteWindow.timeinterval_construction);
-        clearInterval(siteWindow.timeinterval_construction2);
-        clearInterval(siteWindow.timeinterval_research);
-        clearInterval(siteWindow.timeinterval_uber);
-        clearInterval(siteWindow.timeinterval_aktuelle_produktion);
-        clearInterval(siteWindow.timeinterval_flottenbewegungen);
-        setDataForClocks();
-      };
-    });
-  }
 
   // register events to navigate with arrow keys
   lwmJQ(document).keyup((event) => {

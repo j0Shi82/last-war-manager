@@ -15,6 +15,7 @@ import { getLoadStatePromise } from 'utils/loadPromises';
 import submenu from 'main/submenu';
 import process from 'main/process';
 import uiChanges from 'global/uiChanges';
+import logicChanges from 'global/logicChanges';
 import gmConfig from 'plugins/GM_config';
 import initGmConfig from 'config/gmConfig';
 import hotkeySetup from 'global/hotkeySetup';
@@ -60,6 +61,7 @@ const installMain = () => {
     siteWindow.jQuery.ajaxSetup({ cache: true });
 
     uiChanges();
+    logicChanges();
 
     // set google drive load state to true here so other can listen to it
     config.loadStates.gdrive = true;
