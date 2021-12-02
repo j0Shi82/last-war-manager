@@ -1,6 +1,6 @@
 {
   "name": "last-war-manager",
-  "version": "1.2.1",
+  "version": "1.3.4",
   "description": "Some tweaking to the Last War UI and environment",
   "repository": "https://github.com/j0Shi82/last-war-manager.git",
   "author": "j0Shi82 <janosch.ferda@e-domizil.de>",
@@ -12,35 +12,31 @@
     "addTmMeta": "node src/scripts/tamperMonkeyPrepend.js"
   },
   "devDependencies": {
-    "@babel/core": "^7.12.10",
-    "@babel/plugin-transform-runtime": "^7.12.10",
-    "@babel/preset-env": "^7.12.11",
-    "babel-loader": "^8.2.2",
-    "css-loader": "^5.0.1",
-    "eslint": "^7.17.0",
-    "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-plugin-import": "^2.22.1",
-    "node-sass": "^5.0.0",
-    "npm-check-updates": "^10.2.5",
-    "sass-loader": "^10.1.0",
-    "style-loader": "^2.0.0",
-    "webpack-cli": "^4.3.1"
+    "@babel/core": "^7.16.0",
+    "@babel/plugin-transform-runtime": "^7.16.4",
+    "@babel/preset-env": "^7.16.4",
+    "babel-loader": "^8.2.3",
+    "css-loader": "^6.5.1",
+    "eslint": "7.32.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.25.3",
+    "node-sass": "^6.0.1",
+    "npm-check-updates": "^12.0.2",
+    "sass-loader": "^12.3.0",
+    "style-loader": "^3.3.1",
+    "webpack-cli": "^4.9.1"
   },
   "dependencies": {
-    "@babel/runtime": "^7.12.5",
-    "@sentry/browser": "^5.29.2",
-    "dayjs": "^1.10.2",
-    "hotkeys-js": "^3.8.1",
-    "jquery": "^3.5.1",
-    "localforage": "^1.9.0",
+    "@babel/runtime": "^7.16.3",
+    "@sentry/browser": "^6.15.0",
+    "dayjs": "^1.10.7",
+    "hotkeys-js": "^3.8.7",
+    "jquery": "^3.6.0",
+    "localforage": "^1.10.0",
     "moment": "^2.29.1",
     "moment-duration-format": "^2.3.2",
     "numeral": "^2.0.6",
-    "webpack": "^5.11.1",
-    "worker-timers": "^7.0.8"
-  },
-  "resolutions": {
-    "minimist": "^1.2.5",
-    "ini": "^1.3.8"
+    "webpack": "^5.64.4",
+    "worker-timers": "^7.0.42"
   }
 }
