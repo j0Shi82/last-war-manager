@@ -28,7 +28,10 @@ export default {
     config.promises.submenu = getLoadStatePromise('content');
     config.promises.submenu.then(() => {
       lwmJQ('#link .navButton, #veticalLink .navButton').each((i, el) => {
-        lwmJQ(el).attr('data-page', lwmJQ(el).attr('onclick').match(/('|")([a-z0-9A-Z_]*)('|")/)[2]);
+        let m = lwmJQ(el).attr('onclick').match(/('|")([a-z0-9A-Z_]*)('|")/);
+        if(m) {
+          lwmJQ(el).attr('data-page', m[2]);
+        }
         // check if items can be skipped
         if (ignoreItems[page] && ignoreItems[page].includes(lwmJQ(el).attr('data-page'))) {
           lwmJQ(el).remove();
