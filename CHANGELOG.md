@@ -1,5 +1,13 @@
 # Changelog
 
+## v.1.3.4 - 1.3.5
+
+- **FEATURES**
+  - Deactivate inactivity popup that informs users of a page reload
+
+- **BUGFIX**
+  - Added check on regular expression, that fails on acceptAllTradeOffers() (thanks to @FQS-0)
+
 ## v.1.3.x
 
 - **FEATURES**
