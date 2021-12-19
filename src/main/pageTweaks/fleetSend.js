@@ -68,15 +68,17 @@ const sendFleetTimeRequest = (speed, type = 'send') => {
     id_flote: siteWindow.flotten_informations_infos.id_flote,
     speed,
   }, (data) => {
+    data = JSON.parse(data);
+
     if (type === 'send') {
-      siteWindow.flotten_informations_infos.send_time = data;
+      siteWindow.flotten_informations_infos.send_time = data.time_sec;
       siteWindow.flotten_informations_infos.speed_send = speed;
     } else {
-      siteWindow.flotten_informations_infos.back_time = data;
+      siteWindow.flotten_informations_infos.back_time = data.time_sec;
       siteWindow.flotten_informations_infos.speed_back = speed;
     }
 
-    let seconds = parseInt(data, 10);
+    let seconds = parseInt(data.time_sec, 10);
 
     let hours = Math.floor(seconds / 3600);
     seconds -= hours * 3600;
@@ -100,7 +102,18 @@ const sendFleetTimeRequest = (speed, type = 'send') => {
     } else {
       siteWindow.jQuery('#backTime').text(`Flugzeit: ${hours}:${minutes}:${seconds} Stunden`);
     }
+
+    updateSendAndBackTime();
   });
+};
+
+const updateSendAndBackTime = () => {
+    let now = new Date();
+    let sendTime = new Date(now.getTime() + flotten_informations_infos.send_time * 1000);
+    let backTime = new Date(sendTime.getTime() + flotten_informations_infos.back_time * 1000);
+
+    siteWindow.jQuery('#sendTimeString').text(`Ankunft: ${sendTime.toLocaleTimeString('de-DE')} Uhr`);
+    siteWindow.jQuery('#backTimeString').text(`Rückkehr: ${backTime.toLocaleTimeString('de-DE')} Uhr`);
 };
 
 const addOptionsToTimeSelect = (selectEl, minDate, maxDate) => {
