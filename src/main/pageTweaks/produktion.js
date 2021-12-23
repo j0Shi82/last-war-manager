@@ -134,9 +134,11 @@ export default () => {
 
     // recalculate upgrade res
     siteWindow.document.querySelectorAll('[onclick*=\'addNumber\'],[onclick*=\'subNumber\']').forEach((el) => {
-      const matches = el.getAttribute('onclick').match(/\d+/g);
-      const shipID = parseInt(matches[1], 10);
-      const shipTR = siteWindow.document.querySelectorAll(`[class*='${shipID}']`).item(1);
+      const matches = el.getAttribute('onclick').match(/\((\d+),\s*(\d+)\)/);
+      const shipID = parseInt(matches[2], 10);
+      const shipType = matches[1] == '1' ? 's' : 'd';
+      const shipTypeLong = matches[1] == '1' ? 'ship' : 'drone';
+      const shipTR = siteWindow.document.querySelectorAll(`[class*='${shipType}_${shipID}']`).item(1);
       const feTD = shipTR.querySelector('.roheisenVariable');
       const krisTD = shipTR.querySelector('.kristallVariable');
       const frubTD = shipTR.querySelector('.frubinVariable');
@@ -151,7 +153,7 @@ export default () => {
           feTD, krisTD, frubTD, oriTD, fruroTD, goldTD,
         ],
         goButton,
-        siteWindow.document.querySelector(`input[id$='_${shipID}']`),
+        siteWindow.document.querySelector(`input[id$='_${shipTypeLong}_${shipID}']`),
         'value',
         el.getAttribute('onclick').match(/subNumber/) !== null,
       );
