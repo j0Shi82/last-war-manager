@@ -33,7 +33,7 @@
     "hotkeys-js": "^3.8.7",
     "jquery": "^3.6.0",
     "localforage": "^1.10.0",
-    "moment": "^2.29.1",
+    "moment": "^2.29.2",
     "moment-duration-format": "^2.3.2",
     "numeral": "^2.0.6",
     "webpack": "^5.64.4",
